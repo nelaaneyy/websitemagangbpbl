@@ -18,8 +18,8 @@
                     <i class="fa-solid fa-id-card"></i>
                 </div>
                 <div>
-                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Cek Status Berkas Pendaftaran NIK</h2>
-                    <p class="text-xs text-slate-500 font-medium">Masukkan 16 digit Nomor Induk Kependudukan (NIK) Anda untuk melacak posisi bantuan</p>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Cek Status Pendaftaran BPBL</h2>
+                    <p class="text-xs text-slate-500 font-medium">Masukkan 16 digit Nomor Induk Kependudukan (NIK) Anda untuk melacak status bantuan</p>
                 </div>
             </div>
 
@@ -30,14 +30,16 @@
                         <div class="relative flex-1">
                             <input type="text" id="search_nik_input" name="nik" value="{{ $nik ?? '' }}" maxlength="16" required
                                    placeholder="Contoh: 150101XXXXXXXXXX"
-                                   class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border @error('nik') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-2xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm font-semibold text-slate-900 transition">
+                                   class="w-full pl-11 pr-10 py-3.5 bg-slate-50 border @error('nik') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-2xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm font-semibold text-slate-900 transition">
                             <i class="fa-solid fa-fingerprint absolute left-4 top-4 text-slate-400 text-base"></i>
+                            <div id="search-nik-status-icon" class="absolute right-3.5 top-4 hidden"></div>
                         </div>
                         <button type="submit" class="px-8 py-3.5 bg-slate-900 hover:bg-slate-800 text-amber-400 font-extrabold text-sm rounded-2xl shadow-md transition flex items-center justify-center gap-2 border border-slate-800 cursor-pointer">
                             <i class="fa-solid fa-magnifying-glass"></i>
                             Lacak Berkas
                         </button>
                     </div>
+                    <div id="search-nik-feedback" class="text-xs font-semibold mt-1 hidden"></div>
                     @error('nik')
                         <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p>
                     @enderror
@@ -90,8 +92,8 @@
                     <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
                         <!-- Tombol Unduh Bukti PDF -->
                         <a href="{{ route('warga.bukti.pdf', ['nik' => $warga->nik]) }}"
-                           class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-extrabold rounded-xl transition shadow-sm border border-slate-800">
-                            <i class="fa-solid fa-file-pdf text-rose-400 text-sm"></i>
+                           class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl shadow-xs transition">
+                            <i class="fa-solid fa-file-pdf text-slate-900 text-sm"></i>
                             <span>Unduh Bukti PDF</span>
                         </a>
 
@@ -261,5 +263,62 @@
 
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchNikInput = document.getElementById('search_nik_input');
+    const statusIcon = document.getElementById('search-nik-status-icon');
+    const feedbackText = document.getElementById('search-nik-feedback');
+
+    if (searchNikInput) {
+        function validateSearchNik() {
+            // Filter numbers only
+            searchNikInput.value = searchNikInput.value.replace(/[^0-9]/g, '');
+            const val = searchNikInput.value;
+
+            if (val.length === 0) {
+                if (statusIcon) statusIcon.className = 'absolute right-3.5 top-4 hidden';
+                if (feedbackText) {
+                    feedbackText.className = 'text-xs font-semibold mt-1 hidden';
+                    feedbackText.innerHTML = '';
+                }
+                searchNikInput.classList.remove('border-emerald-500', 'border-rose-400', 'ring-2', 'ring-emerald-500/20', 'ring-rose-400/20');
+                return;
+            }
+
+            if (val.length === 16) {
+                if (statusIcon) {
+                    statusIcon.className = 'absolute right-3.5 top-3.5 text-emerald-500 text-base font-bold flex items-center';
+                    statusIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                }
+                if (feedbackText) {
+                    feedbackText.className = 'text-xs font-bold mt-1.5 text-emerald-600 flex items-center gap-1';
+                    feedbackText.innerHTML = '<i class="fa-solid fa-circle-check"></i> Format NIK Valid (16 Digit Lengkap)';
+                }
+                searchNikInput.classList.remove('border-rose-400', 'ring-rose-400/20');
+                searchNikInput.classList.add('border-emerald-500', 'ring-2', 'ring-emerald-500/20');
+            } else {
+                if (statusIcon) {
+                    statusIcon.className = 'absolute right-3.5 top-3.5 text-rose-500 text-base font-bold flex items-center';
+                    statusIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                }
+                if (feedbackText) {
+                    feedbackText.className = 'text-xs font-bold mt-1.5 text-rose-600 flex items-center gap-1';
+                    feedbackText.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> NIK kurang dari 16 digit (${val.length}/16 digit)`;
+                }
+                searchNikInput.classList.remove('border-emerald-500', 'ring-emerald-500/20');
+                searchNikInput.classList.add('border-rose-400', 'ring-2', 'ring-rose-400/20');
+            }
+        }
+
+        searchNikInput.addEventListener('input', validateSearchNik);
+        searchNikInput.addEventListener('keyup', validateSearchNik);
+        searchNikInput.addEventListener('blur', validateSearchNik);
+        if (searchNikInput.value) validateSearchNik();
+    }
+});
+</script>
+@endpush
 @endsection
 

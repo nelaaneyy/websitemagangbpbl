@@ -3,7 +3,7 @@
 @section('content')
 <div class="py-16 bg-slate-50/70 min-h-[75vh] flex items-center justify-center">
     <div class="max-w-md w-full mx-4">
-        
+
         <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden space-y-8 p-8 sm:p-10">
             <!-- Header Branding -->
             <div class="text-center space-y-3">
@@ -11,8 +11,7 @@
                     <i class="fa-solid fa-user-shield text-amber-400"></i>
                 </div>
                 <div>
-                    <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Portal Login Petugas</h2>
-                    <p class="text-xs text-slate-500 mt-1">Akses khusus Kepala Desa & Verifikator Dinas ESDM</p>
+                    <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Masuk Sebagai Petugas</h2>
                 </div>
             </div>
 
@@ -39,7 +38,7 @@
 
             <form class="space-y-5" method="POST" action="{{ route('login.submit') }}">
                 @csrf
-                
+
                 <div class="space-y-2">
                     <label for="email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Alamat Email Resmi</label>
                     <div class="relative">
@@ -51,7 +50,7 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label for="password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Kata Sandi / Password</label>
+                    <label for="password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Kata Sandi</label>
                     <div class="relative">
                         <input id="password" name="password" type="password" required
                             class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition"
@@ -67,19 +66,21 @@
                     </label>
                 </div>
 
-                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-extrabold text-sm rounded-xl shadow-lg shadow-blue-700/25 transition-all flex items-center justify-center gap-2">
+                <button type="submit" class="w-full py-3.5 bg-linear-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-extrabold text-sm rounded-xl shadow-lg shadow-blue-700/25 transition-all flex items-center justify-center gap-2">
                     <i class="fa-solid fa-right-to-bracket text-amber-300"></i>
-                    <span>Masuk Ke Panel Kontrol</span>
+                    <span>Masuk</span>
                 </button>
             </form>
 
-            <div class="pt-4 border-t border-slate-100 text-center">
-                <p class="text-xs text-slate-500 font-medium">
+            <div class="pt-4 border-t border-slate-300 text-center space-y-3">
+                <p class="text-xs text-slate-700 font-medium">
                     Belum memiliki akun Kepala Desa?
-                    <a href="{{ route('register.desa') }}" class="font-extrabold text-blue-700 hover:underline block sm:inline mt-1 sm:mt-0">
-                        Daftar Akun Desa &rarr;
-                    </a>
                 </p>
+                <a href="{{ route('register.desa') }}"
+                   class="w-full py-3.5 bg-linear-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-extrabold text-sm rounded-xl shadow-lg shadow-blue-700/25 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-plus text-amber-300"></i>
+                    <span>Daftar Akun Desa</span>
+                </a>
             </div>
         </div>
 

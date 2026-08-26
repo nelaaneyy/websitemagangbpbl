@@ -16,7 +16,7 @@
         body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 via-slate-50 to-blue-50/50 text-slate-900 min-h-screen flex flex-col justify-between antialiased selection:bg-amber-500 selection:text-slate-950" x-data="{ mobileMenu: false }">
+<body class="bg-linear-to-br from-slate-50 via-slate-50 to-blue-50/50 text-slate-900 min-h-screen flex flex-col justify-between antialiased selection:bg-amber-500 selection:text-slate-950" x-data="{ mobileMenu: false }">
 
     <!-- Top Utility Announcement & Call Center Bar -->
     <div class="bg-slate-900 text-white text-xs py-2 px-4 border-b border-slate-800">
@@ -72,11 +72,66 @@
                         </a>
 
                         @auth
-                            <a href="{{ auth()->user()->role === 'kepala_desa' ? route('kepaladesa.index') : route('dinasesdm.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl transition-all shadow-xs">
-                                <i class="fa-solid fa-gauge-high text-amber-400"></i> Portal Petugas ({{ auth()->user()->role === 'instansi' ? 'ESDM' : 'Kades' }})
-                            </a>
+                            <!-- User Profile Dropdown Pill (Alpine.js) -->
+                            <div class="relative" x-data="{ userMenuOpen: false }">
+                                <button @click.stop="userMenuOpen = !userMenuOpen" @click.away="userMenuOpen = false" type="button" class="flex items-center gap-2.5 p-1.5 pl-2 text-xs font-semibold text-slate-800 hover:bg-slate-100 rounded-2xl transition border border-slate-200 bg-white shadow-2xs cursor-pointer">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-blue-700 to-indigo-700 text-white rounded-xl flex items-center justify-center font-extrabold text-sm shadow-xs">
+                                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                    </div>
+                                    <div class="hidden sm:block text-left pr-1">
+                                        <span class="block text-xs font-bold text-slate-900 leading-tight truncate max-w-[140px]">{{ auth()->user()->name }}</span>
+                                        <span class="block text-[10px] text-slate-500 font-medium capitalize">
+                                            @if(auth()->user()->role === 'kepala_desa')
+                                                Kepala Desa {{ auth()->user()->desa ? '('.auth()->user()->desa.')' : '' }}
+                                            @elseif(auth()->user()->role === 'verifikator_esdm')
+                                                Verifikator ESDM
+                                            @else
+                                                Super Admin ESDM
+                                            @endif
+                                        </span>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 px-1"></i>
+                                </button>
+
+                                <!-- Dropdown Menu -->
+                                <div x-cloak x-show="userMenuOpen"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="transform opacity-0 scale-95"
+                                     x-transition:enter-end="transform opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="transform opacity-100 scale-100"
+                                     x-transition:leave-end="transform opacity-0 scale-95"
+                                     class="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 py-2 divide-y divide-slate-100" @click.stop>
+                                    <div class="px-4 py-2.5">
+                                        <p class="text-xs font-extrabold text-slate-900 truncate">{{ auth()->user()->name }}</p>
+                                        <p class="text-[11px] text-slate-500 truncate mt-0.5">{{ auth()->user()->email }}</p>
+                                        <span class="mt-1.5 inline-block px-2 py-0.5 bg-blue-50 text-blue-800 text-[10px] font-extrabold rounded-md border border-blue-200">
+                                            @if(auth()->user()->role === 'kepala_desa')
+                                                Kepala Desa {{ auth()->user()->desa }}
+                                            @elseif(auth()->user()->role === 'verifikator_esdm')
+                                                Verifikator ESDM
+                                            @else
+                                                Super Admin ESDM
+                                            @endif
+                                        </span>
+                                    </div>
+                                    <div class="py-1 text-xs font-bold">
+                                        <a href="{{ auth()->user()->role === 'kepala_desa' ? route('kepaladesa.index') : (auth()->user()->role === 'verifikator_esdm' ? route('dinasesdm.datalist') : route('dinasesdm.index')) }}" class="px-4 py-2 text-slate-700 hover:bg-slate-50 transition flex items-center gap-2.5">
+                                            <i class="fa-solid fa-gauge-high text-blue-600"></i>
+                                            <span>Kembali ke Dasbor</span>
+                                        </a>
+                                        <form method="POST" action="{{ route('logout') }}" class="block">
+                                            @csrf
+                                            <button type="submit" class="w-full text-left px-4 py-2 text-rose-600 hover:bg-rose-50 transition flex items-center gap-2.5 font-bold cursor-pointer">
+                                                <i class="fa-solid fa-right-from-bracket"></i>
+                                                <span>Keluar Dari Panel</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         @else
-                            <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-bold text-xs rounded-xl transition-all">
+                            <a href="{{ url('/login') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-bold text-xs rounded-xl transition-all">
                                 <i class="fa-solid fa-user-lock text-slate-500"></i> Portal Petugas
                             </a>
                         @endauth
@@ -92,25 +147,38 @@
 
         <!-- Mobile Drawer Navigation -->
         <div x-cloak x-show="mobileMenu" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 shadow-xl space-y-2" @click.stop>
-            <a href="{{ route('warga.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-800 font-bold rounded-xl hover:bg-slate-50 transition">
+            <a href="{{ url ('/') }}" class="flex items-center gap-3 px-4 py-3 text-slate-800 font-bold rounded-xl hover:bg-slate-50 transition">
                 <i class="fa-solid fa-house text-amber-500 w-5 text-center"></i> Beranda
             </a>
-            <a href="{{ route('warga.index') }}#dashboard-elektrifikasi" class="flex items-center gap-3 px-4 py-3 text-slate-800 font-bold rounded-xl hover:bg-slate-50 transition">
-                <i class="fa-solid fa-chart-simple text-blue-600 w-5 text-center"></i> Realisasi
+            <a href="{{ url ('/') }}" class="flex items-center gap-3 px-4 py-3 text-slate-800 font-bold rounded-xl hover:bg-slate-50 transition">
+                <i class="fa-solid fa-chart-simple text-blue-600 w-5 text-center"></i> Realisasi Data
             </a>
-            <a href="{{ route('warga.search') }}" class="flex items-center gap-3 px-4 py-3 text-slate-800 font-bold rounded-xl hover:bg-slate-50 transition">
+            <a href="{{ url('/cek') }}" class="flex items-center gap-3 px-4 py-3 text-slate-800 font-bold rounded-xl hover:bg-slate-50 transition">
                 <i class="fa-solid fa-magnifying-glass text-amber-500 w-5 text-center"></i> Cek Status
             </a>
             <div class="pt-3 border-t border-slate-100 space-y-2">
-                <a href="{{ route('warga.pengajuan') }}" class="flex items-center justify-center gap-2 px-4 py-3 bg-amber-500 text-slate-950 font-extrabold rounded-xl shadow-xs transition">
+                <a href="{{ url('/input') }}" class="flex items-center justify-center gap-2 px-4 py-3 bg-amber-500 text-slate-950 font-extrabold rounded-xl shadow-xs transition">
                     <i class="fa-solid fa-paper-plane text-slate-950"></i> Daftar Calon Penerima
                 </a>
                 @auth
-                    <a href="{{ auth()->user()->role === 'kepala_desa' ? route('kepaladesa.index') : route('dinasesdm.index') }}" class="flex items-center justify-center gap-2 px-4 py-3 text-white bg-slate-900 rounded-xl font-bold transition">
-                        <i class="fa-solid fa-gauge-high text-amber-400"></i> Portal Petugas ({{ auth()->user()->name }})
-                    </a>
+                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-700 to-indigo-700 text-white rounded-xl flex items-center justify-center font-extrabold text-xs shadow-xs">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <span class="block text-xs font-bold text-slate-900 leading-tight truncate">{{ auth()->user()->name }}</span>
+                                <span class="block text-[10px] text-slate-500 font-medium capitalize">
+                                    {{ auth()->user()->role === 'kepala_desa' ? 'Kepala Desa ' . auth()->user()->desa : (auth()->user()->role === 'verifikator_esdm' ? 'Verifikator ESDM' : 'Super Admin ESDM') }}
+                                </span>
+                            </div>
+                        </div>
+                        <a href="{{ auth()->user()->role === 'kepala_desa' ? route('kepaladesa.index') : (auth()->user()->role === 'verifikator_esdm' ? route('dinasesdm.datalist') : route('dinasesdm.index')) }}" class="flex items-center justify-center gap-2 px-3 py-2 text-white bg-slate-900 rounded-xl text-xs font-bold transition">
+                            <i class="fa-solid fa-gauge-high text-amber-400"></i> Kembali ke Dasbor Admin
+                        </a>
+                    </div>
                 @else
-                    <a href="{{ route('login') }}" class="flex items-center justify-center gap-2 px-4 py-3 text-slate-700 border border-slate-300 rounded-xl font-bold hover:bg-slate-50 transition">
+                    <a href="{{ url('/login') }}" class="flex items-center justify-center gap-2 px-4 py-3 text-slate-700 border border-slate-300 rounded-xl font-bold hover:bg-slate-50 transition">
                         <i class="fa-solid fa-user-lock text-slate-500"></i> Portal Petugas
                     </a>
                 @endauth
@@ -147,10 +215,10 @@
                 <div class="space-y-3">
                     <h5 class="font-bold text-sm text-amber-400 uppercase tracking-wider">Layanan Publik</h5>
                     <ul class="space-y-2 text-xs text-slate-300 font-medium">
-                        <li><a href="{{ route('warga.pengajuan') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Pendaftaran Pasang Baru</a></li>
-                        <li><a href="{{ route('warga.search') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Lacak Status NIK Permohonan</a></li>
-                        <li><a href="{{ route('panduan.index') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Panduan & Syarat DTKS</a></li>
-                        <li><a href="{{ route('login') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Portal Verifikator ESDM & Desa</a></li>
+                        <li><a href="{{ url('/input') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Pendaftaran Pasang Baru</a></li>
+                        <li><a href="{{ url('/cek') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Lacak Status NIK Permohonan</a></li>
+                        <li><a href="{{ url('/panduan') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Panduan & Syarat DTKS</a></li>
+                        <li><a href="{{ url('/login') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Portal Verifikator ESDM & Desa</a></li>
                     </ul>
                 </div>
 
@@ -160,7 +228,7 @@
                     <ul class="space-y-2 text-xs text-slate-300 font-medium">
                         <li class="flex items-start gap-2">
                             <i class="fa-solid fa-location-dot text-amber-400 mt-0.5"></i>
-                            <span>Dinas Energi & Sumber Daya Mineral (ESDM)</span>
+                            <span>Dinas Energi & Sumber Daya Mineral Provinsi Jambi (ESDM)</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <i class="fa-solid fa-phone text-amber-400"></i>

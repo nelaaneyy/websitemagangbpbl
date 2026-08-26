@@ -5,57 +5,14 @@
     <!-- Header & Action Toolbar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
-            <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Dashboard Kades {{ auth()->user()->desa }}</h1>
-            <p class="text-xs text-slate-500 font-medium">Verifikasi awal & rekomendasi usulan BPBL warga desa.</p>
+            <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Dashboard Kepala Desa {{ auth()->user()->desa }}</h1>
+            <p class="text-xs text-slate-500 font-medium">Verifikasi awal & rekomendasi usulan Bantuan Pemasangan Listrik Baru (BPBL) warga desa.</p>
         </div>
 
         <div class="flex items-center gap-2">
-            <a href="{{ route('kepaladesa.lisdes.create') }}" class="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-extrabold rounded-xl transition shadow-xs flex items-center gap-1.5">
-                <i class="fa-solid fa-plus text-xs"></i> Usulkan Lisdes Dusun
+            <a href="{{ route('warga.pengajuan') }}" class="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-extrabold rounded-xl transition shadow-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-user-plus text-xs"></i> Tambah Pengajuan BPBL
             </a>
-        </div>
-    </div>
-
-    <!-- Stat Cards Ringkas (4 Metrics) -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/70 shadow-2xs flex items-center justify-between">
-            <div>
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Warga</span>
-                <p class="text-2xl font-extrabold text-slate-900 mt-0.5">{{ number_format($stats['total']) }}</p>
-            </div>
-            <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-sm font-bold">
-                <i class="fa-solid fa-users"></i>
-            </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-2xl border border-amber-200/80 shadow-2xs flex items-center justify-between">
-            <div>
-                <span class="text-[11px] font-bold text-amber-700 uppercase tracking-wider block">Menunggu Kades</span>
-                <p class="text-2xl font-extrabold text-amber-900 mt-0.5">{{ number_format($stats['menunggu']) }}</p>
-            </div>
-            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-bold">
-                <i class="fa-solid fa-clock"></i>
-            </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-2xl border border-emerald-200/80 shadow-2xs flex items-center justify-between">
-            <div>
-                <span class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider block">Disetujui Kades</span>
-                <p class="text-2xl font-extrabold text-emerald-900 mt-0.5">{{ number_format($stats['disetujui']) }}</p>
-            </div>
-            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-2xl border border-rose-200/80 shadow-2xs flex items-center justify-between">
-            <div>
-                <span class="text-[11px] font-bold text-rose-700 uppercase tracking-wider block">Ditolak / Revisi</span>
-                <p class="text-2xl font-extrabold text-rose-900 mt-0.5">{{ number_format($stats['ditolak']) }}</p>
-            </div>
-            <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-sm font-bold">
-                <i class="fa-solid fa-circle-xmark"></i>
-            </div>
         </div>
     </div>
 
@@ -71,9 +28,9 @@
             <select name="status" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:ring-2 focus:ring-blue-600">
                 <option value="">Semua Tahapan Status</option>
                 <option value="terkirim" {{ request('status') == 'terkirim' ? 'selected' : '' }}>Terkirim (Menunggu Kades)</option>
-                <option value="menunggu_verifikasi_pusat" {{ request('status') == 'menunggu_verifikasi_pusat' ? 'selected' : '' }}>Menunggu ESDM</option>
+                <option value="menunggu_verifikasi_pusat" {{ request('status') == 'menunggu_verifikasi_pusat' ? 'selected' : '' }}>Menunggu ESDM Provinsi Jambi</option>
                 <option value="lolos_verifikasi_pusat" {{ request('status') == 'lolos_verifikasi_pusat' ? 'selected' : '' }}>Lolos Verifikasi (Approved)</option>
-                <option value="ditolak/perlu_perbaikan" {{ request('status') == 'ditolak/perlu_perbaikan' ? 'selected' : '' }}>Ditolak / Perbaikan</option>
+                <option value="ditolak/perlu_perbaikan" {{ request('status') == 'ditolak/perlu_perbaikan' ? 'selected' : '' }}>Dikembalikan / Perlu Revisi</option>
             </select>
 
             <button type="submit" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition">

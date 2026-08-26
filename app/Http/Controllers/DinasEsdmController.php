@@ -91,6 +91,10 @@ class DinasEsdmController extends Controller
     // List semua warga yang sudah diverifikasi kepala desa
     public function index(Request $request)
     {
+        if ($request->user() && $request->user()->role === 'verifikator_esdm') {
+            return redirect()->route('dinasesdm.datalist');
+        }
+
         $wargas = $this->getFilteredWargaQuery($request)
             ->paginate(15)
             ->withQueryString();
@@ -170,6 +174,70 @@ class DinasEsdmController extends Controller
         $recentLogs = \App\Models\ActivityLog::latest()->take(10)->get();
 
         return view('dinasesdm.index', compact('wargas', 'stats', 'kabupatens', 'kecamatans', 'desas', 'dusuns', 'wilayahTree', 'chartKabupaten', 'chartStatus', 'recentLogs'));
+    }
+
+    public function dataList(Request $request)
+    {
+        $wargas = $this->getFilteredWargaQuery($request)
+            ->paginate(15)
+            ->withQueryString();
+
+        $stats = [
+            'total'    => Warga::whereIn('status_verifikasi', ['menunggu_verifikasi_pusat', 'lolos_verifikasi_pusat'])->count(),
+            'menunggu' => Warga::where('status_verifikasi', 'menunggu_verifikasi_pusat')->count(),
+            'disetujui' => Warga::where('status_verifikasi', 'lolos_verifikasi_pusat')->count(),
+            'ditolak'  => Warga::where('status_verifikasi', 'ditolak/perlu_perbaikan')->where('ditolak_oleh', 'instansi')->count(),
+        ];
+
+        $kabupatens = Warga::select('kabupaten')->distinct()->whereNotNull('kabupaten')->orderBy('kabupaten')->pluck('kabupaten');
+        
+        $kecamatans = Warga::when($request->kabupaten, function($q, $kab) {
+                return $q->where('kabupaten', $kab);
+            })
+            ->select('kecamatan')->distinct()->whereNotNull('kecamatan')->orderBy('kecamatan')->pluck('kecamatan');
+
+        $desas = Warga::when($request->kabupaten, function($q, $kab) {
+                return $q->where('kabupaten', $kab);
+            })
+            ->when($request->kecamatan, function($q, $kec) {
+                return $q->where('kecamatan', $kec);
+            })
+            ->select('desa')->distinct()->whereNotNull('desa')->orderBy('desa')->pluck('desa');
+
+        $dusuns = Warga::when($request->kabupaten, function($q, $kab) {
+                return $q->where('kabupaten', $kab);
+            })
+            ->when($request->kecamatan, function($q, $kec) {
+                return $q->where('kecamatan', $kec);
+            })
+            ->when($request->desa, function($q, $des) {
+                return $q->where('desa', $des);
+            })
+            ->select('dusun')->distinct()->whereNotNull('dusun')->where('dusun', '!=', '')->orderBy('dusun')->pluck('dusun');
+
+        $wilayahRecords = Warga::select('kabupaten', 'kecamatan', 'desa')
+            ->distinct()
+            ->whereNotNull('kabupaten')
+            ->get();
+
+        $wilayahTree = [];
+        foreach ($wilayahRecords as $w) {
+            $kab = $w->kabupaten;
+            $kec = $w->kecamatan ?: 'Lainnya';
+            $des = $w->desa ?: 'Lainnya';
+            
+            if (!isset($wilayahTree[$kab])) {
+                $wilayahTree[$kab] = [];
+            }
+            if (!isset($wilayahTree[$kab][$kec])) {
+                $wilayahTree[$kab][$kec] = [];
+            }
+            if (!in_array($des, $wilayahTree[$kab][$kec])) {
+                $wilayahTree[$kab][$kec][] = $des;
+            }
+        }
+
+        return view('dinasesdm.datalist', compact('wargas', 'stats', 'kabupatens', 'kecamatans', 'desas', 'dusuns', 'wilayahTree'));
     }
 
     private function formatTanggalIndo($dateStr)

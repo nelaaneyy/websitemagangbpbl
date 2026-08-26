@@ -38,7 +38,7 @@ Route::get('/', function () {
                 $desa->status = 'sebagian';
             }
         }
-        
+
         $desa->warga_terverifikasi = $verifiedCount;
         $desa->warga_pending_kades = $pendingCount;
     }
@@ -68,6 +68,7 @@ Route::middleware(['auth', 'role:kepala_desa'])->prefix('kepaladesa')->name('kep
     Route::get('/', [KepalaDesaController::class, 'index'])->name('index');
 
     // Route lisdes (static path HARUS di atas wildcard /{warga})
+    Route::get('/lisdes', [KepalaDesaController::class, 'lisdesIndex'])->name('lisdes.index');
     Route::get('/lisdes/create', [KepalaDesaController::class, 'createLisdes'])->name('lisdes.create');
     Route::post('/lisdes/store', [KepalaDesaController::class, 'storeLisdes'])->name('lisdes.store');
 
@@ -81,6 +82,7 @@ Route::middleware(['auth', 'role:kepala_desa'])->prefix('kepaladesa')->name('kep
 // ==== INSTANSI & VERIFIKATOR ESDM ====
 Route::middleware(['auth', 'role:instansi,super_admin,verifikator_esdm'])->prefix('dinasesdm')->name('dinasesdm.')->group(function () {
     Route::get('/', [DinasEsdmController::class, 'index'])->name('index');
+    Route::get('/datalist', [DinasEsdmController::class, 'dataList'])->name('datalist');
 
     // Pengajuan Lisdes oleh Kepala Desa (kelola oleh ESDM) - HARUS di atas /{warga}
     Route::get('/lisdes', [DinasEsdmController::class, 'lisdesIndex'])->name('lisdes.index');

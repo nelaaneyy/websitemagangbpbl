@@ -14,9 +14,10 @@ class AuthController extends Controller
     {
         if (Auth::check()) {
             return match (Auth::user()->role) {
-                'kepala_desa' => redirect()->route('kepaladesa.index'),
-                'instansi'    => redirect()->route('dinasesdm.index'),
-                default       => redirect('/'),
+                'kepala_desa'      => redirect()->route('kepaladesa.index'),
+                'verifikator_esdm' => redirect()->route('dinasesdm.datalist'),
+                'instansi', 'super_admin' => redirect()->route('dinasesdm.index'),
+                default            => redirect('/'),
             };
         }
 
@@ -50,9 +51,10 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         return match ($user->role) {
-            'kepala_desa' => redirect()->route('kepaladesa.index'),
-            'instansi'    => redirect()->route('dinasesdm.index'),
-            default       => redirect('/'),
+            'kepala_desa'      => redirect()->route('kepaladesa.index'),
+            'verifikator_esdm' => redirect()->route('dinasesdm.datalist'),
+            'instansi', 'super_admin' => redirect()->route('dinasesdm.index'),
+            default            => redirect('/'),
         };
     }
 

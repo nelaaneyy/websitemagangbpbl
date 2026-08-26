@@ -75,6 +75,7 @@ class WargaController extends Controller
             'foto_kwh_rumah_terdekat'     => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'foto_tiang_rumah_terdekat'   => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'foto_sktm'                   => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'persetujuan'                 => 'accepted',
         ],
         [
             'nik.required'                         => 'NIK wajib diisi.',
@@ -86,6 +87,7 @@ class WargaController extends Controller
             'foto_kwh_rumah_terdekat.required'     => 'Foto KWH rumah terdekat wajib diupload menggunakan aplikasi GPS Camera.',
             'foto_tiang_rumah_terdekat.required'   => 'Foto tiang listrik terdekat wajib diupload menggunakan aplikasi GPS Camera.',
             'foto_sktm.required'                   => 'Foto SKTM wajib di-upload.',
+            'persetujuan.accepted'                 => 'Anda harus menyetujui pernyataan kebenaran data untuk melanjutkan.',
             '*.max'                                => 'Ukuran foto maksimal adalah 2 MB.',
         ]);
 

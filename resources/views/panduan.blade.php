@@ -3,27 +3,27 @@
 @section('content')
 <div class="py-12 bg-slate-50 min-h-screen">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 space-y-8">
-        
-        <!-- Header Title Banner -->
+
+        <!-- Header Title -->
         <div class="bg-slate-900 text-white p-8 sm:p-10 rounded-3xl shadow-sm border border-slate-800 relative overflow-hidden">
             <div class="absolute right-0 top-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl"></div>
-            
+
             <div class="relative z-10 space-y-3">
                 <div class="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-500 text-slate-950 text-[11px] font-black uppercase rounded-full tracking-wider">
-                    <i class="fa-solid fa-graduation-cap"></i> Modul Pelatihan SPBE e-Government {{ date('Y') }}
+                    <i class="fa-solid fa-graduation-cap"></i> Panduan Program Bantuan Pemasangan Listrik Desa {{ date('Y') }}
                 </div>
                 <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight">
                     Panduan & Syarat Ketentuan Bantuan Listrik
                 </h1>
                 <p class="text-slate-300 text-xs sm:text-sm max-w-3xl leading-relaxed font-normal">
-                    Petunjuk teknis verifikasi awal permohonan BPBL, kriteria kelayakan DTKS/P3KE, pengusulan Lisdes dusun, serta pengelolaan verifikasi berjenjang Dinas ESDM.
+                    Petunjuk teknis verifikasi awal permohonan BPBL, kriteria kelayakan DTKS/P3KE, Pengusulan Lisdes dusun, serta pengelolaan verifikasi berjenjang Oleh Dinas ESDM Provinsi Jambi.
                 </p>
             </div>
         </div>
 
         <!-- Grid 4 Modul Pelatihan -->
         <div class="grid md:grid-cols-2 gap-6">
-            
+
             <!-- Modul 1 -->
             <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-4 hover:shadow-md transition">
                 <div class="w-12 h-12 rounded-2xl bg-slate-900 text-amber-400 font-extrabold flex items-center justify-center text-xl shadow-xs">
@@ -56,9 +56,9 @@
                 <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs space-y-2 text-slate-700 font-medium">
                     <div class="flex items-center gap-2 font-bold text-slate-900"><i class="fa-solid fa-mobile-screen-button text-amber-600"></i> Keunggulan PWA:</div>
                     <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-600">
-                        <li>Aplikasi bisa diinstal ke Layar Utama (*Add to Home Screen*).</li>
-                        <li>Foto KTP & Rumah otomatis dikompres menjadi ~200-300 KB.</li>
-                        <li>Data offline akan **otomatis tersinkron** saat HP mendapat sinyal.</li>
+                        <li>Aplikasi bisa diinstal ke Layar Utama (Add to Home Screen).</li>
+                        <li>Foto KTP & Rumah otomatis dikompres menjadi 200-300 KB.</li>
+                        <li>Data offline akan otomatis tersinkron saat HP mendapat sinyal.</li>
                     </ul>
                 </div>
             </div>
@@ -89,7 +89,7 @@
                 </div>
                 <h3 class="text-lg font-extrabold text-slate-900">4. Keamanan & Backup Data</h3>
                 <p class="text-xs text-slate-600 leading-relaxed font-medium">
-                    Seluruh data identitas warga dilindungi undang-undang privasi. Dinas ESDM melakukan pencadangan data (*Database Backup*) berkala secara otomatis untuk keamanan sistem.
+                    Seluruh data identitas warga dilindungi undang-undang privasi. Dinas ESDM Provinsi Jambi akan melakukan pencadangan data (Database Backup) secara berkala secara otomatis untuk keamanan sistem.
                 </p>
                 <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs space-y-2 text-slate-700 font-medium">
                     <div class="flex items-center gap-2 font-bold text-slate-900"><i class="fa-solid fa-database text-amber-600"></i> Prosedur Backup:</div>

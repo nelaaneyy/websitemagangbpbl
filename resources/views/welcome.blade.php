@@ -1,21 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Design Read: Civic Tech / Public Service Portal for Citizens & Verification Officers, with a Modern Civic Data & Service Portal language, leaning toward Light Mode Ultra-Clean (bg-[#F8FAFC] / bg-white) + Deep Navy (#0F172A) + ESDM Amber (#F59E0B) design system. -->
 
 <div>
 
-    <!-- HERO SECTION (Sophisticated Gradient & Glassmorphism + Geometric Ambient Blobs + Realtime NIK Validation) -->
-    <section class="relative overflow-hidden pt-10 pb-16 lg:pt-14 lg:pb-20 bg-gradient-to-br from-slate-50 via-slate-50/80 to-blue-50/50 text-slate-900 border-b border-slate-200/80">
-        
-        <!-- Decorative Ambient Geometric Blur Blobs (ESDM Amber Accent) -->
+    <!-- HERO SECTION-->
+    <section class="relative overflow-hidden pt-10 pb-16 lg:pt-14 lg:pb-20 bg-linear-to-br from-slate-50 via-slate-50/80 to-blue-50/50 text-slate-900 border-b border-slate-200/80">
+
         <div class="absolute -top-24 -left-24 w-96 h-96 bg-amber-400/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-24 -right-24 w-[30rem] h-[30rem] bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute top-1/2 left-1/3 -translate-y-1/2 w-[35rem] h-[35rem] bg-blue-100/30 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-120 h-120 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-1/2 left-1/3 -translate-y-1/2 w-140 h-140 bg-blue-100/30 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="grid lg:grid-cols-12 gap-10 items-center">
-                
+
                 <!-- Left Column (Hero Content & Value Proposition) -->
                 <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
                     <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100/80 backdrop-blur-xs border border-amber-300/70 text-amber-950 text-xs font-extrabold tracking-wide shadow-xs">
@@ -27,7 +25,7 @@
                     </h1>
 
                     <p class="text-slate-600 text-base sm:text-lg leading-relaxed max-w-2xl font-normal">
-                        Portal resmi Dinas Energi dan Sumber Daya Mineral (ESDM) untuk penyaluran bantuan instalasi dan kWH meter gratis 450 VA & 900 VA bagi masyarakat prasejahtera terdaftar DTKS / P3KE.
+                        Portal resmi Dinas Energi dan Sumber Daya Mineral Provinsi Jambi (ESDM) untuk penyaluran bantuan instalasi dan kWH meter gratis ... VA & ... VA bagi masyarakat prasejahtera terdaftar DTKS / P3KE.
                     </p>
 
                     <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4">
@@ -43,7 +41,7 @@
                     </div>
                 </div>
 
-                <!-- Right Column (Glassmorphism Card 'Cek Status NIK' with Real-Time Validation) -->
+                <!-- Right Column (Card 'Cek Status NIK' with Real-Time Validation) -->
                 <div class="lg:col-span-5" id="cek-nik" x-data="{ nikInput: '', get isValid() { return /^\d{16}$/.test(this.nikInput) } }">
                     <div class="bg-white/80 backdrop-blur-md border border-slate-200 shadow-xl rounded-2xl p-6 sm:p-8 text-slate-800 space-y-6 transition-all duration-300 hover:shadow-2xl hover:border-amber-400/50 relative z-10">
                         <div class="flex items-center gap-3.5 pb-4 border-b border-slate-200/80">
@@ -51,8 +49,12 @@
                                 <i class="fa-solid fa-fingerprint"></i>
                             </div>
                             <div>
-                                <h3 class="font-extrabold text-base text-slate-900 tracking-tight">Cek Status Berkas NIK</h3>
-                                <p class="text-xs text-slate-500 font-medium">Masukkan 16 digit NIK KTP Anda untuk melacak posisi bantuan</p>
+                                <h3 class="font-extrabold text-base text-slate-900 tracking-tight">
+                                    Cek Status Pendaftaran BPBL
+                                </h3>
+                                <p class="text-xs text-slate-500 font-medium">
+                                    Masukkan 16 digit NIK KTP Anda untuk melacak status bantuan
+                                </p>
                             </div>
                         </div>
 
@@ -73,10 +75,10 @@
                                             'border-slate-300/80 bg-white/90 text-slate-900': nikInput.length === 0
                                         }"
                                         class="w-full pl-11 pr-10 py-3.5 rounded-xl text-xs font-extrabold tracking-wider transition-all placeholder:text-slate-400 placeholder:font-normal shadow-xs focus:outline-none">
-                                    
+
                                     <i class="fa-solid fa-id-card absolute left-4 top-4 text-slate-400 text-sm"></i>
 
-                                    <!-- Visual Indicator Icons (Green Check vs Red Cross) -->
+                                    <!-- Visual Indicator NIK Icons (Green Check vs Red Cross) -->
                                     <div class="absolute right-3.5 top-3.5 flex items-center">
                                         <template x-if="isValid">
                                             <span class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs shadow-xs animate-bounce">
@@ -109,7 +111,7 @@
                                 </div>
                             </div>
 
-                            <button type="submit" 
+                            <button type="submit"
                                     :disabled="!isValid"
                                     :class="isValid ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 cursor-pointer shadow-md hover:shadow-lg' : 'bg-slate-200 text-slate-400 cursor-not-allowed border-slate-300'"
                                     class="w-full py-3.5 font-extrabold text-xs rounded-xl transition-all flex items-center justify-center gap-2 border">
@@ -131,7 +133,7 @@
         </div>
     </section>
 
-    <!-- SECTION B: OPSI LAYANAN PROGRAM (BPBL Mandiri Warga & Lisdes Usulan Pemdes) -->
+    <!-- SECTION B: OPSI LAYANAN PROGRAM (BPBL Mandiri Warga & Usulan Lisdes) -->
     <section id="program-bantuan" class="py-16 bg-white border-b border-slate-200/80" x-data="{ openLisdesModal: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
             <div class="text-center max-w-3xl mx-auto space-y-2">
@@ -139,7 +141,7 @@
                     Opsi Layanan Program
                 </span>
                 <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Kategori Program Bantuan Listrik ESDM</h2>
-                <p class="text-slate-600 text-sm">Pilih jenis permohonan yang sesuai dengan status kebutuhan di wilayah Anda.</p>
+                <p class="text-slate-600 text-sm">Pilih jenis permohonan yang sesuai dengan status kebutuhan di wilayah desa Anda.</p>
             </div>
 
             <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -156,7 +158,7 @@
                             Bantuan Pasang Baru Listrik (BPBL)
                         </h3>
                         <p class="text-xs text-slate-600 leading-relaxed font-medium">
-                            Program bantuan bebas biaya pemasangan kWH meter baru 450 / 900 VA beserta instalasi rumah untuk masyarakat perorangan yang terdaftar dalam DTKS / P3KE.
+                            Program bantuan bebas biaya pemasangan kWH meter baru ... / ... VA beserta instalasi rumah untuk masyarakat perorangan yang terdaftar dalam DTKS / P3KE.
                         </p>
 
                         <ul class="space-y-2 text-xs text-slate-700 font-medium pt-2">
@@ -168,7 +170,7 @@
 
                     <div class="pt-4 border-t border-slate-200">
                         <a href="{{ route('warga.pengajuan') }}" class="w-full py-3.5 px-6 bg-slate-900 hover:bg-slate-800 text-amber-400 font-extrabold rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 text-xs border border-slate-800">
-                            <span>Form Pendaftaran Mandiri Warga</span>
+                            <span>Form Pendaftaran Mandiri Bantuan Pasang Listrik Baru untuk Warga</span>
                             <i class="fa-solid fa-arrow-right text-xs"></i>
                         </a>
                     </div>
@@ -206,7 +208,7 @@
                 </div>
             </div>
 
-            <!-- Modal Syarat Lisdes (Oleh Desa) -->
+            <!-- Popup Syarat Lisdes (Diajukan oleh Desa) -->
             <div x-cloak x-show="openLisdesModal" x-transition.opacity class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4" @click.stop="openLisdesModal = false">
                 <div @click.stop class="bg-white max-w-lg w-full rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 relative">
                     <button @click="openLisdesModal = false" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors">
@@ -219,7 +221,7 @@
                         </div>
                         <div>
                             <h3 class="text-xl font-extrabold text-slate-900">Syarat Usulan Lisdes</h3>
-                            <p class="text-xs text-slate-500 font-medium">Persyaratan Bantuan Listrik Desa (Pengajuan Pemdes)</p>
+                            <p class="text-xs text-slate-500 font-medium">Persyaratan Bantuan Listrik Desa (Pengajuan Pemerintah Desa)</p>
                         </div>
                     </div>
 
@@ -247,7 +249,7 @@
                             Tutup
                         </button>
                         <a href="{{ route('login') }}" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs rounded-xl shadow-xs text-center transition-colors">
-                            Login Kades Untuk Usulkan &rarr;
+                            Login Sebagai Kades Untuk Mengusulkan Program LisDes &rarr;
                         </a>
                     </div>
                 </div>
@@ -259,7 +261,7 @@
     <!-- SECTION C: 4 TAHAPAN PROSE BANTUAN (Interactive Workflow & Dokumen Syarat) -->
     <section class="py-16 bg-[#F8FAFC] border-b border-slate-200/80" x-data="{ activeStep: 1 }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            
+
             <div class="text-center max-w-3xl mx-auto space-y-2">
                 <span class="px-3.5 py-1 bg-amber-100 text-amber-900 font-extrabold text-xs rounded-full uppercase tracking-wider border border-amber-300">
                     Alur Layanan Transparan
@@ -270,7 +272,7 @@
 
             <!-- Interactive Timeline Steps Bar -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                
+
                 <!-- Step 1 -->
                 <button type="button" @click="activeStep = 1"
                         :class="activeStep === 1 ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-white text-slate-800 border-slate-200 hover:border-amber-400'"
@@ -312,7 +314,7 @@
                     </div>
                     <div>
                         <h4 class="font-extrabold text-sm">Penetapan & Terbit SLO</h4>
-                        <p class="text-xs opacity-80 mt-1 font-medium">Penilaian final Dinas ESDM</p>
+                        <p class="text-xs opacity-80 mt-1 font-medium">Penilaian final oleh Dinas ESDM Provinsi Jambi</p>
                     </div>
                 </button>
 
@@ -335,14 +337,14 @@
 
             <!-- Active Step Detail Panel -->
             <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-                
+
                 <!-- Step 1 Details -->
                 <div x-show="activeStep === 1" class="space-y-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-slate-900 text-amber-400 font-black text-base flex items-center justify-center">1</div>
                         <div>
-                            <h3 class="text-lg font-extrabold text-slate-900">Tahap 1: Pendaftaran / Usulan Data DTKS</h3>
-                            <p class="text-xs text-slate-500 font-medium">Warga mendaftar mandiri atau diusulkan oleh Pemerintah Desa</p>
+                            <h3 class="text-lg font-extrabold text-slate-900">Tahap 1: Pendaftaran Bantuan Pasang Listrik Baru (BPBL)</h3>
+                            <p class="text-xs text-slate-500 font-medium">Warga mendaftar mandiri Program Bantuan Pasang Baru Listrik (BPBL) atau diusulkan oleh Pemerintah Desa Setempat</p>
                         </div>
                     </div>
                     <div class="grid sm:grid-cols-3 gap-4 pt-2">
@@ -373,7 +375,7 @@
                     <div class="grid sm:grid-cols-3 gap-4 pt-2">
                         <div class="bg-[#F8FAFC] p-4 rounded-2xl border border-slate-200 text-xs space-y-1">
                             <span class="font-extrabold text-slate-900 block"><i class="fa-solid fa-street-view text-blue-600 mr-1.5"></i> Validasi Bangunan</span>
-                            <p class="text-slate-600 font-medium">Memastikan rumah belum tersambung ke jaringan PLN lain.</p>
+                            <p class="text-slate-600 font-medium">Memastikan rumah belum tersambung ke jaringan Listrik lain.</p>
                         </div>
                         <div class="bg-[#F8FAFC] p-4 rounded-2xl border border-slate-200 text-xs space-y-1">
                             <span class="font-extrabold text-slate-900 block"><i class="fa-solid fa-tower-cell text-blue-600 mr-1.5"></i> Jarak Tiang Listrik</span>
@@ -398,10 +400,10 @@
                     <div class="grid sm:grid-cols-3 gap-4 pt-2">
                         <div class="bg-[#F8FAFC] p-4 rounded-2xl border border-slate-200 text-xs space-y-1">
                             <span class="font-extrabold text-slate-900 block"><i class="fa-solid fa-building-columns text-slate-800 mr-1.5"></i> Penetapan SK ESDM</span>
-                            <p class="text-slate-600 font-medium">Penerbitan alokasi kuota daya 450 / 900 VA resmi.</p>
+                            <p class="text-slate-600 font-medium">Penerbitan alokasi kuota daya ... / ... VA resmi.</p>
                         </div>
                         <div class="bg-[#F8FAFC] p-4 rounded-2xl border border-slate-200 text-xs space-y-1">
-                            <span class="font-extrabold text-slate-900 block"><i class="fa-solid fa-certificate text-slate-800 mr-1.5"></i> Terbit Sertifikat SLO</span>
+                            <span class="font-extrabold text-slate-900 block"><i class="fa-solid fa-certificate text-slate-800 mr-1.5"></i> Terbit Sertifikat Laik Operasi (SLO)</span>
                             <p class="text-slate-600 font-medium">Sertifikat kelayakan keamanan instalasi kelistrikan.</p>
                         </div>
                         <div class="bg-[#F8FAFC] p-4 rounded-2xl border border-slate-200 text-xs space-y-1">
@@ -423,7 +425,7 @@
                     <div class="grid sm:grid-cols-3 gap-4 pt-2">
                         <div class="bg-[#F8FAFC] p-4 rounded-2xl border border-slate-200 text-xs space-y-1">
                             <span class="font-extrabold text-slate-900 block"><i class="fa-solid fa-gauge-simple-high text-emerald-600 mr-1.5"></i> Meteran Listrik Gratis</span>
-                            <p class="text-slate-600 font-medium">Pemasangan kWH meter baru prabayar 450 / 900 VA.</p>
+                            <p class="text-slate-600 font-medium">Pemasangan kWH meter baru prabayar ... / ... VA.</p>
                         </div>
                         <div class="bg-[#F8FAFC] p-4 rounded-2xl border border-slate-200 text-xs space-y-1">
                             <span class="font-extrabold text-slate-900 block"><i class="fa-solid fa-lightbulb text-emerald-600 mr-1.5"></i> 3 Titik Lampu Gratis</span>
@@ -441,14 +443,14 @@
         </div>
     </section>
 
-    <!-- SECTION D: CAPAIAN REALISASI / KPI METRICS (Ala Portal Data) -->
+    <!-- SECTION D: CAPAIAN REALISASI / KPI METRICS -->
     <section id="dashboard-elektrifikasi" class="py-16 bg-white border-b border-slate-200/80">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            
+
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                 <div>
                     <span class="text-[11px] font-extrabold text-blue-600 uppercase tracking-wider block">Dashboard Transparansi Publik</span>
-                    <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Capaian Realisasi Program BPBL {{ date('Y') }}</h2>
+                    <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Capaian Realisasi Program Bantuan Pasang Baru Listrik (BPBL) {{ date('Y') }}</h2>
                 </div>
                 <span class="text-xs text-slate-500 font-medium flex items-center gap-1.5">
                     <i class="fa-solid fa-rotate text-slate-400"></i> Update Terakhir: {{ date('d M Y') }}
@@ -457,7 +459,7 @@
 
             <!-- Grid 4 Kolom Stat Card (Terhubung Otomatis dengan Database Pengajuan Warga & Desa) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                
+
                 <!-- Stat 1: Total Rumah Tangga Teraliri -->
                 <div class="bg-[#F8FAFC] p-6 rounded-2xl border border-slate-200/80 shadow-xs hover:-translate-y-0.5 transition-all duration-200 space-y-2">
                     <div class="flex items-center justify-between">
@@ -501,7 +503,7 @@
                             <i class="fa-solid fa-bolt"></i>
                         </div>
                     </div>
-                    <div class="text-2xl sm:text-3xl font-black text-slate-900">450 & 900 <span class="text-xs font-bold text-slate-500">VA</span></div>
+                    <div class="text-2xl sm:text-3xl font-black text-slate-900">... & ... <span class="text-xs font-bold text-slate-500">VA</span></div>
                     <div class="text-[11px] font-bold text-amber-700 flex items-center gap-1">
                         <i class="fa-solid fa-circle-check"></i> 100% Bebas Biaya Pasang
                     </div>
@@ -517,7 +519,7 @@
                     </div>
                     <div class="text-2xl sm:text-3xl font-black text-slate-900">{{ $overallRasio ?? 98.42 }}%</div>
                     <div class="text-[11px] font-bold text-slate-600 flex items-center gap-1">
-                        <i class="fa-solid fa-flag"></i> Target 100% Jambi Terang
+                        <i class="fa-solid fa-flag"></i> Target 100% Provinsi Jambi Terang
                     </div>
                 </div>
 
@@ -529,12 +531,12 @@
     <!-- SECTION E: PETA SEBARAN (Geospatial & Interactive Distribution Visualizer) -->
     <section id="peta-elektrifikasi" class="py-16 bg-[#F8FAFC] border-b border-slate-200/80">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            
+
             <div class="text-center max-w-3xl mx-auto space-y-2">
                 <span class="px-3.5 py-1 bg-emerald-100 text-emerald-800 font-extrabold text-xs rounded-full uppercase tracking-wider border border-emerald-200">
                     Geospatial Monitoring System
                 </span>
-                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Peta Sebaran Pasang Baru Listrik Per Desa</h2>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Peta Sebaran Program Bantuan Pasang Baru Listrik (BPBL) Per Desa Di Provinsi Jambi</h2>
                 <p class="text-slate-600 text-sm">Arahkan kursor atau klik marker desa/kabupaten untuk melihat rincian realisasi penerima bantuan.</p>
             </div>
 
@@ -544,7 +546,7 @@
                     <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                         <i class="fa-solid fa-filter text-amber-500"></i> Filter Status:
                     </span>
-                    <select id="status-filter" onchange="filterDesaInteractive()" 
+                    <select id="status-filter" onchange="filterDesaInteractive()"
                             class="px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all cursor-pointer">
                         <option value="all">Semua Status Wilayah</option>
                         <option value="full">Hijau: 100% Full Teraliri</option>
@@ -571,24 +573,80 @@
                     <span class="flex items-center gap-2 text-slate-900">
                         <i class="fa-solid fa-map-pin"></i> Visualisasi Geospasial Peta Jambi
                     </span>
-                    <span id="marker-count-badge" class="px-2.5 py-0.5 rounded-full bg-slate-500/20 text-slate-900 border border-slate-500/30 text-[12px]">
-                        Menampilkan 0 Desa
-                    </span>
+                    <div class="flex items-center gap-2">
+                        <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100/90 text-amber-950 border border-amber-300/80 text-[11px] font-extrabold shadow-2xs">
+                            <i class="fa-solid fa-hand-pointer text-amber-600"></i> 2 Jari di HP untuk Menggeser
+                        </span>
+                        <span id="marker-count-badge" class="px-2.5 py-0.5 rounded-full bg-slate-500/20 text-slate-900 border border-slate-500/30 text-[12px]">
+                            Menampilkan 0 Desa
+                        </span>
+                    </div>
                 </div>
-                <div id="map" class="w-full h-96 sm:h-[520px] rounded-2xl z-10"></div>
+                <div id="map" class="w-full h-96 sm:h-130 rounded-2xl z-10"></div>
             </div>
 
-            <!-- Display Village Detail Cards with Click-to-Zoom Interactivity -->
-            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
-                    <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-list-ul text-amber-500"></i> Detail Rincian Elektrifikasi Desa
-                    </h3>
-                    <span class="text-xs text-slate-500 font-medium">Klik pada kartu desa di bawah untuk mengarahkan peta ke lokasi tersebut</span>
+            <!-- Display Friendly Visual Chart Dashboard -->
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-6" x-data="{ viewTab: 'chart' }">
+                <!-- Friendly Header & View Switcher -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 gap-4">
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-blue-50 text-blue-800 text-[11px] font-bold rounded-md uppercase tracking-wider mb-1">
+                            <i class="fa-solid fa-chart-simple text-blue-600"></i> Ringkasan Data Publik
+                        </div>
+                        <h3 class="font-black text-base sm:text-xl text-slate-900 flex items-center gap-2">
+                            Kemajuan Aliran Listrik Desa di Jambi
+                        </h3>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">Grafik sederhana persentase wilayah dan status desa yang sudah teraliri listrik PLN.</p>
+                    </div>
+
+                    <!-- View Switcher Button -->
+                    <div class="inline-flex p-1 bg-slate-100 rounded-2xl border border-slate-200 text-xs font-bold shrink-0">
+                        <button type="button" @click="viewTab = 'chart'; $nextTick(() => renderCharts(currentFilteredData))"
+                                :class="viewTab === 'chart' ? 'bg-white text-slate-900 shadow-xs font-extrabold' : 'text-slate-500 hover:text-slate-900'"
+                                class="px-4 py-2 rounded-xl transition flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-chart-bar text-blue-600"></i> Grafik Ringkasan
+                        </button>
+                        <button type="button" @click="viewTab = 'cards'"
+                                :class="viewTab === 'cards' ? 'bg-white text-slate-900 shadow-xs font-extrabold' : 'text-slate-500 hover:text-slate-900'"
+                                class="px-4 py-2 rounded-xl transition flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-list-ul text-amber-500"></i> Daftar Kartu Desa
+                        </button>
+                    </div>
                 </div>
 
-                <div id="desa-detail-container" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <!-- Dynamic village cards filled by JS -->
+                <!-- View 1: Simple 2-Chart Layout -->
+                <div x-show="viewTab === 'chart'" class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Chart 1: Persentase Listrik per Kabupaten -->
+                        <div class="bg-slate-50 p-5 sm:p-6 rounded-2xl border border-slate-200/80 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-extrabold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-bar text-blue-600"></i> Tingkat Terang Listrik per Kabupaten (%)
+                                </h4>
+                                <span class="text-[10px] font-bold text-slate-400">Provinsi Jambi</span>
+                            </div>
+                            <div id="chart-kabupaten-bar" class="w-full min-h-[300px]"></div>
+                        </div>
+
+                        <!-- Chart 2: Status Kelistrikan Desa -->
+                        <div class="bg-slate-50 p-5 sm:p-6 rounded-2xl border border-slate-200/80 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-extrabold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-pie text-emerald-600"></i> Status Kelistrikan Desa
+                                </h4>
+                                <span class="text-[10px] font-bold text-slate-400">Jumlah Desa</span>
+                            </div>
+                            <div id="chart-status-donut" class="w-full min-h-[300px] flex items-center justify-center"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- View 2: Kartu Rincian Desa -->
+                <div x-show="viewTab === 'cards'" class="space-y-3">
+                    <p class="text-xs text-slate-500 font-medium">Klik pada kartu desa di bawah untuk melihat lokasinya di peta:</p>
+                    <div id="desa-detail-container" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Dynamic village cards filled by JS -->
+                    </div>
                 </div>
             </div>
 
@@ -599,7 +657,7 @@
     <section class="py-16 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-slate-900 text-white rounded-3xl p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-8 border border-slate-800 shadow-md">
-                
+
                 <div class="space-y-2 max-w-2xl text-center md:text-left">
                     <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-[11px] font-extrabold uppercase border border-amber-500/30">
                         <i class="fa-solid fa-headset"></i> Layanan Pengaduan Resmi
@@ -611,12 +669,12 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3 shrink-0 w-full md:w-auto">
-                    <a href="https://wa.me/6281234567890?text=Halo%20Helpdesk%20ESDM,%20saya%20ingin%20bertanya%20mengenai%20bantuan%20BPBL" target="_blank" 
+                    <a href="https://wa.me/6285369911990?text=Halo%20Helpdesk%20ESDM,%20saya%20ingin%20bertanya%20mengenai%20bantuan%20BPBL" target="_blank"
                        class="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2">
                         <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp CS ESDM
                     </a>
-                    <a href="tel:135" class="px-6 py-3.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-phone text-slate-950"></i> Call Center 135
+                    <a href="tel:074165004" class="px-6 py-3.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-phone text-slate-950"></i> Call Center (0741) 65004
                     </a>
                 </div>
 
@@ -628,20 +686,24 @@
 @endsection
 
 @push('styles')
-    <!-- Leaflet CSS for Interactive Map & MarkerCluster -->
+    <!-- Leaflet CSS for Interactive Map, MarkerCluster & GestureHandling -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling/dist/leaflet-gesture-handling.min.css" type="text/css" />
     <style>
         .leaflet-popup-content-wrapper { border-radius: 18px; font-family: 'Plus Jakarta Sans', sans-serif; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
         .leaflet-tooltip { border-radius: 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 11px; padding: 6px 12px; border: 1px solid #cbd5e1; }
+        .leaflet-gesture-handling-touch-warning:after, .leaflet-gesture-handling-scroll-warning:after { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 13px; border-radius: 12px; }
     </style>
 @endpush
 
 @push('scripts')
-    <!-- Leaflet JS & MarkerCluster -->
+    <!-- Leaflet JS, MarkerCluster, GestureHandling & ApexCharts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet-gesture-handling/dist/leaflet-gesture-handling.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script>
         // Data Desa Dinamis dari Database
         const rawDesaData = @json($desas ?? []);
@@ -668,8 +730,22 @@
             };
         });
 
-        // Inisialisasi Peta Leaflet Berpusat di Provinsi Jambi
-        const map = L.map('map').setView([-1.6000, 102.7500], 8);
+        let currentFilteredData = [...dataDesa];
+        let chartKabupatenInstance = null;
+        let chartDonutInstance = null;
+        let chartStackedInstance = null;
+
+        // Inisialisasi Peta Leaflet Berpusat di Provinsi Jambi dengan Two-Finger Gesture Handling
+        const map = L.map('map', {
+            gestureHandling: true,
+            gestureHandlingOptions: {
+                text: {
+                    touch: "Gunakan 2 jari untuk menggeser peta",
+                    scroll: "Gunakan Ctrl + scroll untuk memperbesar peta",
+                    scrollMac: "Gunakan \u2318 + scroll untuk memperbesar peta"
+                }
+            }
+        }).setView([-1.6000, 102.7500], 8);
 
         const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
             maxZoom: 20,
@@ -736,7 +812,7 @@
             filteredList.forEach(d => {
                 if (!isNaN(d.lat) && !isNaN(d.lng)) {
                     const marker = L.marker([d.lat, d.lng], { icon: createCustomIcon(d.color) });
-                    
+
                     // Detailed Rich Popup (On Click)
                     marker.bindPopup(`
                         <div style="min-width: 220px; text-align: center; font-family: 'Plus Jakarta Sans', sans-serif;">
@@ -744,7 +820,7 @@
                                 ${d.kabupaten}
                             </span>
                             <h4 style="font-weight: 900; margin: 8px 0 2px 0; font-size: 15px; color: #0f172a;">Desa ${d.nama}</h4>
-                            
+
                             <div style="background-color: #f8fafc; padding: 8px 10px; border-radius: 12px; margin: 8px 0; border: 1px solid #e2e8f0; font-size: 11px; text-align: left;">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 3px; color: #16a34a; font-weight: bold;">
                                     <span>Teraliri (Disetujui Kades):</span> <b>${d.berlistrik} KK</b>
@@ -816,7 +892,7 @@
                 }
 
                 container.innerHTML += `
-                    <div onclick="focusDesaMarker(${d.id}, ${d.lat}, ${d.lng})" 
+                    <div onclick="focusDesaMarker(${d.id}, ${d.lat}, ${d.lng})"
                          class="p-4 bg-white border border-slate-200 rounded-2xl hover:border-amber-400 hover:shadow-md transition-all duration-200 cursor-pointer group">
                         <div class="flex items-center justify-between mb-1">
                             <h4 class="font-extrabold text-slate-900 text-sm group-hover:text-amber-600 transition-colors flex items-center gap-1.5">
@@ -841,6 +917,115 @@
             });
         }
 
+        // Render ApexCharts Visual Dashboard (Simple 2-Chart Layout)
+        function renderCharts(filteredList) {
+            if (typeof ApexCharts === 'undefined') return;
+
+            // 1. Chart Bar per Kabupaten
+            const kabGroup = {};
+            filteredList.forEach(d => {
+                let rawKab = (d.kabupaten || 'Jambi').trim();
+                let cleanKab = rawKab.replace(/^KABUPATEN\s+/i, '').replace(/^KOTA\s+/i, 'Kota ');
+                cleanKab = cleanKab.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+
+                if (!kabGroup[cleanKab]) {
+                    kabGroup[cleanKab] = { totalRasio: 0, count: 0 };
+                }
+                kabGroup[cleanKab].totalRasio += d.rasio;
+                kabGroup[cleanKab].count += 1;
+            });
+
+            const kabCategories = Object.keys(kabGroup);
+            const kabData = kabCategories.map(k => Math.round(kabGroup[k].totalRasio / kabGroup[k].count));
+
+            const optionsKab = {
+                series: [{ name: 'Persentase Teraliri', data: kabData }],
+                chart: { type: 'bar', height: Math.max(280, kabCategories.length * 36), toolbar: { show: false }, fontFamily: 'Plus Jakarta Sans, sans-serif' },
+                colors: ['#2563eb', '#0284c7', '#0d9488', '#16a34a', '#d97706', '#dc2626', '#8b5cf6', '#ec4899'],
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        barHeight: '55%',
+                        borderRadius: 6,
+                        distributed: true,
+                        dataLabels: { position: 'top' }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    textAnchor: 'start',
+                    style: { colors: ['#1e293b'], fontSize: '11px', fontWeight: 800 },
+                    formatter: val => val + '%',
+                    offsetX: 8
+                },
+                xaxis: {
+                    max: 100,
+                    labels: { formatter: val => val + '%', style: { fontSize: '11px', fontWeight: 700 } }
+                },
+                yaxis: {
+                    labels: { style: { fontSize: '11px', fontWeight: 800 } }
+                },
+                tooltip: {
+                    y: { formatter: val => val + '% Wilayah Teraliri Listrik' }
+                },
+                grid: { borderColor: '#f1f5f9', strokeDashArray: 3 },
+                legend: { show: false }
+            };
+
+            if (chartKabupatenInstance) {
+                chartKabupatenInstance.updateOptions(optionsKab);
+            } else {
+                const el = document.getElementById('chart-kabupaten-bar');
+                if (el) {
+                    chartKabupatenInstance = new ApexCharts(el, optionsKab);
+                    chartKabupatenInstance.render();
+                }
+            }
+
+            // 2. Chart Donut Status Desa
+            const fullCount = filteredList.filter(d => d.status === 'full').length;
+            const sebCount = filteredList.filter(d => d.status === 'sebagian').length;
+            const belumCount = filteredList.filter(d => d.status === 'belum').length;
+
+            const optionsDonut = {
+                series: [fullCount, sebCount, belumCount],
+                labels: ['Desa 100% Terang', 'Desa Sebagian Teraliri', 'Desa Belum Berlistrik'],
+                chart: { type: 'donut', height: 280, fontFamily: 'Plus Jakarta Sans, sans-serif' },
+                colors: ['#10b981', '#f59e0b', '#ef4444'],
+                legend: { position: 'bottom', fontSize: '11px', fontWeight: 700 },
+                tooltip: {
+                    y: { formatter: val => val + ' Desa' }
+                },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '70%',
+                            labels: {
+                                show: true,
+                                total: {
+                                    show: true,
+                                    label: 'Total Desa',
+                                    fontSize: '12px',
+                                    fontWeight: 800,
+                                    color: '#64748b'
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            if (chartDonutInstance) {
+                chartDonutInstance.updateOptions(optionsDonut);
+            } else {
+                const el = document.getElementById('chart-status-donut');
+                if (el) {
+                    chartDonutInstance = new ApexCharts(el, optionsDonut);
+                    chartDonutInstance.render();
+                }
+            }
+        }
+
         // Interactive Filter & Real-Time Search Handler
         function filterDesaInteractive() {
             const query = document.getElementById('search-desa').value.toLowerCase().trim();
@@ -855,8 +1040,10 @@
                 filtered = filtered.filter(d => d.status === status);
             }
 
+            currentFilteredData = filtered;
             renderMarkersOnMap(filtered);
             renderStatistik(filtered);
+            renderCharts(filtered);
         }
 
         // Reset filter ke kondisi default
@@ -888,6 +1075,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderMarkersOnMap(dataDesa);
             renderStatistik(dataDesa);
+            renderCharts(dataDesa);
         });
     </script>
 @endpush

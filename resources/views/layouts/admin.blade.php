@@ -64,23 +64,6 @@
                 </a>
             </div>
 
-            <!-- Role Badge Banner -->
-            <div class="px-5 py-3 border-b border-slate-800/60 bg-slate-900/90">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
-                    <div>
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Sistem Terhubung</span>
-                        <span class="text-xs font-bold text-white block truncate">
-                            @if(auth()->user()->role === 'instansi')
-                                Dinas ESDM (Instansi Pusat)
-                            @else
-                                Pemdes {{ auth()->user()->desa }}
-                            @endif
-                        </span>
-                    </div>
-                </div>
-            </div>
-
             <!-- Sidebar Navigation Links -->
             <div class="flex-1 overflow-y-auto px-4 py-5 space-y-1">
                 @include('layouts.partials.sidebar-nav')
@@ -88,8 +71,7 @@
 
             <!-- Footer / System Info -->
             <div class="p-4 border-t border-slate-800 bg-slate-950/40 text-[11px] text-slate-400">
-                <p class="font-semibold text-slate-300">SPBE e-Government v2.0</p>
-                <p>&copy; {{ date('Y') }} Dinas ESDM RI</p>
+                <p>&copy; {{ date('Y') }} Dinas Energi dan Sumber Daya Mineral Provinsi Jambi</p>
             </div>
         </aside>
 
@@ -107,13 +89,13 @@
                     <!-- Page Breadcrumb & Title Indicator -->
                     <div>
                         <div class="flex items-center gap-2 text-xs text-slate-400 font-medium">
-                            <span>Portal e-Gov</span>
+                            <span>Dashboard Petugas</span>
                             <i class="fa-solid fa-chevron-right text-[9px]"></i>
                             <span class="text-slate-700 font-semibold">
                                 @if(auth()->user()->role === 'kepala_desa')
                                     Verifikasi Kepala Desa
                                 @else
-                                    Dinas ESDM Provinsi
+                                    Dinas Energi dan Sumber Daya Mineral Provinsi Jambi
                                 @endif
                             </span>
                         </div>
@@ -129,9 +111,6 @@
 
                 <!-- Right Topbar Controls (User Dropdown) -->
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('warga.index') }}" target="_blank" class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-blue-700 hover:bg-slate-100 rounded-lg transition border border-slate-200">
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Lihat Portal Publik
-                    </a>
 
                     <!-- Profile Dropdown (AlpineJS) -->
                     <div class="relative" x-data="{ open: false }">
@@ -143,9 +122,9 @@
                                 <span class="block text-xs font-bold text-slate-900 leading-tight">{{ auth()->user()->name }}</span>
                                 <span class="block text-[10px] text-slate-500 font-medium capitalize">
                                     @if(in_array(auth()->user()->role, ['super_admin', 'instansi']))
-                                        Super Admin ESDM
+                                        Admin ESDM
                                     @elseif(auth()->user()->role === 'verifikator_esdm')
-                                        Verifikator ESDM
+                                        Verifikator Dinas ESDM Provinsi Jambi
                                     @else
                                         Kepala Desa
                                     @endif
@@ -184,7 +163,7 @@
                 </div>
 
                 <footer class="mt-16 text-center text-xs text-slate-400 py-6 border-t border-slate-200/60">
-                    &copy; {{ date('Y') }} Sistem Pelayanan & Elektrifikasi Listrik Terpadu (SIPELITA) — Dinas Energi & Sumber Daya Mineral
+                    &copy; {{ date('Y') }} Sistem Pelayanan & Elektrifikasi Listrik Terpadu (SIPELITA) Dinas Energi & Sumber Daya Mineral Provinsi Jambi. All rights reserved.
                 </footer>
             </main>
 

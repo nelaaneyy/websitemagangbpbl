@@ -1,13 +1,19 @@
 <div class="space-y-6">
-    <!-- Menu Utama -->
     <div>
         <p class="px-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Navigasi Utama</p>
 
         @if(in_array(auth()->user()->role, ['instansi', 'super_admin', 'verifikator_esdm']))
             <div class="space-y-1">
-                <a href="{{ route('dinasesdm.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('dinasesdm.index') || request()->routeIs('dinasesdm.show') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                    <i class="fa-solid fa-list-check text-sm w-5 text-center"></i>
-                    <span>Dasbor Verifikasi Warga</span>
+                @if(in_array(auth()->user()->role, ['instansi', 'super_admin']))
+                    <a href="{{ route('dinasesdm.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('dinasesdm.index') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                        <i class="fa-solid fa-chart-pie text-sm w-5 text-center"></i>
+                        <span>Dasbor Analytics & KPI</span>
+                    </a>
+                @endif
+
+                <a href="{{ route('dinasesdm.datalist') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('dinasesdm.datalist') || request()->routeIs('dinasesdm.show') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                    <i class="fa-solid fa-table-list text-sm w-5 text-center"></i>
+                    <span>Daftar Data Permohonan</span>
                 </a>
 
                 <a href="{{ route('dinasesdm.lisdes.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('dinasesdm.lisdes.*') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
@@ -29,16 +35,16 @@
             <div class="mt-6 pt-4 border-t border-slate-800 space-y-1">
                 <p class="px-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Laporan & Ekspor</p>
 
-                <button type="button" onclick="typeof openExportModal === 'function' ? openExportModal('excel') : window.location.href='{{ route('dinasesdm.export.excel') }}'" 
+                <button type="button" onclick="typeof openExportModal === 'function' ? openExportModal('excel') : window.location.href='{{ route('dinasesdm.export.excel') }}'"
                         class="w-full text-left flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-emerald-400 hover:bg-emerald-500/10 transition cursor-pointer">
                     <i class="fa-solid fa-file-excel text-sm w-5 text-center"></i>
                     <span>Ekspor Format Excel</span>
                 </button>
 
-                <button type="button" onclick="typeof openExportModal === 'function' ? openExportModal('pdf') : window.open('{{ route('dinasesdm.export.pdf') }}', '_blank')" 
+                <button type="button" onclick="typeof openExportModal === 'function' ? openExportModal('pdf') : window.open('{{ route('dinasesdm.export.pdf') }}', '_blank')"
                         class="w-full text-left flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition cursor-pointer">
                     <i class="fa-solid fa-file-pdf text-sm w-5 text-center"></i>
-                    <span>Cetak Laporan PDF</span>
+                    <span>Ekspor Format PDF</span>
                 </button>
             </div>
 
@@ -49,9 +55,9 @@
                     <span>Verifikasi Warga Desa</span>
                 </a>
 
-                <a href="{{ route('kepaladesa.lisdes.create') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('kepaladesa.lisdes.*') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                    <i class="fa-solid fa-paper-plane text-sm w-5 text-center"></i>
-                    <span>Ajukan Jaringan Lisdes</span>
+                <a href="{{ route('kepaladesa.lisdes.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('kepaladesa.lisdes.*') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                    <i class="fa-solid fa-tower-cell text-sm w-5 text-center"></i>
+                    <span>Usulan Jaringan Lisdes</span>
                 </a>
             </div>
         @endif

@@ -1,5 +1,5 @@
-{!! '<?xml version="1.0" encoding="UTF-8"?>' !!}
-{!! '<?mso-application progid="Excel.Sheet"?>' !!}
+{!! '<' . '?xml version="1.0" encoding="UTF-8"?' . '>' !!}
+{!! '<' . '?mso-application progid="Excel.Sheet"?' . '>' !!}
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
  xmlns:o="urn:schemas-microsoft-com:office:office"
  xmlns:x="urn:schemas-microsoft-com:office:excel"
@@ -97,7 +97,7 @@
    <Column ss:Width="220"/>
    <Column ss:Width="150"/>
    <Column ss:Width="120"/>
-   
+
    <Row>
     <Cell ss:Index="7" ss:MergeAcross="3" ss:StyleID="LampiranRight"><Data ss:Type="String">LAMPIRAN</Data></Cell>
    </Row>
@@ -120,7 +120,7 @@
     <Cell ss:MergeAcross="9" ss:StyleID="TitleBold"><Data ss:Type="String">PROVINSI JAMBI</Data></Cell>
    </Row>
    <Row/>
-   
+
    <!-- Table Header -->
    <Row ss:Height="25">
     <Cell ss:StyleID="HeaderYellow"><Data ss:Type="String">NO</Data></Cell>

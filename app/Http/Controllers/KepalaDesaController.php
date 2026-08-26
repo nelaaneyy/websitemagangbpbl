@@ -113,9 +113,27 @@ class KepalaDesaController extends Controller
         }
     }
 
+    public function lisdesIndex(Request $request)
+    {
+        $lisdesList = \App\Models\PengajuanLisdes::where('desa', $request->user()->desa)
+            ->orWhere('user_id', $request->user()->id)
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        $stats = [
+            'total'               => \App\Models\PengajuanLisdes::where('desa', $request->user()->desa)->count(),
+            'menunggu_verifikasi' => \App\Models\PengajuanLisdes::where('desa', $request->user()->desa)->where('status', 'menunggu_verifikasi')->count(),
+            'disetujui'           => \App\Models\PengajuanLisdes::where('desa', $request->user()->desa)->where('status', 'disetujui')->count(),
+            'ditolak'             => \App\Models\PengajuanLisdes::where('desa', $request->user()->desa)->where('status', 'ditolak')->count(),
+        ];
+
+        return view('kepaladesa.lisdes.index', compact('lisdesList', 'stats'));
+    }
+
     public function createLisdes()
     {
-        return view('kepaladesa.pengajuanlisdes');
+        return redirect()->route('kepaladesa.lisdes.index');
     }
 
     public function storeLisdes(Request $request)
@@ -151,6 +169,6 @@ class KepalaDesaController extends Controller
             'status'             => 'menunggu_verifikasi',
         ]);
 
-        return redirect()->route('kepaladesa.index')->with('success', 'Usulan Lisdes berhasil dikirim ke Dinas ESDM!');
+        return redirect()->route('kepaladesa.lisdes.index')->with('success', 'Usulan Lisdes Dusun berhasil diajukan ke Dinas ESDM!');
     }
 }
