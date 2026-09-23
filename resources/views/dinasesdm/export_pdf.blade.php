@@ -444,34 +444,100 @@
             PROVINSI JAMBI TAHUN {{ date('Y') }}
         </div>
 
+        @php
+            $allColsDefPdf = [
+                'no'          => ['title' => 'NO', 'width' => '25px'],
+                'kabupaten'   => ['title' => 'Kabupaten', 'width' => '75px'],
+                'kecamatan'   => ['title' => 'Kecamatan', 'width' => '70px'],
+                'desa'        => ['title' => 'Desa/Kelurahan', 'width' => '80px'],
+                'nama'        => ['title' => 'Nama', 'width' => '95px'],
+                'nik'         => ['title' => 'NIK', 'width' => '95px'],
+                'alamat'      => ['title' => 'Alamat (RT/RW)', 'width' => ''],
+                'no_hp'       => ['title' => 'No HP', 'width' => '65px'],
+                'jarak_tiang' => ['title' => 'Jarak (M)', 'width' => '55px'],
+                'status'      => ['title' => 'Status', 'width' => '65px'],
+                'tahun'       => ['title' => 'Tahun', 'width' => '45px'],
+                'keterangan'  => ['title' => 'Keterangan', 'width' => '80px'],
+            ];
+
+            $selectedCols = $selectedColumns ?? [];
+            if (empty($selectedCols)) {
+                $activeColsPdf = ['no', 'kabupaten', 'kecamatan', 'desa', 'nama', 'nik', 'alamat', 'jarak_tiang'];
+            } else {
+                $activeColsPdf = array_intersect(array_keys($allColsDefPdf), $selectedCols);
+                if (empty($activeColsPdf)) {
+                    $activeColsPdf = array_keys($allColsDefPdf);
+                }
+            }
+            $colCountPdf = count($activeColsPdf);
+        @endphp
+
         <table class="border-table">
             <thead>
                 <tr>
-                    <th style="width: 25px;">NO</th>
-                    <th style="width: 80px;">Kabupaten</th>
-                    <th style="width: 75px;">Kecamatan</th>
-                    <th style="width: 85px;">Desa/Kelurahan</th>
-                    <th style="width: 100px;">Nama</th>
-                    <th style="width: 100px;">NIK</th>
-                    <th>Alamat</th>
-                    <th style="width: 65px;">Jarak Tiang (M)</th>
+                    @foreach ($activeColsPdf as $cKey)
+                        <th @if(!empty($allColsDefPdf[$cKey]['width'])) style="width: {{ $allColsDefPdf[$cKey]['width'] }};" @endif>
+                            {{ $allColsDefPdf[$cKey]['title'] }}
+                        </th>
+                    @endforeach
                 </tr>
             </thead>
             <tbody>
+                @php $lastCatPdf = null; @endphp
                 @forelse ($wargas as $index => $warga)
+                    @php
+                        $currCatPdf = 'KECAMATAN ' . strtoupper($warga->kecamatan) . ' - DESA/KELURAHAN ' . strtoupper($warga->desa);
+                        $statusLabelPdf = match($warga->status_verifikasi) {
+                            'terpasang' => 'Terpasang',
+                            'lolos_verifikasi_pusat' => 'Lolos',
+                            'menunggu_verifikasi_pusat' => 'Menunggu',
+                            'ditolak/perlu_perbaikan' => 'Ditolak',
+                            default => ucfirst(str_replace('_', ' ', $warga->status_verifikasi)),
+                        };
+                        $tahunValPdf = $warga->tahun_usulan ?: ($warga->created_at ? $warga->created_at->format('Y') : '-');
+                    @endphp
+
+                    @if ($lastCatPdf !== $currCatPdf)
+                        <tr style="background-color: #f1f5f9; font-weight: bold;">
+                            <td colspan="{{ $colCountPdf }}" style="padding: 4px; font-size: 7.5pt; text-align: left; text-transform: uppercase; background-color: #e2e8f0;">
+                                Kategori Wilayah: {{ $currCatPdf }}
+                            </td>
+                        </tr>
+                        @php $lastCatPdf = $currCatPdf; @endphp
+                    @endif
+
                     <tr>
-                        <td class="text-center">{{ $index + 1 }}.</td>
-                        <td>{{ strtoupper($warga->kabupaten) }}</td>
-                        <td>{{ strtoupper($warga->kecamatan) }}</td>
-                        <td>{{ strtoupper($warga->desa) }}</td>
-                        <td><strong>{{ strtoupper($warga->nama) }}</strong></td>
-                        <td class="text-center font-mono">{{ $warga->nik }}</td>
-                        <td style="font-size: 8pt;">{{ $warga->alamat }} (RT/RW: {{ $warga->rt_rw }})</td>
-                        <td class="text-center">{{ $warga->jarak_tiang ? $warga->jarak_tiang : '-' }}</td>
+                        @foreach ($activeColsPdf as $cKey)
+                            @if ($cKey === 'no')
+                                <td class="text-center">{{ $index + 1 }}.</td>
+                            @elseif ($cKey === 'kabupaten')
+                                <td>{{ strtoupper($warga->kabupaten) }}</td>
+                            @elseif ($cKey === 'kecamatan')
+                                <td>{{ strtoupper($warga->kecamatan) }}</td>
+                            @elseif ($cKey === 'desa')
+                                <td>{{ strtoupper($warga->desa) }}</td>
+                            @elseif ($cKey === 'nama')
+                                <td><strong>{{ strtoupper($warga->nama) }}</strong></td>
+                            @elseif ($cKey === 'nik')
+                                <td class="text-center font-mono">{{ $warga->nik }}</td>
+                            @elseif ($cKey === 'alamat')
+                                <td style="font-size: 8pt;">{{ $warga->alamat }} (RT/RW: {{ $warga->rt_rw }})</td>
+                            @elseif ($cKey === 'no_hp')
+                                <td class="text-center">{{ $warga->no_hp ?: '-' }}</td>
+                            @elseif ($cKey === 'jarak_tiang')
+                                <td class="text-center">{{ $warga->jarak_tiang ? $warga->jarak_tiang : '-' }}</td>
+                            @elseif ($cKey === 'status')
+                                <td class="text-center">{{ $statusLabelPdf }}</td>
+                            @elseif ($cKey === 'tahun')
+                                <td class="text-center">{{ $tahunValPdf }}</td>
+                            @elseif ($cKey === 'keterangan')
+                                <td style="font-size: 7.5pt;">{{ $warga->keterangan_import ?: '-' }}</td>
+                            @endif
+                        @endforeach
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center" style="padding: 10px; color: #64748b;">
+                        <td colspan="{{ $colCountPdf }}" class="text-center" style="padding: 10px; color: #64748b;">
                             Tidak ada data usulan calon penerima BPBL.
                         </td>
                     </tr>

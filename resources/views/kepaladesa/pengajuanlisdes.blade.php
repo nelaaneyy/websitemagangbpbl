@@ -120,33 +120,56 @@
                         <h3 class="text-base">Penentuan Koordinat GPS Wilayah</h3>
                     </div>
 
-                    <p class="text-xs text-slate-500 font-medium leading-relaxed">
-                        Klik pada peta di bawah ini untuk menempatkan pin lokasi dusun, atau gunakan tombol GPS Device untuk posisi presisi.
-                    </p>
-
-                    <!-- Peta Interaktif Leaflet -->
-                    <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
-                        <div id="map" class="w-full h-80 z-10"></div>
+                    <!-- 1-to-N TOPOLOGY CANVAS COMPONENT SPECIFICATION -->
+                    <div id="pinStatusBadge" class="mb-2 px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-lg font-medium flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span id="pinStatusText">Langkah 1: Klik peta untuk menentukan <b>1 Titik Tiang TR Pangkal</b></span>
                     </div>
 
-                    <!-- Display Inputs -->
+                    <!-- Hidden Inputs for Exported Payload Schema -->
+                    <input type="hidden" name="topology_data" id="topology_data">
+                    <input type="hidden" name="jarak_pln_meter" id="jarak_pln_meter" value="0">
+
+                    <!-- Peta Canvas Interaktif Leaflet -->
+                    <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative z-0">
+                        <div id="mapLisdes" class="w-full h-72 rounded-xl border border-slate-300 relative z-0"></div>
+                    </div>
+
+                    <!-- Calculation Display Panel -->
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-2 gap-3 text-center">
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase">Total Bentang Jaringan</span>
+                            <span id="totalDistanceLabel" class="text-sm font-extrabold text-blue-600">0 meter</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase">Est. Kebutuhan Tiang</span>
+                            <span id="estTiangLabel" class="text-sm font-extrabold text-emerald-600">0 Tiang</span>
+                        </div>
+                    </div>
+
+                    <!-- Display Coordinate Inputs -->
                     <div class="grid grid-cols-2 gap-3">
                         <div class="space-y-1">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Latitude</label>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Latitude Pangkal</label>
                             <input type="text" id="latitude" name="latitude" value="{{ old('latitude') }}" readonly required placeholder="Contoh: -1.6101"
                                    class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs font-mono font-extrabold text-slate-800 focus:outline-none">
                         </div>
                         <div class="space-y-1">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Longitude</label>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Longitude Pangkal</label>
                             <input type="text" id="longitude" name="longitude" value="{{ old('longitude') }}" readonly required placeholder="Contoh: 103.6131"
                                    class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs font-mono font-extrabold text-slate-800 focus:outline-none">
                         </div>
                     </div>
 
-                    <div class="pt-4 border-t border-slate-100 space-y-3">
-                        <button type="button" onclick="deteksiGPS()" class="w-full py-3 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-2xl text-xs font-extrabold transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-location-crosshairs text-blue-600"></i> Deteksi Lokasi GPS Saya
-                        </button>
+                    <div class="pt-2 border-t border-slate-100 space-y-2">
+                        <div class="flex gap-2">
+                            <button type="button" onclick="deteksiGPS()" class="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-location-crosshairs text-blue-600"></i> GPS Saya
+                            </button>
+                            <button type="button" onclick="resetTopology()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition">
+                                Reset Topologi
+                            </button>
+                        </div>
                         <button type="submit" class="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-extrabold text-xs rounded-2xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
                             <i class="fa-solid fa-paper-plane"></i> Kirim Permohonan Usulan Lisdes
                         </button>
@@ -171,38 +194,178 @@
             const defaultLat = {{ old('latitude', -1.6101) }};
             const defaultLng = {{ old('longitude', 103.6131) }};
 
-            const map = L.map('map').setView([defaultLat, defaultLng], 11);
+            // Jambi Regional Scope Bounding Box
+            const jambiBounds = L.latLngBounds(
+                L.latLng(-2.8500, 101.1000), // South-West
+                L.latLng(-0.7500, 104.5500)  // North-East
+            );
+
+            // Inisialisasi Peta Leaflet #mapLisdes
+            const mapLisdes = L.map('mapLisdes', {
+                center: [defaultLat, defaultLng],
+                zoom: 14, // Desa Form Default Zoom = 14
+                maxBounds: jambiBounds,
+                maxBoundsViscosity: 0.8
+            });
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
-                attribution: '&copy; OpenStreetMap contributors | Dinas ESDM'
-            }).addTo(map);
+                attribution: '&copy; OpenStreetMap contributors | WebGIS SIPELITA ESDM Jambi'
+            }).addTo(mapLisdes);
 
-            let marker;
+            // FIX-01: Invalidate map size after DOM render & on window resize
+            setTimeout(function() {
+                if (mapLisdes) mapLisdes.invalidateSize();
+            }, 200);
+
+            window.addEventListener('resize', function() {
+                if (mapLisdes) mapLisdes.invalidateSize();
+            });
+
+            // State Variables & Layer Groups
+            let sourceNode = null; // { lat, lng }
+            let targetNodes = [];  // [{ id: N, lat, lng }]
+            
+            const markersGroup = L.layerGroup().addTo(mapLisdes);
+            const linesGroup = L.layerGroup().addTo(mapLisdes);
+            const labelsGroup = L.layerGroup().addTo(mapLisdes);
+
+            // Custom DivIcon Markers
+            const sourceIcon = L.divIcon({
+                className: 'custom-pin-source',
+                html: `<div class="bg-rose-600 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shadow-lg border-2 border-white">⚡</div>`,
+                iconAnchor: [14, 14]
+            });
+
+            function getTargetIcon(index) {
+                return L.divIcon({
+                    className: 'custom-pin-target',
+                    html: `<div class="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] shadow-lg border-2 border-white">${index}</div>`,
+                    iconAnchor: [12, 12]
+                });
+            }
 
             function updateInputs(lat, lng) {
                 document.getElementById('latitude').value = lat.toFixed(7);
                 document.getElementById('longitude').value = lng.toFixed(7);
             }
 
-            @if(old('latitude') && old('longitude'))
-                marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
-                updateInputs(defaultLat, defaultLng);
-            @endif
-
-            map.on('click', function(e) {
+            // Map Click Interaction Workflow
+            mapLisdes.on('click', function(e) {
                 const { lat, lng } = e.latlng;
-                if (marker) {
-                    marker.setLatLng([lat, lng]);
+
+                if (!sourceNode) {
+                    // STEP 1: Source Pinning (First Click)
+                    sourceNode = { lat: parseFloat(lat.toFixed(7)), lng: parseFloat(lng.toFixed(7)) };
+                    updateInputs(sourceNode.lat, sourceNode.lng);
+
+                    L.marker([sourceNode.lat, sourceNode.lng], { icon: sourceIcon }).addTo(markersGroup);
+
+                    // Update Status Badge UI
+                    document.getElementById('pinStatusText').innerHTML = 'Langkah 2: Klik titik-titik <b>Rumah Warga Sasaran (N)</b>';
                 } else {
-                    marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-                    marker.on('dragend', function(evt) {
-                        const pos = marker.getLatLng();
-                        updateInputs(pos.lat, pos.lng);
-                    });
+                    // STEP 2: Target Pinning (Consecutive Clicks)
+                    const targetIndex = targetNodes.length + 1;
+                    const newTarget = {
+                        id: targetIndex,
+                        lat: parseFloat(lat.toFixed(7)),
+                        lng: parseFloat(lng.toFixed(7))
+                    };
+                    targetNodes.push(newTarget);
+
+                    L.marker([newTarget.lat, newTarget.lng], { icon: getTargetIcon(targetIndex) }).addTo(markersGroup);
+
+                    // STEP 3: Redraw & Compute
+                    redrawTopology();
                 }
-                updateInputs(lat, lng);
             });
+
+            // STEP 3: Redraw & Compute Function
+            function redrawTopology() {
+                linesGroup.clearLayers();
+                labelsGroup.clearLayers();
+
+                if (!sourceNode || targetNodes.length === 0) return;
+
+                let totalDist = 0;
+                let currentPoint = L.latLng(sourceNode.lat, sourceNode.lng);
+                let latLngList = [currentPoint];
+
+                targetNodes.forEach((target) => {
+                    let targetLatLng = L.latLng(target.lat, target.lng);
+                    latLngList.push(targetLatLng);
+
+                    // Geodesic Distance per segment
+                    let dist = currentPoint.distanceTo(targetLatLng);
+                    totalDist += dist;
+
+                    // Midpoint Geocoding for Floating Distance Badge
+                    let midLat = (currentPoint.lat + targetLatLng.lat) / 2;
+                    let midLng = (currentPoint.lng + targetLatLng.lng) / 2;
+
+                    let labelIcon = L.divIcon({
+                        className: 'midpoint-label-badge',
+                        html: `<div class="bg-slate-900 text-amber-300 border border-amber-500/50 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold shadow-md whitespace-nowrap">${dist.toFixed(1)}m</div>`,
+                        iconSize: [60, 20],
+                        iconAnchor: [30, 10]
+                    });
+
+                    L.marker([midLat, midLng], { icon: labelIcon }).addTo(labelsGroup);
+                    currentPoint = targetLatLng;
+                });
+
+                // Polyline Rendering (#2563EB, weight: 3, dashArray: "6, 6", opacity: 0.8)
+                L.polyline(latLngList, {
+                    color: '#2563EB',
+                    weight: 3,
+                    dashArray: '6, 6',
+                    opacity: 0.8
+                }).addTo(linesGroup);
+
+                // Pole Estimation: Math.ceil(totalDist / 45)
+                let totalMeters = Math.round(totalDist);
+                let estPoles = Math.ceil(totalMeters / 45);
+
+                // Update UI Display Labels & Form Inputs
+                document.getElementById('totalDistanceLabel').textContent = totalMeters + ' meter';
+                document.getElementById('estTiangLabel').textContent = estPoles + ' Tiang';
+                document.getElementById('jarak_pln_meter').value = totalMeters;
+
+                const estimasiJarakElem = document.getElementById('estimasi_jarak');
+                if (estimasiJarakElem) estimasiJarakElem.value = totalMeters;
+
+                const jumlahKkElem = document.getElementById('jumlah_kk');
+                if (jumlahKkElem && targetNodes.length > 0) jumlahKkElem.value = targetNodes.length;
+
+                // Exported Payload Schema Injection into #topology_data
+                const payload = {
+                    source: sourceNode,
+                    targets: targetNodes,
+                    total_distance: totalMeters,
+                    estimated_poles: estPoles
+                };
+
+                document.getElementById('topology_data').value = JSON.stringify(payload);
+            }
+
+            // STEP 4: Reset Function
+            window.resetTopology = function() {
+                sourceNode = null;
+                targetNodes = [];
+
+                markersGroup.clearLayers();
+                linesGroup.clearLayers();
+                labelsGroup.clearLayers();
+
+                document.getElementById('totalDistanceLabel').textContent = '0 meter';
+                document.getElementById('estTiangLabel').textContent = '0 Tiang';
+                document.getElementById('topology_data').value = '';
+                document.getElementById('jarak_pln_meter').value = '0';
+                document.getElementById('latitude').value = '';
+                document.getElementById('longitude').value = '';
+
+                document.getElementById('pinStatusText').innerHTML = 'Langkah 1: Klik peta untuk menentukan <b>1 Titik Tiang TR Pangkal</b>';
+            };
 
             window.deteksiGPS = function() {
                 if (navigator.geolocation) {
@@ -210,17 +373,13 @@
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
 
-                        map.setView([lat, lng], 15);
-                        if (marker) {
-                            marker.setLatLng([lat, lng]);
-                        } else {
-                            marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-                            marker.on('dragend', function(evt) {
-                                const pos = marker.getLatLng();
-                                updateInputs(pos.lat, pos.lng);
-                            });
+                        mapLisdes.setView([lat, lng], 15);
+                        if (!sourceNode) {
+                            sourceNode = { lat: parseFloat(lat.toFixed(7)), lng: parseFloat(lng.toFixed(7)) };
+                            updateInputs(sourceNode.lat, sourceNode.lng);
+                            L.marker([sourceNode.lat, sourceNode.lng], { icon: sourceIcon }).addTo(markersGroup);
+                            document.getElementById('pinStatusText').innerHTML = 'Langkah 2: Klik titik-titik <b>Rumah Warga Sasaran (N)</b>';
                         }
-                        updateInputs(lat, lng);
                     }, function(error) {
                         alert("Gagal mendeteksi lokasi GPS device. Silakan tentukan titik dengan klik peta secara langsung.");
                     }, { enableHighAccuracy: true });

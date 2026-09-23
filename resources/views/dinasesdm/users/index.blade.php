@@ -82,7 +82,7 @@
                         <th class="px-5 py-4">Desa / Unit Kerja</th>
                         <th class="px-5 py-4">Kontak Email / HP</th>
                         <th class="px-5 py-4">Dokumen SK</th>
-                        <th class="px-5 py-4 text-right">Aksi Persetujuan</th>
+                        <th class="px-5 py-4 text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -138,7 +138,7 @@
                                         <form method="POST" action="{{ route('dinasesdm.users.approve', $user) }}" class="inline">
                                             @csrf @method('PATCH')
                                             <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-extrabold text-xs shadow-xs transition flex items-center gap-1">
-                                                <i class="fa-solid fa-check"></i> Setujui
+                                                <i class="fa-solid fa-check"></i> Setuju
                                             </button>
                                         </form>
                                         <form method="POST" action="{{ route('dinasesdm.users.reject', $user) }}" class="inline" onsubmit="return confirm('Tolak pendaftaran akun ini?')">

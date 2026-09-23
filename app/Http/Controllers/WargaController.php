@@ -91,21 +91,54 @@ class WargaController extends Controller
             '*.max'                                => 'Ukuran foto maksimal adalah 2 MB.',
         ]);
 
-        DB::transaction(function () use ($request, $validated, $isResubmit, $wargaExists) {
+        // ---- 1. Eksekusi 3-Layer Duplicate Checking Engine ----
+        $dupChecker = new \App\Services\DuplicateCheckingService();
+        $dupResult = $dupChecker->check(
+            $validated['nik'],
+            (float)$validated['latitude'],
+            (float)$validated['longitude'],
+            $request->input('id_pelanggan'),
+            $validated['no_hp'],
+            $isResubmit ? $wargaExists->id : null
+        );
+
+        // ---- 2. Eksekusi EXIF Validation Engine pada Foto Rumah ----
+        $exifService = new \App\Services\ExifValidationService();
+        $exifResult = $exifService->validatePhotoExif(
+            $request->file('foto_rumah_depan'),
+            (float)$validated['latitude'],
+            (float)$validated['longitude']
+        );
+
+        // ---- 3. Hitung Jarak Tiang Spasial Presisi (Haversine) ----
+        $nearestPoleInfo = \App\Services\SpatialEngine::findNearestPole((float)$validated['latitude'], (float)$validated['longitude']);
+        $calculatedDistance = $nearestPoleInfo ? $nearestPoleInfo['distance_meters'] : 0.0;
+
+        DB::transaction(function () use ($request, $validated, $isResubmit, $wargaExists, $dupResult, $exifResult, $calculatedDistance) {
             $wargaData = [
-                'nik'               => $validated['nik'],
-                'nama'              => $validated['nama'],
-                'kabupaten'         => $validated['kabupaten'],
-                'kecamatan'         => $validated['kecamatan'],
-                'desa'              => $validated['desa'],
-                'rt_rw'             => $validated['rt_rw'],
-                'no_hp'             => $validated['no_hp'],
-                'alamat'            => $validated['alamat'],
-                'latitude'          => $validated['latitude'],
-                'longitude'         => $validated['longitude'],
-                'status_verifikasi' => 'terkirim',
-                'catatan'           => null,
-                'ditolak_oleh'      => null,
+                'nik'                   => $validated['nik'],
+                'id_pelanggan'          => $request->input('id_pelanggan'),
+                'nama'                  => $validated['nama'],
+                'kabupaten'             => $validated['kabupaten'],
+                'kecamatan'             => $validated['kecamatan'],
+                'desa'                  => $validated['desa'],
+                'rt_rw'                 => $validated['rt_rw'],
+                'no_hp'                 => $validated['no_hp'],
+                'alamat'                => $validated['alamat'],
+                'latitude'              => $validated['latitude'],
+                'longitude'             => $validated['longitude'],
+                'exif_latitude'         => $exifResult['exif_latitude'],
+                'exif_longitude'        => $exifResult['exif_longitude'],
+                'exif_device'           => $exifResult['exif_device'],
+                'exif_timestamp'        => $exifResult['exif_timestamp'],
+                'is_exif_valid'         => $exifResult['is_valid'],
+                'exif_deviation_meters' => $exifResult['deviation_meters'],
+                'jarak_tiang_calc'      => $calculatedDistance,
+                'risiko_duplikasi'      => $dupResult['risk_level'],
+                'catatan_duplikasi'     => $dupResult['summary'],
+                'status_verifikasi'     => 'terkirim',
+                'catatan'               => null,
+                'ditolak_oleh'          => null,
             ];
 
             if ($isResubmit) {
@@ -145,10 +178,13 @@ class WargaController extends Controller
                 'foto_sktm'                   => $pathSktm,
             ]);
 
-            // Record Activity Log
+            // Record Immutable Activity Log with GPS Coords & State Snapshot
             \App\Models\ActivityLog::record(
                 $isResubmit ? 'warga_resubmit' : 'warga_register',
-                ($isResubmit ? 'Perbaikan data pendaftaran BPBL untuk NIK ' : 'Pendaftaran baru BPBL untuk NIK ') . $warga->nik . ' (' . $warga->nama . ' - ' . $warga->desa . ', ' . $warga->kabupaten . ')'
+                ($isResubmit ? 'Perbaikan data pendaftaran BPBL untuk NIK ' : 'Pendaftaran baru BPBL untuk NIK ') . $warga->nik . ' (' . $warga->nama . ' - ' . $warga->desa . ', ' . $warga->kabupaten . ')',
+                null,
+                "{$warga->latitude},{$warga->longitude}",
+                ['nik' => $warga->nik, 'risk' => $dupResult['risk_level'], 'exif_valid' => $exifResult['is_valid']]
             );
         });
 

@@ -50,7 +50,7 @@
             <div class="flex items-start justify-between">
                 <div>
                     <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Tahap 1 - 4 Total Berkas</span>
-                    <h3 class="text-3xl font-black text-slate-900 tracking-tight">{{ number_format($stats['total']) }}</h3>
+                    <h3 id="admin-kpi-total" class="text-3xl font-black text-slate-900 tracking-tight">{{ number_format($stats['total']) }}</h3>
                 </div>
                 <div class="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition border border-blue-100">
                     <i class="fa-solid fa-folder-open"></i>
@@ -73,7 +73,7 @@
             <div class="flex items-start justify-between">
                 <div>
                     <span class="text-[11px] font-extrabold text-amber-700 uppercase tracking-wider block mb-1">Tahap 2 • Menunggu ESDM</span>
-                    <h3 class="text-3xl font-black text-amber-950 tracking-tight">{{ number_format($stats['menunggu']) }}</h3>
+                    <h3 id="admin-kpi-menunggu" class="text-3xl font-black text-amber-950 tracking-tight">{{ number_format($stats['menunggu']) }}</h3>
                 </div>
                 <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition border border-amber-200">
                     <i class="fa-solid fa-hourglass-half animate-pulse"></i>
@@ -87,10 +87,10 @@
                 <span class="font-bold text-amber-800 flex items-center gap-1">
                     <i class="fa-solid fa-clock text-amber-500 text-[10px]"></i> Perlu Review Instansi
                 </span>
-                <span class="px-2 py-0.5 bg-amber-100 text-amber-900 font-extrabold rounded-md text-[10px]">{{ $pctMenunggu }}%</span>
+                <span id="admin-pct-menunggu" class="px-2 py-0.5 bg-amber-100 text-amber-900 font-extrabold rounded-md text-[10px]">{{ $pctMenunggu }}%</span>
             </div>
             <div class="w-full bg-amber-100/70 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div class="bg-amber-500 h-1.5 rounded-full transition-all duration-500" style="width: {{ $pctMenunggu }}%"></div>
+                <div id="admin-bar-menunggu" class="bg-amber-500 h-1.5 rounded-full transition-all duration-500" style="width: {{ $pctMenunggu }}%"></div>
             </div>
         </div>
 
@@ -99,7 +99,7 @@
             <div class="flex items-start justify-between">
                 <div>
                     <span class="text-[11px] font-extrabold text-emerald-700 uppercase tracking-wider block mb-1">Tahap 3 • Lolos Verifikasi</span>
-                    <h3 class="text-3xl font-black text-emerald-950 tracking-tight">{{ number_format($stats['disetujui']) }}</h3>
+                    <h3 id="admin-kpi-disetujui" class="text-3xl font-black text-emerald-950 tracking-tight">{{ number_format($stats['disetujui']) }}</h3>
                 </div>
                 <div class="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition border border-emerald-200">
                     <i class="fa-solid fa-circle-check"></i>
@@ -113,10 +113,10 @@
                 <span class="font-bold text-emerald-800 flex items-center gap-1">
                     <i class="fa-solid fa-shield-halved text-emerald-500 text-[10px]"></i> Berkas Valid & Disetujui
                 </span>
-                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-900 font-extrabold rounded-md text-[10px]">{{ $pctDisetujui }}%</span>
+                <span id="admin-pct-disetujui" class="px-2 py-0.5 bg-emerald-100 text-emerald-900 font-extrabold rounded-md text-[10px]">{{ $pctDisetujui }}%</span>
             </div>
             <div class="w-full bg-emerald-100/70 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div class="bg-emerald-600 h-1.5 rounded-full transition-all duration-500" style="width: {{ $pctDisetujui }}%"></div>
+                <div id="admin-bar-disetujui" class="bg-emerald-600 h-1.5 rounded-full transition-all duration-500" style="width: {{ $pctDisetujui }}%"></div>
             </div>
         </div>
 
@@ -125,7 +125,7 @@
             <div class="flex items-start justify-between">
                 <div>
                     <span class="text-[11px] font-extrabold text-rose-700 uppercase tracking-wider block mb-1">Tahap Revisi • Ditolak</span>
-                    <h3 class="text-3xl font-black text-rose-950 tracking-tight">{{ number_format($stats['ditolak']) }}</h3>
+                    <h3 id="admin-kpi-ditolak" class="text-3xl font-black text-rose-950 tracking-tight">{{ number_format($stats['ditolak']) }}</h3>
                 </div>
                 <div class="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition border border-rose-200">
                     <i class="fa-solid fa-circle-xmark"></i>
@@ -139,10 +139,10 @@
                 <span class="font-bold text-rose-800 flex items-center gap-1">
                     <i class="fa-solid fa-triangle-exclamation text-rose-500 text-[10px]"></i> Perlu Perbaikan Berkas
                 </span>
-                <span class="px-2 py-0.5 bg-rose-100 text-rose-900 font-extrabold rounded-md text-[10px]">{{ $pctDitolak }}%</span>
+                <span id="admin-pct-ditolak" class="px-2 py-0.5 bg-rose-100 text-rose-900 font-extrabold rounded-md text-[10px]">{{ $pctDitolak }}%</span>
             </div>
             <div class="w-full bg-rose-100/70 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div class="bg-rose-600 h-1.5 rounded-full transition-all duration-500" style="width: {{ $pctDitolak }}%"></div>
+                <div id="admin-bar-ditolak" class="bg-rose-600 h-1.5 rounded-full transition-all duration-500" style="width: {{ $pctDitolak }}%"></div>
             </div>
         </div>
 
@@ -340,6 +340,45 @@
 
         const chartDonut = new ApexCharts(document.querySelector("#donutChartStatus"), optionsDonut);
         chartDonut.render();
+
+        function fetchAdminKpiStats() {
+            fetch("{{ route('api.kpi.stats') }}")
+                .then(res => res.json())
+                .then(data => {
+                    const elTotal = document.getElementById('admin-kpi-total');
+                    if (elTotal) elTotal.innerText = new Intl.NumberFormat('id-ID').format(data.total_warga);
+                    const elMenunggu = document.getElementById('admin-kpi-menunggu');
+                    if (elMenunggu) elMenunggu.innerText = new Intl.NumberFormat('id-ID').format(data.total_menunggu);
+                    const elDisetujui = document.getElementById('admin-kpi-disetujui');
+                    if (elDisetujui) elDisetujui.innerText = new Intl.NumberFormat('id-ID').format(data.total_disetujui);
+                    const elDitolak = document.getElementById('admin-kpi-ditolak');
+                    if (elDitolak) elDitolak.innerText = new Intl.NumberFormat('id-ID').format(data.total_ditolak);
+
+                    const total = data.total_warga > 0 ? data.total_warga : 1;
+                    const pctM = ((data.total_menunggu / total) * 100).toFixed(1);
+                    const pctD = ((data.total_disetujui / total) * 100).toFixed(1);
+                    const pctR = ((data.total_ditolak / total) * 100).toFixed(1);
+
+                    const elPctM = document.getElementById('admin-pct-menunggu');
+                    if (elPctM) elPctM.innerText = `${pctM}%`;
+                    const elBarM = document.getElementById('admin-bar-menunggu');
+                    if (elBarM) elBarM.style.width = `${pctM}%`;
+
+                    const elPctD = document.getElementById('admin-pct-disetujui');
+                    if (elPctD) elPctD.innerText = `${pctD}%`;
+                    const elBarD = document.getElementById('admin-bar-disetujui');
+                    if (elBarD) elBarD.style.width = `${pctD}%`;
+
+                    const elPctR = document.getElementById('admin-pct-ditolak');
+                    if (elPctR) elPctR.innerText = `${pctR}%`;
+                    const elBarR = document.getElementById('admin-bar-ditolak');
+                    if (elBarR) elBarR.style.width = `${pctR}%`;
+                })
+                .catch(err => console.log(err));
+        }
+
+        setInterval(fetchAdminKpiStats, 10000);
+        window.addEventListener('focus', fetchAdminKpiStats);
     });
 </script>
 @endsection

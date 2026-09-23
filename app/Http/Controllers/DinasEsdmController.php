@@ -8,6 +8,7 @@ use App\Models\Desa;
 use App\Models\PengajuanLisdes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Database\Seeders\data;
 
 class DinasEsdmController extends Controller
 {
@@ -17,12 +18,11 @@ class DinasEsdmController extends Controller
     private function getFilteredWargaQuery(Request $request)
     {
         return Warga::with('berkas')
-            ->where(function($q) {
-                $q->whereIn('status_verifikasi', ['menunggu_verifikasi_pusat', 'lolos_verifikasi_pusat'])
-                  ->orWhere(function($sub) {
-                      $sub->where('status_verifikasi', 'ditolak/perlu_perbaikan')
-                          ->where('ditolak_oleh', 'instansi');
-                  });
+            ->when($request->status, function ($query, $status) {
+                if ($status === 'butuh_validasi') {
+                    return $query->where('butuh_validasi_realisasi', true);
+                }
+                return $query->where('status_verifikasi', $status);
             })
             ->when($request->kabupaten, function ($query, $kabupaten) {
                 return $query->where('kabupaten', $kabupaten);
@@ -40,17 +40,22 @@ class DinasEsdmController extends Controller
             ->when($request->dusun, function ($query, $dusun) {
                 return $query->where('dusun', $dusun);
             })
+            ->when($request->tahun, function ($query, $tahun) {
+                return $query->where(function($q) use ($tahun) {
+                    $q->where('tahun_usulan', $tahun)
+                      ->orWhereYear('created_at', $tahun);
+                });
+            })
             ->when($request->search, function ($query, $search) {
                 return $query->where(function($q) use ($search) {
                     $q->where('nik', 'like', "%{$search}%")
                       ->orWhere('nama', 'like', "%{$search}%")
                       ->orWhere('desa', 'like', "%{$search}%")
+                      ->orWhere('kecamatan', 'like', "%{$search}%")
+                      ->orWhere('kabupaten', 'like', "%{$search}%")
                       ->orWhere('dusun', 'like', "%{$search}%")
                       ->orWhere('alamat', 'like', "%{$search}%");
                 });
-            })
-            ->when($request->status, function ($query, $status) {
-                return $query->where('status_verifikasi', $status);
             })
             ->latest();
     }
@@ -100,15 +105,16 @@ class DinasEsdmController extends Controller
             ->withQueryString();
 
         $stats = [
-            'total'    => Warga::whereIn('status_verifikasi', ['menunggu_verifikasi_pusat', 'lolos_verifikasi_pusat'])->count(),
-            'menunggu' => Warga::where('status_verifikasi', 'menunggu_verifikasi_pusat')->count(),
-            'disetujui' => Warga::where('status_verifikasi', 'lolos_verifikasi_pusat')->count(),
-            'ditolak'  => Warga::where('status_verifikasi', 'ditolak/perlu_perbaikan')->where('ditolak_oleh', 'instansi')->count(),
+            'total'     => Warga::count(),
+            'menunggu'  => Warga::whereIn('status_verifikasi', ['menunggu_verifikasi_pusat', 'disetujui_desa', 'terkirim', 'pending'])->count(),
+            'disetujui' => Warga::whereIn('status_verifikasi', ['lolos_verifikasi_pusat', 'terpasang'])->count(),
+            'ditolak'   => Warga::where('status_verifikasi', 'ditolak/perlu_perbaikan')->count(),
+            'terpasang' => Warga::where('status_verifikasi', 'terpasang')->count(),
         ];
 
         // List wilayah unik dari database untuk dropdown filter bertingkat
         $kabupatens = Warga::select('kabupaten')->distinct()->whereNotNull('kabupaten')->orderBy('kabupaten')->pluck('kabupaten');
-        
+
         $kecamatans = Warga::when($request->kabupaten, function($q, $kab) {
                 return $q->where('kabupaten', $kab);
             })
@@ -144,7 +150,7 @@ class DinasEsdmController extends Controller
             $kab = $w->kabupaten;
             $kec = $w->kecamatan ?: 'Lainnya';
             $des = $w->desa ?: 'Lainnya';
-            
+
             if (!isset($wilayahTree[$kab])) {
                 $wilayahTree[$kab] = [];
             }
@@ -183,14 +189,15 @@ class DinasEsdmController extends Controller
             ->withQueryString();
 
         $stats = [
-            'total'    => Warga::whereIn('status_verifikasi', ['menunggu_verifikasi_pusat', 'lolos_verifikasi_pusat'])->count(),
-            'menunggu' => Warga::where('status_verifikasi', 'menunggu_verifikasi_pusat')->count(),
-            'disetujui' => Warga::where('status_verifikasi', 'lolos_verifikasi_pusat')->count(),
-            'ditolak'  => Warga::where('status_verifikasi', 'ditolak/perlu_perbaikan')->where('ditolak_oleh', 'instansi')->count(),
+            'total'     => Warga::count(),
+            'menunggu'  => Warga::whereIn('status_verifikasi', ['menunggu_verifikasi_pusat', 'disetujui_desa', 'terkirim', 'pending'])->count(),
+            'disetujui' => Warga::whereIn('status_verifikasi', ['lolos_verifikasi_pusat', 'terpasang'])->count(),
+            'ditolak'   => Warga::where('status_verifikasi', 'ditolak/perlu_perbaikan')->count(),
+            'terpasang' => Warga::where('status_verifikasi', 'terpasang')->count(),
         ];
 
         $kabupatens = Warga::select('kabupaten')->distinct()->whereNotNull('kabupaten')->orderBy('kabupaten')->pluck('kabupaten');
-        
+
         $kecamatans = Warga::when($request->kabupaten, function($q, $kab) {
                 return $q->where('kabupaten', $kab);
             })
@@ -225,7 +232,7 @@ class DinasEsdmController extends Controller
             $kab = $w->kabupaten;
             $kec = $w->kecamatan ?: 'Lainnya';
             $des = $w->desa ?: 'Lainnya';
-            
+
             if (!isset($wilayahTree[$kab])) {
                 $wilayahTree[$kab] = [];
             }
@@ -264,7 +271,56 @@ class DinasEsdmController extends Controller
      */
     public function exportExcel(Request $request)
     {
-        $wargas = $this->getFilteredWargaQuery($request)->get();
+        if ($request->scope === 'historis') {
+            $query = Warga::with('berkas')
+                ->where(function ($q) {
+                    $q->where('status_verifikasi', 'terpasang')
+                      ->orWhereNotNull('tahun_usulan')
+                      ->orWhere('butuh_validasi_realisasi', false);
+                })
+                ->when($request->search, function ($q, $search) {
+                    return $q->where(function ($sub) use ($search) {
+                        $sub->where('nik', 'like', "%{$search}%")
+                            ->orWhere('nama', 'like', "%{$search}%")
+                            ->orWhere('desa', 'like', "%{$search}%")
+                            ->orWhere('kecamatan', 'like', "%{$search}%")
+                            ->orWhere('alamat', 'like', "%{$search}%");
+                    });
+                })
+                ->when($request->tahun, function ($q, $tahun) {
+                    return $q->where(function($sub) use ($tahun) {
+                        $sub->where('tahun_usulan', $tahun)
+                            ->orWhereYear('created_at', $tahun);
+                    });
+                })
+                ->when($request->kabupaten, function ($q, $kab) {
+                    return $q->where('kabupaten', $kab);
+                })
+                ->when($request->kecamatan, function ($q, $kec) {
+                    return $q->where('kecamatan', $kec);
+                })
+                ->when($request->desa, function ($q, $des) {
+                    if (is_array($des)) {
+                        $filteredDesa = array_filter($des);
+                        return !empty($filteredDesa) ? $q->whereIn('desa', $filteredDesa) : $q;
+                    }
+                    return $q->where('desa', $des);
+                })
+                ->when($request->status, function ($q, $status) {
+                    return $q->where('status_verifikasi', $status);
+                });
+        } else {
+            $query = $this->getFilteredWargaQuery($request);
+        }
+
+        $wargas = $query->reorder()
+            ->orderBy('kecamatan', 'asc')
+            ->orderBy('desa', 'asc')
+            ->orderByRaw('CAST(COALESCE(NULLIF(tahun_usulan, ""), YEAR(created_at)) AS UNSIGNED) DESC')
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        $selectedColumns = $request->input('columns', []);
 
         $desaFilter = $request->desa;
         if (is_array($desaFilter)) {
@@ -312,10 +368,10 @@ class DinasEsdmController extends Controller
             'ditolak'   => $wargas->where('status_verifikasi', 'ditolak/perlu_perbaikan')->count(),
         ];
 
-        $filename = 'Laporan_Pengajuan_BPBL_ESDM_' . date('Ymd_His') . '.xls';
+        $filename = ($request->scope === 'historis' ? 'Data_Historis_BPBL_ESDM_' : 'Laporan_Pengajuan_BPBL_ESDM_') . date('Ymd_His') . '.xls';
 
-        return response()->streamDownload(function() use ($wargas, $filters, $stats) {
-            echo view('dinasesdm.export_excel', compact('wargas', 'filters', 'stats'))->render();
+        return response()->streamDownload(function() use ($wargas, $filters, $stats, $selectedColumns) {
+            echo view('dinasesdm.export_excel', compact('wargas', 'filters', 'stats', 'selectedColumns'))->render();
         }, $filename, [
             'Content-Type' => 'application/vnd.ms-excel; charset=utf-8',
             'Cache-Control' => 'max-age=0',
@@ -327,7 +383,56 @@ class DinasEsdmController extends Controller
      */
     public function exportPdf(Request $request)
     {
-        $wargas = $this->getFilteredWargaQuery($request)->get();
+        if ($request->scope === 'historis') {
+            $query = Warga::with('berkas')
+                ->where(function ($q) {
+                    $q->where('status_verifikasi', 'terpasang')
+                      ->orWhereNotNull('tahun_usulan')
+                      ->orWhere('butuh_validasi_realisasi', false);
+                })
+                ->when($request->search, function ($q, $search) {
+                    return $q->where(function ($sub) use ($search) {
+                        $sub->where('nik', 'like', "%{$search}%")
+                            ->orWhere('nama', 'like', "%{$search}%")
+                            ->orWhere('desa', 'like', "%{$search}%")
+                            ->orWhere('kecamatan', 'like', "%{$search}%")
+                            ->orWhere('alamat', 'like', "%{$search}%");
+                    });
+                })
+                ->when($request->tahun, function ($q, $tahun) {
+                    return $q->where(function($sub) use ($tahun) {
+                        $sub->where('tahun_usulan', $tahun)
+                            ->orWhereYear('created_at', $tahun);
+                    });
+                })
+                ->when($request->kabupaten, function ($q, $kab) {
+                    return $q->where('kabupaten', $kab);
+                })
+                ->when($request->kecamatan, function ($q, $kec) {
+                    return $q->where('kecamatan', $kec);
+                })
+                ->when($request->desa, function ($q, $des) {
+                    if (is_array($des)) {
+                        $filteredDesa = array_filter($des);
+                        return !empty($filteredDesa) ? $q->whereIn('desa', $filteredDesa) : $q;
+                    }
+                    return $q->where('desa', $des);
+                })
+                ->when($request->status, function ($q, $status) {
+                    return $q->where('status_verifikasi', $status);
+                });
+        } else {
+            $query = $this->getFilteredWargaQuery($request);
+        }
+
+        $wargas = $query->reorder()
+            ->orderBy('kecamatan', 'asc')
+            ->orderBy('desa', 'asc')
+            ->orderByRaw('CAST(COALESCE(NULLIF(tahun_usulan, ""), YEAR(created_at)) AS UNSIGNED) DESC')
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        $selectedColumns = $request->input('columns', []);
 
         $desaFilter = $request->desa;
         if (is_array($desaFilter)) {
@@ -375,9 +480,9 @@ class DinasEsdmController extends Controller
             'ditolak'   => $wargas->where('status_verifikasi', 'ditolak/perlu_perbaikan')->count(),
         ];
 
-        $filename = 'Laporan_Pengajuan_BPBL_ESDM_' . date('Ymd_His') . '.pdf';
+        $filename = ($request->scope === 'historis' ? 'Data_Historis_BPBL_ESDM_' : 'Laporan_Pengajuan_BPBL_ESDM_') . date('Ymd_His') . '.pdf';
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('dinasesdm.export_pdf', compact('wargas', 'filters', 'stats'))
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('dinasesdm.export_pdf', compact('wargas', 'filters', 'stats', 'selectedColumns'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->download($filename);
@@ -395,55 +500,47 @@ class DinasEsdmController extends Controller
 
         return response()->stream(function () {
             $handle = fopen('php://output', 'w');
-            
+
             // UTF-8 BOM
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
 
-            // Header Kolom Baku
+            // Header Kolom Baku Terbaru
             fputcsv($handle, [
-                'nik',
-                'nama',
-                'kabupaten',
-                'kecamatan',
-                'desa',
-                'rt_rw',
-                'alamat',
-                'jarak_tiang',
-                'latitude',
-                'longitude',
-                'status_verifikasi',
-                'tanggal_pengajuan'
+                'No',
+                'KECAMATAN',
+                'DESA/KELURAHAN',
+                'NAMA',
+                'NIK',
+                'ALAMAT',
+                'Usulan',
+                'Realisasi',
+                'Keterangan'
             ]);
 
-            // Baris Contoh Data
+            // Baris Contoh Data 1 (Sudah Direalisasi / Ada Centang)
             fputcsv($handle, [
-                '1571062105810021',
-                'ISMAN GUMANTI',
-                'KOTA JAMBI',
-                'DANAU TELUK',
-                'TANJUNG RADEN',
-                '04/02',
-                'JL. KH. HASAN ANANG RT 04',
-                '45 meter',
-                '-1.6042000',
-                '103.5298000',
-                'lolos_verifikasi_pusat',
-                '2023-05-15'
+                '1',
+                'ALAM BARAJO',
+                'BAGAN PETE',
+                'SITI JAMILAH',
+                '1571074107470324',
+                'JL. LINGKAR BARAT II',
+                '2023',
+                '✓',
+                'Teraliri Listrik 2023'
             ]);
 
+            // Baris Contoh Data 2 (Belum Tentu Realisasi / Tanpa Centang -> Masuk Validasi SuperAdmin)
             fputcsv($handle, [
-                '1571060505850061',
-                'RD. AZHAR',
-                'KOTA JAMBI',
-                'DANAU TELUK',
-                'TANJUNG RADEN',
-                '05/01',
-                'JL. TAHER RT 05',
-                '30 meter',
-                '-1.6051000',
-                '103.5312000',
-                'lolos_verifikasi_pusat',
-                '2024-02-10'
+                '2',
+                'ALAM BARAJO',
+                'BAGAN PETE',
+                'SYAHRUL',
+                '1404112709940003',
+                'JL. SUNAN PANDARAN NO 20 RT 31',
+                '2023',
+                '',
+                'Perlu validasi realisasi SuperAdmin'
             ]);
 
             fclose($handle);
@@ -466,93 +563,242 @@ class DinasEsdmController extends Controller
 
         $successCount = 0;
         $updatedCount = 0;
+        $needValidationCount = 0;
         $failedCount  = 0;
 
-        // Parse CSV or delimited text file
-        if (in_array($extension, ['csv', 'txt', 'xls', 'xlsx'])) {
-            $handle = fopen($path, 'r');
-            if ($handle !== false) {
-                // Read header row
-                $header = fgetcsv($handle, 2000, ',');
-                
-                // If delimiter is semicolon (Common in Indonesian Excel exports)
-                if ($header && count($header) == 1 && strpos($header[0], ';') !== false) {
-                    rewind($handle);
-                    $header = fgetcsv($handle, 2000, ';');
-                    $delimiter = ';';
-                } else {
-                    $delimiter = ',';
+        $findHeaderAndRows = function(array $allRows) {
+            $headerIndex = -1;
+            $header = [];
+
+            foreach ($allRows as $rIdx => $row) {
+                $nonEmptyCells = array_filter($row, fn($c) => trim((string)$c) !== '');
+                if (count($nonEmptyCells) < 2) {
+                    continue; // Skip single-cell title headers
                 }
 
-                if ($header) {
-                    // Clean header names (lowercase & remove BOM)
+                $rowJoined = strtolower(implode(' | ', array_map('strval', $row)));
+
+                $keywords = ['nik', 'nama', 'kecamatan', 'desa', 'kelurahan', 'alamat', 'realisasi', 'usulan'];
+                $matchCount = 0;
+                foreach ($keywords as $kw) {
+                    if (str_contains($rowJoined, $kw)) {
+                        $matchCount++;
+                    }
+                }
+
+                if ($matchCount >= 2) {
+                    $headerIndex = $rIdx;
                     $header = array_map(function($h) {
-                        return strtolower(trim(preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $h)));
-                    }, $header);
+                        return mb_strtolower(trim(preg_replace('/[\x00-\x1F\x7F]/', '', (string)$h)));
+                    }, $row);
+                    break;
+                }
+            }
 
-                    while (($row = fgetcsv($handle, 3000, $delimiter)) !== false) {
-                        if (count($row) < 2 || empty(array_filter($row))) {
-                            continue;
-                        }
+            if ($headerIndex === -1 && !empty($allRows)) {
+                foreach ($allRows as $rIdx => $row) {
+                    $nonEmptyCells = array_filter($row, fn($c) => trim((string)$c) !== '');
+                    if (count($nonEmptyCells) >= 3) {
+                        $headerIndex = $rIdx;
+                        $header = array_map(function($h) {
+                            return mb_strtolower(trim(preg_replace('/[\x00-\x1F\x7F]/', '', (string)$h)));
+                        }, $row);
+                        break;
+                    }
+                }
+            }
 
-                        $data = [];
-                        foreach ($header as $index => $colName) {
-                            $data[$colName] = isset($row[$index]) ? trim($row[$index]) : null;
-                        }
+            if ($headerIndex === -1 && !empty($allRows)) {
+                $headerIndex = 0;
+                $header = array_map(function($h) {
+                    return mb_strtolower(trim(preg_replace('/[\x00-\x1F\x7F]/', '', (string)$h)));
+                }, $allRows[0]);
+            }
 
-                        // Get required fields
-                        $nik = preg_replace('/[^0-9]/', '', $data['nik'] ?? '');
-                        $nama = $data['nama'] ?? null;
-                        $kabupaten = $data['kabupaten'] ?? null;
-                        $kecamatan = $data['kecamatan'] ?? null;
-                        $desa = $data['desa'] ?? null;
+            $dataRows = [];
+            for ($i = $headerIndex + 1; $i < count($allRows); $i++) {
+                $row = $allRows[$i];
+                if (empty(array_filter($row, fn($c) => trim((string)$c) !== ''))) continue;
+                $data = [];
+                foreach ($header as $idx => $colName) {
+                    $data[$colName] = isset($row[$idx]) ? trim((string)$row[$idx]) : '';
+                }
+                $data['_raw_cols_'] = $row;
+                $dataRows[] = $data;
+            }
+            return $dataRows;
+        };
 
-                        if (empty($nik) || strlen($nik) < 10 || empty($nama) || empty($desa)) {
-                            $failedCount++;
-                            continue;
-                        }
+        if (in_array($extension, ['xlsx', 'xls'])) {
+            $parsedRows = \App\Helpers\SimpleXlsxReader::parse($path);
+            if (!empty($parsedRows)) {
+                $rowsData = $findHeaderAndRows($parsedRows);
+            }
+        }
 
-                        $statusVerifikasi = !empty($data['status_verifikasi']) 
-                            ? $data['status_verifikasi'] 
-                            : ($request->default_status ?: 'lolos_verifikasi_pusat');
+        // Fallback or CSV/TXT parser
+        if (empty($rowsData) && in_array($extension, ['csv', 'txt', 'xls', 'xlsx'])) {
+            $handle = fopen($path, 'r');
+            if ($handle !== false) {
+                $allRawRows = [];
+                $delimiter = ',';
+                $firstLine = fgetcsv($handle, 3000, ',');
+                if ($firstLine && count($firstLine) == 1 && strpos($firstLine[0], ';') !== false) {
+                    $delimiter = ';';
+                }
+                rewind($handle);
 
-                        $tanggalPengajuan = !empty($data['tanggal_pengajuan']) 
-                            ? $data['tanggal_pengajuan'] 
-                            : null;
+                while (($row = fgetcsv($handle, 3000, $delimiter)) !== false) {
+                    $allRawRows[] = $row;
+                }
+                fclose($handle);
 
-                        $wargaData = [
-                            'nik'               => $nik,
-                            'nama'              => $nama,
-                            'kabupaten'         => $kabupaten ?: 'KABUPATEN MUARO JAMBI',
-                            'kecamatan'         => $kecamatan ?: '-',
-                            'desa'              => $desa,
-                            'dusun'             => $data['dusun'] ?? ($data['nama_dusun'] ?? null),
-                            'rt_rw'             => $data['rt_rw'] ?? '01/01',
-                            'no_hp'             => $data['no_hp'] ?? '-',
-                            'alamat'            => $data['alamat'] ?? 'Desa ' . $desa,
-                            'jarak_tiang'       => $data['jarak_tiang'] ?? null,
-                            'latitude'          => is_numeric($data['latitude'] ?? null) ? $data['latitude'] : 0.0,
-                            'longitude'         => is_numeric($data['longitude'] ?? null) ? $data['longitude'] : 0.0,
-                            'status_verifikasi' => $statusVerifikasi,
-                        ];
+                if (!empty($allRawRows)) {
+                    $rowsData = $findHeaderAndRows($allRawRows);
+                }
+            }
+        }
 
-                        if ($tanggalPengajuan) {
-                            try {
-                                $wargaData['created_at'] = \Carbon\Carbon::parse($tanggalPengajuan);
-                            } catch (\Exception $e) {}
-                        }
+        foreach ($rowsData as $data) {
+            $nikRaw = '';
+            $namaRaw = '';
+            $desaRaw = '';
+            $kecRaw = '';
+            $kabRaw = '';
+            $alamatRaw = '';
+            $usulanRaw = '';
+            $realisasiRaw = '';
+            $ketRaw = '';
 
-                        $existing = Warga::where('nik', $nik)->first();
-                        if ($existing) {
-                            $existing->update($wargaData);
-                            $updatedCount++;
-                        } else {
-                            Warga::create($wargaData);
-                            $successCount++;
+            // Fuzzy column resolution
+            foreach ($data as $colKey => $cellVal) {
+                if ($colKey === '_raw_cols_') continue;
+                $kClean = strtolower(trim((string)$colKey));
+                $vClean = trim((string)$cellVal);
+
+                if ($vClean === '') continue;
+
+                if (empty($nikRaw) && str_contains($kClean, 'nik')) {
+                    $nikRaw = $vClean;
+                } elseif (empty($namaRaw) && str_contains($kClean, 'nama')) {
+                    $namaRaw = $vClean;
+                } elseif (empty($desaRaw) && (str_contains($kClean, 'desa') || str_contains($kClean, 'kelurahan'))) {
+                    $desaRaw = $vClean;
+                } elseif (empty($kecRaw) && (str_contains($kClean, 'kecamatan') || str_contains($kClean, 'kec'))) {
+                    $kecRaw = $vClean;
+                } elseif (empty($kabRaw) && str_contains($kClean, 'kabupaten')) {
+                    $kabRaw = $vClean;
+                } elseif (empty($alamatRaw) && str_contains($kClean, 'alamat')) {
+                    $alamatRaw = $vClean;
+                } elseif (empty($usulanRaw) && (str_contains($kClean, 'usulan') || str_contains($kClean, 'tahun'))) {
+                    $usulanRaw = $vClean;
+                } elseif (empty($realisasiRaw) && str_contains($kClean, 'realisasi')) {
+                    $realisasiRaw = $vClean;
+                } elseif (empty($ketRaw) && (str_contains($kClean, 'keterangan') || str_contains($kClean, 'catatan'))) {
+                    $ketRaw = $vClean;
+                }
+            }
+
+            // Fallback for NIK if empty
+            if (empty($nikRaw) && isset($data['_raw_cols_'])) {
+                foreach ($data['_raw_cols_'] as $cVal) {
+                    $vStr = trim((string)$cVal);
+                    if ($vStr === '') continue;
+                    $numOnly = preg_replace('/[^0-9]/', '', $vStr);
+                    if (strlen($numOnly) >= 10 && strlen($numOnly) <= 18) {
+                        $nikRaw = $vStr;
+                        break;
+                    }
+                }
+            }
+
+            // Fallback for Nama if empty
+            if (empty($namaRaw) && isset($data['_raw_cols_'])) {
+                foreach ($data['_raw_cols_'] as $cVal) {
+                    $vStr = trim((string)$cVal);
+                    if ($vStr === '') continue;
+                    if (!preg_match('/[0-9]/', $vStr) && strlen($vStr) >= 3) {
+                        $vLower = strtolower($vStr);
+                        if (!in_array($vLower, ['✓', 'v', 'ya', 'tidak', 'sudah', 'belum', 'terpasang'])) {
+                            $namaRaw = $vStr;
+                            break;
                         }
                     }
                 }
-                fclose($handle);
+            }
+
+            // Handle Scientific Notation in NIK (e.g. 1.57107E+15 or 1,57107E+15)
+            $nikClean = str_replace(',', '.', (string)$nikRaw);
+            if (is_numeric($nikClean) && str_contains(strtolower($nikClean), 'e+')) {
+                $nik = sprintf('%.0f', (float)$nikClean);
+            } else {
+                $nik = preg_replace('/[^0-9]/', '', (string)$nikRaw);
+            }
+
+            $nama = $namaRaw ?: ($data['nama'] ?? 'WARGA PEMOHON');
+            $desa = $desaRaw ?: ($data['desa'] ?? 'BAGAN PETE');
+            $kecamatan = (!empty($kecRaw) && $kecRaw !== '-') ? $kecRaw : ($data['kecamatan'] ?? 'ALAM BARAJO');
+            $kabupaten = (!empty($kabRaw) && $kabRaw !== '-' && $kabRaw !== 'KABUPATEN MUARO JAMBI') ? $kabRaw : ($data['kabupaten'] ?? 'KOTA JAMBI');
+            if (strtoupper($kecamatan) === 'ALAM BARAJO') {
+                $kabupaten = 'KOTA JAMBI';
+            }
+            $alamat = $alamatRaw ?: ($data['alamat'] ?? ('Desa ' . $desa));
+            $usulan = $usulanRaw ?: ($data['usulan'] ?? null);
+            $realisasiVal = $realisasiRaw ?: ($data['realisasi'] ?? null);
+            $keteranganVal = $ketRaw ?: ($data['keterangan'] ?? null);
+
+            if (empty($nik) || strlen($nik) < 10) {
+                $failedCount++;
+                continue;
+            }
+
+            $realisasiResult = $this->parseRealisasiStatus($realisasiVal);
+            $statusVerifikasi = !empty($data['status_verifikasi'])
+                ? $data['status_verifikasi']
+                : ($request->default_status ?: $realisasiResult['status_verifikasi']);
+
+            $butuhValidasi = $request->default_status ? false : $realisasiResult['butuh_validasi_realisasi'];
+
+            if ($butuhValidasi) {
+                $needValidationCount++;
+            }
+
+            $wargaData = [
+                'nik'                      => $nik,
+                'nama'                     => $nama,
+                'kabupaten'                => $kabupaten,
+                'kecamatan'                => $kecamatan,
+                'desa'                     => $desa,
+                'dusun'                    => $data['dusun'] ?? null,
+                'rt_rw'                    => $data['rt_rw'] ?? '01/01',
+                'no_hp'                    => $data['no_hp'] ?? '-',
+                'alamat'                   => $alamat,
+                'jarak_tiang'              => $data['jarak_tiang'] ?? null,
+                'latitude'                 => is_numeric($data['latitude'] ?? null) ? (float)$data['latitude'] : 0.0,
+                'longitude'                => is_numeric($data['longitude'] ?? null) ? (float)$data['longitude'] : 0.0,
+                'status_verifikasi'        => $statusVerifikasi,
+                'butuh_validasi_realisasi' => $butuhValidasi,
+                'tahun_usulan'             => $usulan ? (string) $usulan : null,
+                'keterangan_import'        => $keteranganVal,
+            ];
+
+            if ($usulan && is_numeric($usulan) && strlen((string)$usulan) == 4) {
+                try {
+                    $wargaData['created_at'] = \Carbon\Carbon::createFromDate((int)$usulan, 1, 1);
+                } catch (\Exception $e) {}
+            } elseif (!empty($data['tanggal_pengajuan'])) {
+                try {
+                    $wargaData['created_at'] = \Carbon\Carbon::parse($data['tanggal_pengajuan']);
+                } catch (\Exception $e) {}
+            }
+
+            $existing = Warga::where('nik', $nik)->first();
+            if ($existing) {
+                $existing->update($wargaData);
+                $updatedCount++;
+            } else {
+                Warga::create($wargaData);
+                $successCount++;
             }
         }
 
@@ -560,11 +806,50 @@ class DinasEsdmController extends Controller
         if ($updatedCount > 0) {
             $message .= ", {$updatedCount} data diperbarui";
         }
+        if ($needValidationCount > 0) {
+            $message .= ". ⚠️ {$needValidationCount} data tanpa centang realisasi masuk ke antrean validasi SuperAdmin.";
+        }
         if ($failedCount > 0) {
             $message .= ", {$failedCount} baris tidak valid dilewati";
         }
 
-        return redirect()->back()->with('success', $message);
+        return redirect()->route('dinasesdm.historis.index')->with('success', $message);
+    }
+
+    /**
+     * Helper internal untuk mengidentifikasi centang pada kolom Realisasi Excel
+     */
+    private function parseRealisasiStatus($realisasiVal): array
+    {
+        $val = trim((string) $realisasiVal);
+
+        if ($val === '') {
+            return [
+                'status_verifikasi' => 'menunggu_verifikasi_pusat',
+                'butuh_validasi_realisasi' => true,
+            ];
+        }
+
+        $valLower = strtolower($val);
+        $checkIndicators = ['✓', 'v', '1', 'ya', 'sudah', 'terpasang', 'realisasi', 'true', 'ok'];
+
+        $isChecked = in_array($valLower, $checkIndicators, true)
+            || str_contains($valLower, '✓')
+            || str_contains($valLower, 'terpasang')
+            || str_contains($valLower, 'sudah')
+            || (is_numeric($val) && (int)$val > 2000);
+
+        if ($isChecked) {
+            return [
+                'status_verifikasi' => 'terpasang',
+                'butuh_validasi_realisasi' => false,
+            ];
+        }
+
+        return [
+            'status_verifikasi' => 'menunggu_verifikasi_pusat',
+            'butuh_validasi_realisasi' => true,
+        ];
     }
 
 
@@ -865,4 +1150,340 @@ class DinasEsdmController extends Controller
         $lisdes->delete();
         return redirect()->route('dinasesdm.lisdes.index')->with('success', 'Data usulan Lisdes berhasil dihapus.');
     }
+
+    /**
+     * Update Legalitas Instalasi Akhir & Upload BAST (Admin ESDM ACT-05)
+     */
+    public function updateLegalitas(Request $request, Warga $warga)
+    {
+        $validated = $request->validate([
+            'no_nidi' => 'nullable|string|max:255',
+            'no_slo' => 'nullable|string|max:255',
+            'id_pelanggan' => 'nullable|string|max:255',
+            'file_bast' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $data = [
+            'no_nidi' => $validated['no_nidi'],
+            'no_slo' => $validated['no_slo'],
+            'id_pelanggan' => $validated['id_pelanggan'],
+        ];
+
+        if ($request->hasFile('file_bast')) {
+            if ($warga->file_bast) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($warga->file_bast);
+            }
+            $data['file_bast'] = $request->file('file_bast')->store('bast', 'public');
+        }
+
+        $warga->update($data);
+
+        \App\Models\ActivityLog::record('update_legalitas', "Admin ESDM memperbarui legalitas NIDI ({$warga->no_nidi}), SLO ({$warga->no_slo}), dan Upload BAST untuk NIK {$warga->nik}");
+
+        return back()->with('success', 'Legalitas NIDI, SLO, ID Pelanggan PLN, dan Dokumen BAST berhasil diperbarui!');
+    }
+
+    /**
+     * Import data tiang listrik TR/TM & Gardu dari file GeoJSON/CSV
+     */
+    public function importElectricPoles(Request $request)
+    {
+        $request->validate([
+            'pole_file' => 'required|file|mimes:json,geojson,csv,txt|max:5120',
+        ]);
+
+        $service = new \App\Services\ElectricPoleImportService();
+        $result = $service->import($request->file('pole_file'));
+
+        \App\Models\ActivityLog::record('import_electric_poles', "Import data tiang listrik: {$result['imported_count']} tiang berhasil diproses.");
+
+        return back()->with('success', "Import tiang listrik selesai! {$result['imported_count']} tiang berhasil dimasukkan ke database.");
+    }
+
+    /**
+     * Export GeoJSON tiang listrik untuk Leaflet.js / GIS Client
+     */
+    public function exportElectricPolesGeoJson()
+    {
+        $service = new \App\Services\ElectricPoleImportService();
+        return response()->json($service->exportGeoJson());
+    }
+
+    /**
+     * Export OGC KML format file untuk Google Earth
+     */
+    public function exportKml(Request $request)
+    {
+        $service = new \App\Services\KmlExporterService();
+        $kmlContent = $service->generateKml($request->query('desa'));
+        $filename = 'SIPELITA_Layer_Spasial_' . date('Ymd_His') . '.kml';
+
+        \App\Models\ActivityLog::record('export_kml', "Ekspor layer geospasial SIPELITA ke format OGC KML Google Earth.");
+
+        return response($kmlContent, 200, [
+            'Content-Type' => 'application/vnd.google-earth.kml+xml',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
+     * Unduh Berita Acara Verifikasi Lapangan (BAVL) PDF Resmi
+     */
+    public function downloadBavlPdf(Warga $warga)
+    {
+        $service = new \App\Services\BavlGeneratorService();
+        $pdf = $service->generateBavlPdf($warga);
+        return $pdf->download("BAVL_Verifikasi_ESDM_{$warga->nik}.pdf");
+    }
+
+    /**
+     * Unduh Peta Layout Kartografi Lisdes PDF
+     */
+    public function downloadLisdesMapPdf($id, Request $request)
+    {
+        $type = $request->query('type', 'lisdes');
+        $service = new \App\Services\LisdesMapPdfService();
+        $pdf = $service->generateMapPdf($id, $type);
+        return $pdf->download("Peta_Layout_Kartografi_Lisdes_{$id}.pdf");
+    }
+
+    /**
+     * Jalankan Algoritma Kluster Spasial DBSCAN/K-Means untuk agregasi Lisdes (>200m)
+     */
+    public function generateLisdesClusters(Request $request)
+    {
+        $service = new \App\Services\SpatialClusteringService();
+        $result = $service->generateLisdesClusters(
+            (float)($request->input('eps', 300.0)),
+            (int)($request->input('min_pts', 2))
+        );
+
+        \App\Models\ActivityLog::record('generate_spatial_clusters', "Menjalankan engine agregasi kluster Lisdes spasial: {$result['clusters_created']} paket terdeteksi.");
+
+        return back()->with('success', $result['message']);
+    }
+
+    /**
+     * Tampilan Audit Log Immutable
+     */
+    public function auditLogs(Request $request)
+    {
+        $logs = \App\Models\ActivityLog::with('user')
+            ->when($request->search, function($q, $search) {
+                return $q->where('user_name', 'like', "%{$search}%")
+                         ->orWhere('action', 'like', "%{$search}%")
+                         ->orWhere('description', 'like', "%{$search}%")
+                         ->orWhere('ip_address', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('dinasesdm.audit_logs.index', compact('logs'));
+    }
+
+    /**
+     * Halaman antrean Validasi Realisasi Data Lama SuperAdmin
+     */
+    public function validasiRealisasiIndex(Request $request)
+    {
+        $query = Warga::butuhValidasiRealisasi()
+            ->when($request->search, function ($q, $search) {
+                return $q->where(function ($sub) use ($search) {
+                    $sub->where('nik', 'like', "%{$search}%")
+                        ->orWhere('nama', 'like', "%{$search}%")
+                        ->orWhere('kecamatan', 'like', "%{$search}%")
+                        ->orWhere('desa', 'like', "%{$search}%")
+                        ->orWhere('alamat', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->kecamatan, function ($q, $kec) {
+                return $q->where('kecamatan', $kec);
+            })
+            ->when($request->desa, function ($q, $des) {
+                return $q->where('desa', $des);
+            })
+            ->latest();
+
+        $wargas = $query->paginate(20)->withQueryString();
+        $totalPendingCount = Warga::butuhValidasiRealisasi()->count();
+
+        $kecamatans = Warga::butuhValidasiRealisasi()->select('kecamatan')->distinct()->whereNotNull('kecamatan')->pluck('kecamatan');
+        $desas = Warga::butuhValidasiRealisasi()->select('desa')->distinct()->whereNotNull('desa')->pluck('desa');
+
+        return view('dinasesdm.validasi_realisasi', compact('wargas', 'totalPendingCount', 'kecamatans', 'desas'));
+    }
+
+    /**
+     * Memproses konfirmasi single status realisasi NIK data lama oleh SuperAdmin
+     */
+    public function konfirmasiRealisasi(Request $request, Warga $warga)
+    {
+        $request->validate([
+            'keputusan' => 'required|in:sudah_realisasi,belum_realisasi',
+            'catatan'   => 'nullable|string|max:500',
+        ]);
+
+        if ($request->keputusan === 'sudah_realisasi') {
+            $warga->update([
+                'status_verifikasi'        => 'terpasang',
+                'butuh_validasi_realisasi' => false,
+                'catatan'                  => $request->catatan ?: 'Dikonfirmasi Sudah Direalisasi oleh SuperAdmin.',
+            ]);
+
+            \App\Models\ActivityLog::record(
+                'validasi_realisasi_approve',
+                "SuperAdmin mengonfirmasi bahwa data NIK {$warga->nik} ({$warga->nama} - {$warga->desa}) SUDAH DIREALISASI (Terpasang)."
+            );
+
+            return back()->with('success', "Status NIK {$warga->nik} berhasil dikonfirmasi: SUDAH DIREALISASI (Terpasang).");
+        } else {
+            $warga->update([
+                'status_verifikasi'        => 'lolos_verifikasi_pusat',
+                'butuh_validasi_realisasi' => false,
+                'catatan'                  => $request->catatan ?: 'Dikonfirmasi Belum Direalisasi (Usulan Valid) oleh SuperAdmin.',
+            ]);
+
+            \App\Models\ActivityLog::record(
+                'validasi_realisasi_reject',
+                "SuperAdmin mengonfirmasi bahwa data NIK {$warga->nik} ({$warga->nama} - {$warga->desa}) BELUM DIREALISASI (Status Usulan Lolos Verifikasi)."
+            );
+
+            return back()->with('success', "Status NIK {$warga->nik} berhasil dikonfirmasi: BELUM DIREALISASI (Tersimpan sebagai Usulan Lolos).");
+        }
+    }
+
+    /**
+     * Memproses konfirmasi massal (batch) status realisasi NIK oleh SuperAdmin
+     */
+    public function bulkKonfirmasiRealisasi(Request $request)
+    {
+        $request->validate([
+            'warga_ids' => 'required|array',
+            'warga_ids.*' => 'exists:wargas,id',
+            'keputusan' => 'required|in:sudah_realisasi,belum_realisasi',
+        ]);
+
+        $ids = $request->warga_ids;
+        $count = count($ids);
+
+        if ($request->keputusan === 'sudah_realisasi') {
+            Warga::whereIn('id', $ids)->update([
+                'status_verifikasi'        => 'terpasang',
+                'butuh_validasi_realisasi' => false,
+                'catatan'                  => 'Dikonfirmasi Massal: Sudah Direalisasi oleh SuperAdmin.',
+            ]);
+
+            \App\Models\ActivityLog::record(
+                'validasi_realisasi_bulk_approve',
+                "SuperAdmin mengonfirmasi massal {$count} data NIK menjadi SUDAH DIREALISASI."
+            );
+
+            return back()->with('success', "Berhasil mengonfirmasi {$count} data NIK menjadi SUDAH DIREALISASI (Terpasang).");
+        } else {
+            Warga::whereIn('id', $ids)->update([
+                'status_verifikasi'        => 'lolos_verifikasi_pusat',
+                'butuh_validasi_realisasi' => false,
+                'catatan'                  => 'Dikonfirmasi Massal: Belum Direalisasi (Usulan Lolos) oleh SuperAdmin.',
+            ]);
+
+            \App\Models\ActivityLog::record(
+                'validasi_realisasi_bulk_reject',
+                "SuperAdmin mengonfirmasi massal {$count} data NIK menjadi BELUM DIREALISASI."
+            );
+
+            return back()->with('success', "Berhasil mengonfirmasi {$count} data NIK menjadi BELUM DIREALISASI (Usulan Lolos).");
+        }
+    }
+
+    /**
+     * Halaman Arsip & Data Historis Realisasi BPBL per Tahun
+     */
+    public function historisIndex(Request $request)
+{
+    $query = Warga::with('berkas');
+
+    // 1. Filter dasar data historis
+    $query->where(function ($q) {
+        $q->where('status_verifikasi', 'terpasang')
+          ->orWhere('butuh_validasi_realisasi', false);
+    });
+
+    // 2. Filter Search (NIK / Nama / Desa / Kecamatan / Alamat)
+    $query->when($request->search, function ($q, $search) {
+        return $q->where(function ($sub) use ($search) {
+            $sub->where('nik', 'like', "%{$search}%")
+                ->orWhere('nama', 'like', "%{$search}%")
+                ->orWhere('desa', 'like', "%{$search}%")
+                ->orWhere('kecamatan', 'like', "%{$search}%")
+                ->orWhere('alamat', 'like', "%{$search}%");
+        });
+    });
+
+    // 3. Filter Tahun Usulan
+    $query->when($request->tahun, function ($q, $tahun) {
+        return $q->where('tahun_usulan', $tahun);
+    });
+
+    // 4. Filter Kecamatan
+    $query->when($request->kecamatan, function ($q, $kecamatan) {
+        return $q->where('kecamatan', $kecamatan);
+    });
+
+    // 5. Filter Desa
+    $query->when($request->desa, function ($q, $desa) {
+        return $q->where('desa', $desa);
+    });
+
+    // Ambil opsi daftar tahun unik untuk dropdown filter ($allYears)
+    $allYears = Warga::select('tahun_usulan')
+        ->distinct()
+        ->orderBy('tahun_usulan', 'desc')
+        ->pluck('tahun_usulan');
+
+    // Ambil opsi daftar kecamatan unik untuk dropdown filter ($kecamatans)
+    $kecamatans = Warga::select('kecamatan')
+        ->whereNotNull('kecamatan')
+        ->distinct()
+        ->orderBy('kecamatan', 'asc')
+        ->pluck('kecamatan');
+
+    // (Opsional) Jika Anda butuh dropdown desa yang dinamis berdasarkan kecamatan atau seluruhnya:
+    $desas = Warga::select('desa')
+        ->whereNotNull('desa')
+        ->when($request->kecamatan, function ($q, $kecamatan) {
+            return $q->where('kecamatan', $kecamatan);
+        })
+        ->distinct()
+        ->orderBy('desa', 'asc')
+        ->pluck('desa');
+
+    $kabupatens = Warga::select('kabupaten')
+        ->whereNotNull('kabupaten')
+        ->distinct()
+        ->orderBy('kabupaten', 'asc')
+        ->pluck('kabupaten');
+
+    // Hitung total data historis (sesuai filter aktif)
+    $totalHistoris = (clone $query)->count();
+
+    // Hitung total data terpasang/realisasi
+    $totalTerpasang = (clone $query)->where(function ($q) {
+        $q->where('status_verifikasi', 'terpasang')
+          ->orWhere('butuh_validasi_realisasi', false);
+    })->count();
+
+    // Ambil data dengan paginasi
+    $wargas = $query->latest()->paginate(10)->withQueryString();
+
+    return view('dinasesdm.historis', compact(
+        'wargas',
+        'totalHistoris',
+        'totalTerpasang',
+        'allYears',
+        'kecamatans',
+        'desas',
+        'kabupatens' // Sertakan juga jika dibutuhkan di view
+    ));
+}
 }

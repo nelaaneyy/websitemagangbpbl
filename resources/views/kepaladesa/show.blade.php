@@ -17,7 +17,11 @@
         </div>
 
         <div>
-            @if($warga->status_verifikasi === 'terkirim')
+            @if($warga->status_verifikasi === 'terpasang')
+                <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-100 text-emerald-950 border border-emerald-300 rounded-2xl text-xs font-extrabold shadow-xs">
+                    <i class="fa-solid fa-circle-check text-emerald-600"></i> Terpasang (Sudah Realisasi)
+                </span>
+            @elseif($warga->status_verifikasi === 'terkirim')
                 <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-100 text-amber-900 border border-amber-300 rounded-2xl text-xs font-extrabold shadow-xs">
                     <i class="fa-solid fa-clock text-amber-600 animate-pulse"></i> Menunggu Verifikasi Kades
                 </span>
@@ -29,9 +33,13 @@
                 <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-2xl text-xs font-extrabold shadow-xs">
                     <i class="fa-solid fa-circle-check text-emerald-600"></i> Disetujui Dinas ESDM Provinsi Jambi
                 </span>
-            @else
+            @elseif(in_array($warga->status_verifikasi, ['ditolak/perlu_perbaikan', 'ditolak']))
                 <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-100 text-rose-900 border border-rose-300 rounded-2xl text-xs font-extrabold shadow-xs">
                     <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Data pengajuan dikembalikan / Perlu Revisi
+                </span>
+            @else
+                <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 text-slate-800 border border-slate-300 rounded-2xl text-xs font-extrabold shadow-xs">
+                    <i class="fa-solid fa-info-circle text-slate-600"></i> {{ str_replace('_', ' ', strtoupper($warga->status_verifikasi)) }}
                 </span>
             @endif
         </div>

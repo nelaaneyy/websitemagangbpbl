@@ -133,7 +133,7 @@ class KepalaDesaController extends Controller
 
     public function createLisdes()
     {
-        return redirect()->route('kepaladesa.lisdes.index');
+        return view('kepaladesa.lisdes.create');
     }
 
     public function storeLisdes(Request $request)
@@ -141,13 +141,14 @@ class KepalaDesaController extends Controller
         $validated = $request->validate([
             'nama_dusun'         => 'required|string|max:255',
             'jumlah_kk'          => 'required|integer|min:1',
-            'estimasi_jarak'     => 'required|integer|min:1',
+            'estimasi_jarak'     => 'required|integer|min:0',
             'keterangan_wilayah' => 'nullable|string',
             'surat_permohonan'   => 'required|file|mimes:pdf|max:10240',
             'proposal_lisdes'    => 'required|file|mimes:pdf|max:10240',
             'foto_wilayah'       => 'required|file|image|mimes:jpeg,png,jpg,webp|max:5120',
             'latitude'           => 'required|numeric|between:-90,90',
             'longitude'          => 'required|numeric|between:-180,180',
+            'topology_data'      => 'nullable|string',
         ]);
 
         $suratPath = $request->file('surat_permohonan')->store('pengajuan_lisdes/surat', 'public');
@@ -166,6 +167,7 @@ class KepalaDesaController extends Controller
             'foto_wilayah'       => $fotoPath,
             'latitude'           => $validated['latitude'],
             'longitude'          => $validated['longitude'],
+            'topology_data'      => $request->topology_data ?? null,
             'status'             => 'menunggu_verifikasi',
         ]);
 

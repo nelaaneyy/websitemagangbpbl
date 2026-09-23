@@ -16,27 +16,35 @@ class ActivityLog extends Model
         'action',
         'description',
         'ip_address',
+        'gps_coords',
+        'state_snapshot',
+    ];
+
+    protected $casts = [
+        'state_snapshot' => 'array',
     ];
 
     public function user()
     {
-        return $table = $this->belongsTo(User::class);
+        return $this->belongsTo(User::class);
     }
 
     /**
-     * Helper method to log activities cleanly across controllers
+     * Helper method to log immutable audit activities cleanly across controllers
      */
-    public static function record($action, $description = null, $user = null)
+    public static function record($action, $description = null, $user = null, $gpsCoords = null, $stateSnapshot = null)
     {
         $currentUser = $user ?? auth()->user();
         
         return self::create([
-            'user_id'     => $currentUser ? $currentUser->id : null,
-            'user_name'   => $currentUser ? $currentUser->name : 'Warga (Publik)',
-            'user_role'   => $currentUser ? $currentUser->role : 'publik',
-            'action'      => $action,
-            'description' => $description,
-            'ip_address'  => request()->ip(),
+            'user_id'        => $currentUser ? $currentUser->id : null,
+            'user_name'      => $currentUser ? $currentUser->name : 'Warga (Publik)',
+            'user_role'      => $currentUser ? $currentUser->role : 'publik',
+            'action'         => $action,
+            'description'    => $description,
+            'ip_address'     => request()->ip(),
+            'gps_coords'     => $gpsCoords ?? request()->header('X-GPS-Coords'),
+            'state_snapshot' => $stateSnapshot,
         ]);
     }
 }

@@ -15,12 +15,13 @@
             <p class="text-xs text-slate-500 font-medium">Kelola, dan lakukan ekspor/import data pengajuan Program BPBL.</p>
         </div>
 
-        <!-- Toolbar Action Buttons (Import, Excel, PDF, Backup) -->
+        <!-- Toolbar Action Buttons (Excel, PDF, Backup) -->
         <div class="flex flex-wrap items-center gap-2">
+
             <button type="button" onclick="openImportModal()"
                     class="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 text-xs font-extrabold rounded-xl transition shadow-2xs cursor-pointer">
                 <i class="fa-solid fa-file-import text-indigo-600"></i>
-                <span>Import Excel</span>
+                <span>Import Data (.xls / .csv)</span>
             </button>
 
             <button type="button" onclick="openExportModal('excel')"
@@ -86,8 +87,10 @@
             <!-- Filter Status -->
             <select name="status" onchange="this.form.submit()" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:ring-2 focus:ring-blue-600 transition">
                 <option value="">Semua Status</option>
-                <option value="menunggu_verifikasi_pusat" {{ request('status') == 'menunggu_verifikasi_pusat' ? 'selected' : '' }}>Menunggu ESDM</option>
                 <option value="lolos_verifikasi_pusat" {{ request('status') == 'lolos_verifikasi_pusat' ? 'selected' : '' }}>Disetujui (Lolos)</option>
+                <option value="terpasang" {{ request('status') == 'terpasang' ? 'selected' : '' }}>Terpasang (Sudah Realisasi)</option>
+                <option value="menunggu_verifikasi_pusat" {{ request('status') == 'menunggu_verifikasi_pusat' ? 'selected' : '' }}>Menunggu ESDM</option>
+                <option value="butuh_validasi" {{ request('status') == 'butuh_validasi' ? 'selected' : '' }}>Perlu Validasi Realisasi</option>
                 <option value="ditolak/perlu_perbaikan" {{ request('status') == 'ditolak/perlu_perbaikan' ? 'selected' : '' }}>Ditolak / Perbaikan</option>
             </select>
 
@@ -143,17 +146,29 @@
                                 {{ $warga->no_hp ?: '-' }}
                             </td>
                             <td class="px-5 py-3.5">
-                                @if($warga->status_verifikasi === 'lolos_verifikasi_pusat')
+                                @if($warga->status_verifikasi === 'terpasang')
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-800 text-[11px] font-bold rounded-lg border border-emerald-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Terpasang (Sudah Realisasi)
+                                    </span>
+                                @elseif($warga->status_verifikasi === 'lolos_verifikasi_pusat')
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-800 text-[11px] font-bold rounded-lg border border-emerald-200">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Disetujui (Lolos)
+                                    </span>
+                                @elseif($warga->status_verifikasi === 'disetujui_desa')
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-800 text-[11px] font-bold rounded-lg border border-blue-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Diverifikasi Kades
                                     </span>
                                 @elseif($warga->status_verifikasi === 'menunggu_verifikasi_pusat')
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-800 text-[11px] font-bold rounded-lg border border-amber-200">
                                         <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Menunggu ESDM
                                     </span>
-                                @else
+                                @elseif(in_array($warga->status_verifikasi, ['ditolak/perlu_perbaikan', 'ditolak']))
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-800 text-[11px] font-bold rounded-lg border border-rose-200">
                                         <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Ditolak / Revisi
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-700 text-[11px] font-bold rounded-lg">
+                                        {{ str_replace('_', ' ', strtoupper($warga->status_verifikasi)) }}
                                     </span>
                                 @endif
                             </td>
@@ -232,7 +247,7 @@
                                 @forelse($desas as $d)
                                     <label class="flex items-center gap-2 p-1.5 hover:bg-blue-50 rounded-lg cursor-pointer transition">
                                         <input type="checkbox" name="desa[]" value="{{ $d }}" class="modal-desa-checkbox rounded text-blue-600 focus:ring-blue-500" {{ request('desa') == $d || !request('desa') ? 'checked' : '' }}>
-                                        <span class="text-slate-800 font-semibold">${d}</span>
+                                        <span class="text-slate-800 font-semibold">{{ $d }}</span>
                                     </label>
                                 @empty
                                     <p class="text-slate-400 text-xs italic p-1">Pilih Kabupaten & Kecamatan terlebih dahulu.</p>
@@ -248,6 +263,78 @@
                             <option value="menunggu_verifikasi_pusat" {{ request('status') == 'menunggu_verifikasi_pusat' ? 'selected' : '' }}>Menunggu Verifikasi Pusat</option>
                             <option value="ditolak/perlu_perbaikan" {{ request('status') == 'ditolak/perlu_perbaikan' ? 'selected' : '' }}>Ditolak / Perlu Perbaikan</option>
                         </select>
+                    </div>
+                </div>
+
+                <!-- Section 2: Centang Kolom yang Dibutuhkan -->
+                <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <p class="font-extrabold text-slate-900 uppercase text-[11px] tracking-wider text-blue-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-check"></i> Centang Kolom Data yang Dibutuhkan:
+                        </p>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="toggleSelectAllColumns(true)" class="text-[10px] text-blue-700 font-extrabold hover:underline">
+                                Centang Semua
+                            </button>
+                            <span class="text-slate-300">|</span>
+                            <button type="button" onclick="toggleSelectAllColumns(false)" class="text-[10px] text-rose-600 font-extrabold hover:underline">
+                                Hapus Semua
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                        <label class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl hover:bg-blue-50/50 cursor-pointer transition">
+                            <input type="checkbox" name="columns[]" value="no" checked class="modal-col-checkbox rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-slate-800 font-semibold">No</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl hover:bg-blue-50/50 cursor-pointer transition">
+                            <input type="checkbox" name="columns[]" value="provinsi" checked class="modal-col-checkbox rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-slate-800 font-semibold">Provinsi</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl hover:bg-blue-50/50 cursor-pointer transition">
+                            <input type="checkbox" name="columns[]" value="kabupaten" checked class="modal-col-checkbox rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-slate-800 font-semibold">Kabupaten/Kota</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl hover:bg-blue-50/50 cursor-pointer transition">
+                            <input type="checkbox" name="columns[]" value="kecamatan" checked class="modal-col-checkbox rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-slate-800 font-semibold">Kecamatan</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl hover:bg-blue-50/50 cursor-pointer transition">
+                            <input type="checkbox" name="columns[]" value="desa" checked class="modal-col-checkbox rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-slate-800 font-semibold">Desa/Kelurahan</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl hover:bg-blue-50/50 cursor-pointer transition">
+                            <input type="checkbox" name="columns[]" value="nama" checked class="modal-col-checkbox rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-slate-800 font-semibold">Nama Pemohon</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl hover:bg-blue-50/50 cursor-pointer transition">
+                            <input type="checkbox" name="columns[]" value="nik" checked class="modal-col-checkbox rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-slate-800 font-semibold">NIK Warga</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl hover:bg-blue-50/50 cursor-pointer transition">
+                            <input type="checkbox" name="columns[]" value="alamat" checked class="modal-col-checkbox rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-slate-800 font-semibold">Alamat & RT/RW</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl hover:bg-blue-50/50 cursor-pointer transition">
+                            <input type="checkbox" name="columns[]" value="no_hp" checked class="modal-col-checkbox rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-slate-800 font-semibold">No. Telepon/HP</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl hover:bg-blue-50/50 cursor-pointer transition">
+                            <input type="checkbox" name="columns[]" value="jarak_tiang" checked class="modal-col-checkbox rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-slate-800 font-semibold">Jarak Tiang</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl hover:bg-blue-50/50 cursor-pointer transition">
+                            <input type="checkbox" name="columns[]" value="status" checked class="modal-col-checkbox rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-slate-800 font-semibold">Status Verifikasi</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl hover:bg-blue-50/50 cursor-pointer transition">
+                            <input type="checkbox" name="columns[]" value="tahun" checked class="modal-col-checkbox rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-slate-800 font-semibold">Tahun Usulan/Real</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-xl hover:bg-blue-50/50 cursor-pointer transition sm:col-span-2">
+                            <input type="checkbox" name="columns[]" value="keterangan" checked class="modal-col-checkbox rounded text-blue-600 focus:ring-blue-500">
+                            <span class="text-slate-800 font-semibold">Keterangan / Catatan Import</span>
+                        </label>
                     </div>
                 </div>
 
@@ -414,11 +501,24 @@
         checkboxes.forEach(cb => cb.checked = !allChecked);
     }
 
-    function openExportModal(type) {
+    function toggleSelectAllColumns(status) {
+        const checkboxes = document.querySelectorAll('.modal-col-checkbox');
+        checkboxes.forEach(cb => cb.checked = status);
+    }
+
+    function openExportModal(type, scope = '') {
         currentExportType = type;
         const modal = document.getElementById('exportModal');
         const form = document.getElementById('exportForm');
         const btn = document.getElementById('btnSubmitExport');
+        let scopeInput = form.querySelector('input[name="scope"]');
+        if (!scopeInput) {
+            scopeInput = document.createElement('input');
+            scopeInput.type = 'hidden';
+            scopeInput.name = 'scope';
+            form.appendChild(scopeInput);
+        }
+        scopeInput.value = scope;
 
         if (type === 'excel') {
             form.action = "{{ route('dinasesdm.export.excel') }}";

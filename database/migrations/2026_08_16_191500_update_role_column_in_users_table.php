@@ -12,7 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE `users` MODIFY COLUMN `role` VARCHAR(50) NOT NULL DEFAULT 'kepala_desa'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE `users` MODIFY COLUMN `role` VARCHAR(50) NOT NULL DEFAULT 'kepala_desa'");
+        } else {
+            Schema::table('users', function (Blueprint $table) {
+                $table->string('role', 50)->default('kepala_desa')->change();
+            });
+        }
     }
 
     /**
@@ -20,6 +26,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE `users` MODIFY COLUMN `role` ENUM('admin', 'kepala_desa', 'instansi') NOT NULL DEFAULT 'kepala_desa'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE `users` MODIFY COLUMN `role` ENUM('admin', 'kepala_desa', 'instansi') NOT NULL DEFAULT 'kepala_desa'");
+        }
     }
 };

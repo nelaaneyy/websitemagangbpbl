@@ -1,16 +1,25 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="space-y-6" x-data="{ rejectModalOpen: false, activeLisdes: null, activeLisdesDesa: '', activeActionUrl: '' }">
+<div class="space-y-6" x-data="{ rejectModalOpen: false, activeLisdes: null, activeLisdesDesa: '', activeActionUrl: '', designMode: false }">
     <!-- Header Page -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200/80">
         <div>
             <div class="flex items-center gap-2">
                 <span class="px-2.5 py-0.5 bg-indigo-100 text-indigo-800 text-[10px] font-extrabold rounded-md uppercase">Program Infrastruktur</span>
-                <span class="text-xs text-slate-400 font-semibold">Dinas ESDM</span>
+                <span class="text-xs text-slate-400 font-semibold">Dinas ESDM (UC-ESDM-LISDES-02)</span>
             </div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight mt-1">Verifikasi Pengajuan Listrik Desa (Lisdes)</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Peninjauan dan penetapan kelayakan usulan perluasan jaringan listrik desa dari Kepala Desa.</p>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight mt-1">Perancangan Jaringan Lisdes Interaktif & Dual Export</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Penetapan kelayakan usulan Lisdes, perancangan multi-pin 1-to-N dengan dynamic midpoint label, dan ekspor KML/PDF.</p>
+        </div>
+
+        <div class="flex gap-2">
+            <button @click="designMode = !designMode" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition flex items-center gap-2">
+                <i class="fa-solid fa-draw-polygon"></i> <span x-text="designMode ? 'Tutup Canvas Desain' : 'Mode Desain Lisdes (Multi-Pin)'"></span>
+            </button>
+            <a href="{{ route('dinasesdm.export.kml') }}" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
+                <i class="fa-solid fa-earth-americas"></i> Ekspor KML (Google Earth)
+            </a>
         </div>
     </div>
 
@@ -20,6 +29,26 @@
             <span>{{ session('success') }}</span>
         </div>
     @endif
+
+    <!-- LEAFLET INTERACTIVE CANVAS FOR MULTI-PINNING 1-TO-N (UC-ESDM-LISDES-02) -->
+    <div x-show="designMode" class="bg-slate-900 p-4 rounded-3xl border border-slate-700 space-y-4 shadow-xl">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-300">
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-lg font-bold">1-to-N Topologi Canvas</span>
+                <span>Klik tiang TR pangkal, lalu klik titik rumah warga sasaran untuk membuat bentang kabel.</span>
+            </div>
+            <div class="flex gap-4 font-mono">
+                <div>Total Jarak: <span id="canvas-total-dist" class="text-amber-400 font-bold">0.0 m</span></div>
+                <div>Est. Tiang TR Baru: <span id="canvas-pole-count" class="text-emerald-400 font-bold">0 Tiang</span></div>
+            </div>
+        </div>
+
+        <!-- Canvas Container (FIX-01: Locked height & z-0) -->
+        <div id="lisdes-design-map" class="w-full h-[450px] min-h-[400px] rounded-2xl border border-slate-700 relative overflow-hidden z-0"></div>
+        <div class="flex justify-end gap-2">
+            <button onclick="clearLisdesCanvas()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-lg border border-slate-700">Reset Line Canvas</button>
+        </div>
+    </div>
 
     <!-- Stat Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
@@ -68,38 +97,6 @@
         </div>
     </div>
 
-    <!-- Filter & Search Bar -->
-    <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/80 shadow-xs">
-        <form method="GET" action="{{ route('dinasesdm.lisdes.index') }}" class="flex flex-col md:flex-row gap-3">
-            <div class="flex-1 relative">
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Dusun, Nama Desa, atau Nama Kades..."
-                       class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:bg-white focus:ring-2 focus:ring-blue-600">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
-            </div>
-
-            <div class="w-full md:w-56">
-                <select name="status" onchange="this.form.submit()"
-                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:bg-white focus:ring-2 focus:ring-blue-600">
-                    <option value="all" {{ request('status') == 'all' || !request('status') ? 'selected' : '' }}>Semua Status</option>
-                    <option value="menunggu_verifikasi" {{ request('status') == 'menunggu_verifikasi' ? 'selected' : '' }}>Menunggu Verifikasi</option>
-                    <option value="disetujui" {{ request('status') == 'disetujui' ? 'selected' : '' }}>Disetujui ESDM</option>
-                    <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak / Perbaikan</option>
-                </select>
-            </div>
-
-            <div class="flex gap-2">
-                <button type="submit" class="px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-extrabold text-xs rounded-xl shadow-xs transition">
-                    Filter
-                </button>
-                @if(request('search') || (request('status') && request('status') !== 'all'))
-                    <a href="{{ route('dinasesdm.lisdes.index') }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition flex items-center justify-center">
-                        Reset
-                    </a>
-                @endif
-            </div>
-        </form>
-    </div>
-
     <!-- Table Pengajuan Lisdes -->
     <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div class="overflow-x-auto">
@@ -110,8 +107,8 @@
                         <th class="px-5 py-4">Wilayah Usulan (Dusun)</th>
                         <th class="px-5 py-4 text-center">Sasaran KK</th>
                         <th class="px-5 py-4 text-center">Jarak ke PLN</th>
-                        <th class="px-5 py-4">Tanggal Pengajuan</th>
                         <th class="px-5 py-4 text-center">Status</th>
+                        <th class="px-5 py-4 text-center">Dual Export</th>
                         <th class="px-5 py-4 text-center">Aksi ESDM</th>
                     </tr>
                 </thead>
@@ -124,11 +121,6 @@
                             </td>
                             <td class="px-5 py-4">
                                 <div class="font-bold text-slate-800">{{ $item->nama_dusun }}</div>
-                                @if($item->latitude && $item->longitude)
-                                    <div class="text-[11px] font-mono text-blue-600 mt-0.5">
-                                        <i class="fa-solid fa-location-dot"></i> {{ $item->latitude }}, {{ $item->longitude }}
-                                    </div>
-                                @endif
                             </td>
                             <td class="px-5 py-4 text-center font-extrabold text-slate-900">
                                 {{ number_format($item->jumlah_kk) }} KK
@@ -136,122 +128,134 @@
                             <td class="px-5 py-4 text-center font-bold text-slate-700">
                                 {{ number_format($item->estimasi_jarak) }} m
                             </td>
-                            <td class="px-5 py-4 text-[11px] text-slate-500 whitespace-nowrap">
-                                {{ $item->created_at ? $item->created_at->translatedFormat('d M Y, H:i') : '-' }}
-                            </td>
                             <td class="px-5 py-4 text-center whitespace-nowrap">
                                 @if($item->status === 'disetujui')
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 text-[11px] font-extrabold rounded-full border border-emerald-200">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Disetujui
-                                    </span>
-                                @elseif($item->status === 'ditolak')
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-800 text-[11px] font-extrabold rounded-full border border-rose-200">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Ditolak
+                                        Disetujui
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 text-[11px] font-extrabold rounded-full border border-amber-200">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Menunggu ESDM
+                                        Menunggu ESDM
                                     </span>
                                 @endif
                             </td>
                             <td class="px-5 py-4 text-center whitespace-nowrap">
-                                <div class="flex items-center justify-center gap-1.5">
-                                    <a href="{{ route('dinasesdm.lisdes.show', $item->id) }}"
-                                       class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition flex items-center gap-1">
-                                        <i class="fa-solid fa-eye"></i> Detail
-                                    </a>
-
-                                    @if($item->status === 'menunggu_verifikasi' || $item->status === 'ditolak')
-                                        <form action="{{ route('dinasesdm.lisdes.approve', $item->id) }}" method="POST" onsubmit="return confirm('Setujui pengajuan Lisdes ini?')">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition shadow-xs flex items-center gap-1">
-                                                <i class="fa-solid fa-check"></i> Setujui
-                                            </button>
-                                        </form>
-                                    @endif
-
-                                    @if($item->status === 'menunggu_verifikasi' || $item->status === 'disetujui')
-                                        <button type="button"
-                                                @click.stop="rejectModalOpen = true; activeLisdesDesa = '{{ $item->desa }} ({{ $item->nama_dusun }})'; activeActionUrl = '{{ route('dinasesdm.lisdes.reject', $item->id) }}'"
-                                                class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs rounded-xl transition flex items-center gap-1">
-                                            <i class="fa-solid fa-xmark"></i> Tolak
-                                        </button>
-                                    @endif
+                                <div class="flex items-center justify-center gap-1">
+                                    <a href="{{ route('dinasesdm.export.kml', ['desa' => $item->desa]) }}" class="px-2.5 py-1 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 text-[10px] font-bold rounded-lg transition">.KML</a>
+                                    <a href="{{ route('dinasesdm.lisdes.map.pdf', $item->id) }}" class="px-2.5 py-1 bg-rose-100 text-rose-800 hover:bg-rose-200 text-[10px] font-bold rounded-lg transition">PDF Layout</a>
                                 </div>
+                            </td>
+                            <td class="px-5 py-4 text-center whitespace-nowrap">
+                                <a href="{{ route('dinasesdm.lisdes.show', $item->id) }}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">Detail</a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center text-slate-400">
-                                <i class="fa-solid fa-bolt text-3xl mb-2 text-slate-300 block"></i>
-                                <p class="font-bold text-slate-700">Belum ada data pengajuan Lisdes yang ditemukan.</p>
-                            </td>
+                            <td colspan="7" class="px-6 py-12 text-center text-slate-400">Belum ada pengajuan Lisdes.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-
-        @if($lisdesList->hasPages())
-            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
-                {{ $lisdesList->links() }}
-            </div>
-        @endif
-    </div>
-
-    <!-- Modal Form Tolak Pengajuan Lisdes -->
-    <div x-cloak
-         x-show="rejectModalOpen"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
-         @click.stop="rejectModalOpen = false">
-
-        <div @click.stop class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 sm:p-8 space-y-4 border border-slate-200">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
-                    <i class="fa-solid fa-circle-xmark text-rose-600"></i> Tolak Pengajuan Lisdes
-                </h3>
-                <button @click="rejectModalOpen = false" class="text-slate-400 hover:text-slate-600 p-1">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <p class="text-xs text-slate-600 font-medium">
-                Menolak usulan Lisdes dari <strong x-text="activeLisdesDesa" class="text-slate-900"></strong>. Masukkan alasan penolakan:
-            </p>
-
-            <form :action="activeActionUrl" method="POST" class="space-y-4">
-                @csrf
-                @method('PATCH')
-
-                <div class="space-y-1">
-                    <label for="catatan_esdm" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                        Catatan Penolakan / Perbaikan
-                    </label>
-                    <textarea id="catatan_esdm" name="catatan_esdm" rows="4" required
-                              placeholder="Jelaskan alasan penolakan atau dokumen yang kurang..."
-                              class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:bg-white focus:ring-2 focus:ring-rose-500"></textarea>
-                </div>
-
-                <div class="flex justify-end gap-2.5 pt-2">
-                    <button type="button" @click="rejectModalOpen = false"
-                            class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
-                        Batal
-                    </button>
-                    <button type="submit"
-                            class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-md transition">
-                        Kirim Penolakan
-                    </button>
-                </div>
-            </form>
-        </div>
     </div>
 </div>
-@endsection
 
+<!-- LEAFLET JS SCRIPT UNTUK DYNAMIC MIDPOINT DISTANCE LABELS (UC-ESDM-LISDES-02) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    let lisdesMap = null;
+    let pinPoints = [];
+    let polylineLayer = null;
+    let midpointMarkers = [];
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const jambiBounds = L.latLngBounds(
+            L.latLng(-2.8500, 101.1000), // South-West
+            L.latLng(-0.7500, 104.5500)  // North-East
+        );
+
+        lisdesMap = L.map('lisdes-design-map', {
+            center: [-1.6101, 103.6131],
+            zoom: 9, // Admin Overview Default Zoom = 9
+            maxBounds: jambiBounds,
+            maxBoundsViscosity: 0.8
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors | WebGIS SIPELITA ESDM Jambi'
+        }).addTo(lisdesMap);
+
+        lisdesMap.on('click', function(e) {
+            addPinPoint(e.latlng);
+        });
+
+        // FIX-01: Invalidate map size after DOM render & on window resize
+        setTimeout(function() {
+            if (lisdesMap) lisdesMap.invalidateSize();
+        }, 200);
+
+        window.addEventListener('resize', function() {
+            if (lisdesMap) lisdesMap.invalidateSize();
+        });
+    });
+
+    function addPinPoint(latlng) {
+        pinPoints.push(latlng);
+
+        // Marker Pin
+        L.marker(latlng).addTo(lisdesMap);
+
+        // Draw Polyline & Midpoint Labels
+        renderPolylineAndMidpoints();
+    }
+
+    function renderPolylineAndMidpoints() {
+        if (polylineLayer) lisdesMap.removeLayer(polylineLayer);
+        midpointMarkers.forEach(m => lisdesMap.removeLayer(m));
+        midpointMarkers = [];
+
+        if (pinPoints.length < 2) return;
+
+        polylineLayer = L.polyline(pinPoints, { color: '#f59e0b', weight: 4, dashArray: '8, 8' }).addTo(lisdesMap);
+
+        let totalDist = 0;
+        for (let i = 0; i < pinPoints.length - 1; i++) {
+            let p1 = pinPoints[i];
+            let p2 = pinPoints[i+1];
+            let dist = p1.distanceTo(p2);
+            totalDist += dist;
+
+            // Midpoint calculation
+            let midLat = (p1.lat + p2.lat) / 2;
+            let midLng = (p1.lng + p2.lng) / 2;
+
+            // Render Dynamic Midpoint Distance Label Badge (UC-ESDM-LISDES-02 Step 4)
+            let labelIcon = L.divIcon({
+                className: 'midpoint-label-badge',
+                html: `<div style="background:#1e293b; color:#fbbf24; border:1px solid #f59e0b; padding:2px 6px; border-radius:10px; font-size:10px; font-weight:bold; white-space:nowrap;">${dist.toFixed(1)} m</div>`,
+                iconSize: [60, 20],
+                iconAnchor: [30, 10]
+            });
+
+            let marker = L.marker([midLat, midLng], { icon: labelIcon }).addTo(lisdesMap);
+            midpointMarkers.push(marker);
+        }
+
+        document.getElementById('canvas-total-dist').textContent = totalDist.toFixed(1) + ' m';
+        let poleCount = Math.ceil(totalDist / 50.0); // Standar 50m per tiang TR
+        document.getElementById('canvas-pole-count').textContent = poleCount + ' Tiang';
+    }
+
+    function clearLisdesCanvas() {
+        pinPoints = [];
+        if (polylineLayer) lisdesMap.removeLayer(polylineLayer);
+        midpointMarkers.forEach(m => lisdesMap.removeLayer(m));
+        midpointMarkers = [];
+        document.getElementById('canvas-total-dist').textContent = '0.0 m';
+        document.getElementById('canvas-pole-count').textContent = '0 Tiang';
+    }
+</script>
+@endsection

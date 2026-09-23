@@ -75,11 +75,10 @@
                 <h3 class="font-extrabold text-slate-900 text-base">Daftar Usulan Listrik Desa (Lisdes)</h3>
                 <p class="text-xs text-slate-500 font-medium mt-0.5">Riwayat usulan jaringan listrik yang diajukan oleh Desa {{ auth()->user()->desa }}.</p>
             </div>
-            <button @click="createModalOpen = true; $nextTick(() => { if (window.initLisdesMap) window.initLisdesMap(); })"
-                    type="button"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl transition cursor-pointer">
+            <a href="{{ route('kepaladesa.lisdes.create') }}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl transition cursor-pointer shadow-sm">
                 <i class="fa-solid fa-plus text-amber-400"></i> Buat Usulan Baru
-            </button>
+            </a>
         </div>
 
         <div class="overflow-x-auto">

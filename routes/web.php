@@ -8,60 +8,155 @@ use App\Http\Controllers\AuthController;
 use App\Models\Desa;
 
 Route::get('/', function () {
-    $desas = Desa::orderBy('kabupaten')->orderBy('nama_desa')->get();
+    // 1. Kumpulkan seluruh desa REAL yang memiliki data pengajuan/realisasi dari tabel Warga
+    $wargaDesas = \App\Models\Warga::select('desa', 'kecamatan', 'kabupaten')
+        ->whereNotNull('desa')
+        ->where('desa', '!=', '')
+        ->get()
+        ->groupBy(function($item) {
+            return mb_strtolower(trim($item->desa));
+        });
 
-    // Hitung otomatis realisasi elektrifikasi desa berbasis status verifikasi pengajuan warga:
-    // - Diverifikasi Kades / ESDM (disetujui_desa, lolos_verifikasi_pusat, terpasang) -> Kelompok Teraliri Listrik
-    // - Belum Diverifikasi Kades (terkirim, pending) -> Kelompok Belum Teraliri Listrik
-    foreach ($desas as $desa) {
-        $verifiedCount = \App\Models\Warga::where('desa', 'LIKE', '%' . $desa->nama_desa . '%')
-            ->whereIn('status_verifikasi', ['disetujui_desa', 'lolos_verifikasi_pusat', 'terpasang'])
-            ->count();
+    $desas = collect();
 
-        $pendingCount = \App\Models\Warga::where('desa', 'LIKE', '%' . $desa->nama_desa . '%')
-            ->whereIn('status_verifikasi', ['terkirim', 'pending'])
-            ->count();
+    foreach ($wargaDesas as $cleanName => $items) {
+        $first = $items->first();
+        $namaDesa = strtoupper($first->desa);
+        $kabupaten = $first->kabupaten ?: 'KOTA JAMBI';
+        $kecamatan = $first->kecamatan ?: 'ALAM BARAJO';
 
-        $totalWargaDesa = $verifiedCount + $pendingCount;
+        $dbDesa = Desa::whereRaw('LOWER(nama_desa) = ?', [$cleanName])->first();
+        
+        $knownCoords = [
+            'bagan pete'       => ['lat' => -1.6435, 'lng' => 103.5580],
+            'kenali besar'     => ['lat' => -1.6244345, 'lng' => 103.5501182],
+            'mayang mangurai'  => ['lat' => -1.6220, 'lng' => 103.5840],
+            'rawasari'         => ['lat' => -1.6160, 'lng' => 103.5750],
+            'beliung'          => ['lat' => -1.6250, 'lng' => 103.5910],
+            'telanaipura'      => ['lat' => -1.6008, 'lng' => 103.5872],
+            'mendalo darat'    => ['lat' => -1.6042, 'lng' => 103.5298],
+            'muara bulian'     => ['lat' => -1.7265, 'lng' => 103.2652],
+        ];
 
-        if ($totalWargaDesa > 0 || $desa->total_rt > 0) {
-            $desa->berlistrik_rt = max($desa->berlistrik_rt, $verifiedCount);
-            $desa->belum_berlistrik_rt = max(0, $desa->total_rt - $desa->berlistrik_rt) + $pendingCount;
-            $desa->total_rt = max($desa->total_rt, $desa->berlistrik_rt + $desa->belum_berlistrik_rt);
-            $desa->rasio_elektrifikasi = $desa->total_rt > 0 ? round(($desa->berlistrik_rt / $desa->total_rt) * 100, 1) : 0.0;
-
-            if ($desa->rasio_elektrifikasi >= 100) {
-                $desa->status = 'full';
-            } elseif ($desa->rasio_elektrifikasi <= 0) {
-                $desa->status = 'belum';
+        if ($dbDesa && (float)$dbDesa->latitude != 0 && (float)$dbDesa->longitude != 0) {
+            $lat = (float)$dbDesa->latitude;
+            $lng = (float)$dbDesa->longitude;
+        } elseif (isset($knownCoords[$cleanName])) {
+            $lat = $knownCoords[$cleanName]['lat'];
+            $lng = $knownCoords[$cleanName]['lng'];
+        } else {
+            $wargaWithCoords = \App\Models\Warga::whereRaw('LOWER(desa) = ?', [$cleanName])
+                ->whereNotNull('latitude')
+                ->where('latitude', '!=', 0)
+                ->first();
+            if ($wargaWithCoords) {
+                $lat = (float)$wargaWithCoords->latitude;
+                $lng = (float)$wargaWithCoords->longitude;
+            } elseif (strtoupper($kecamatan) === 'ALAM BARAJO') {
+                $lat = -1.6300 + (rand(-10, 10) / 1000.0);
+                $lng = 103.5680 + (rand(-10, 10) / 1000.0);
             } else {
-                $desa->status = 'sebagian';
+                $lat = -1.6000 + (rand(-20, 20) / 1000.0);
+                $lng = 103.5800 + (rand(-20, 20) / 1000.0);
             }
         }
 
-        $desa->warga_terverifikasi = $verifiedCount;
-        $desa->warga_pending_kades = $pendingCount;
+        $pengajuanDesa = \App\Models\Warga::whereRaw('LOWER(desa) = ?', [$cleanName])->count();
+        $realisasiDesa = \App\Models\Warga::whereRaw('LOWER(desa) = ?', [$cleanName])
+            ->where('status_verifikasi', 'terpasang')
+            ->count();
+        $pendingDesa = \App\Models\Warga::whereRaw('LOWER(desa) = ?', [$cleanName])
+            ->whereIn('status_verifikasi', ['terkirim', 'pending', 'menunggu_verifikasi_pusat', 'disetujui_desa'])
+            ->count();
+
+        $rasio = $pengajuanDesa > 0 ? round(($realisasiDesa / $pengajuanDesa) * 100, 1) : 0.0;
+
+        $status = 'sebagian';
+        if ($rasio >= 100 && $realisasiDesa > 0) {
+            $status = 'full';
+        } elseif ($rasio <= 0) {
+            $status = 'belum';
+        }
+
+        $desas->push((object)[
+            'id'                  => $dbDesa ? $dbDesa->id : (9000 + rand(1, 999)),
+            'nama_desa'           => $namaDesa,
+            'kabupaten'           => $kabupaten,
+            'kecamatan'           => $kecamatan,
+            'latitude'            => $lat,
+            'longitude'           => $lng,
+            'total_rt'            => $pengajuanDesa,
+            'berlistrik_rt'       => $realisasiDesa,
+            'belum_berlistrik_rt' => max(0, $pengajuanDesa - $realisasiDesa),
+            'rasio_elektrifikasi' => $rasio,
+            'status'              => $status,
+            'warga_terverifikasi' => $realisasiDesa,
+            'warga_pending_kades' => $pendingDesa,
+        ]);
     }
 
-    $totalTeraliri = $desas->sum('berlistrik_rt');
-    $totalRT = $desas->sum('total_rt');
-    $overallRasio = $totalRT > 0 ? round(($totalTeraliri / $totalRT) * 100, 2) : 0;
+    // Jika belum ada warga, fallback ke Desa yang diinput manual
+    if ($desas->isEmpty()) {
+        $dbDesas = Desa::orderBy('kabupaten')->orderBy('nama_desa')->get();
+        foreach ($dbDesas as $desa) {
+            $realisasiDesa = \App\Models\Warga::where('desa', 'LIKE', '%' . $desa->nama_desa . '%')
+                ->where('status_verifikasi', 'terpasang')
+                ->count();
+            $pengajuanDesa = \App\Models\Warga::where('desa', 'LIKE', '%' . $desa->nama_desa . '%')->count();
+            $pendingDesa = \App\Models\Warga::where('desa', 'LIKE', '%' . $desa->nama_desa . '%')
+                ->whereIn('status_verifikasi', ['terkirim', 'pending', 'menunggu_verifikasi_pusat', 'disetujui_desa'])
+                ->count();
+
+            $desa->berlistrik_rt = $realisasiDesa;
+            $desa->belum_berlistrik_rt = max(0, $pengajuanDesa - $realisasiDesa);
+            $desa->total_rt = $pengajuanDesa;
+            $desa->rasio_elektrifikasi = $pengajuanDesa > 0 ? round(($realisasiDesa / $pengajuanDesa) * 100, 1) : 0.0;
+            $desa->status = $desa->rasio_elektrifikasi >= 100 ? 'full' : ($desa->rasio_elektrifikasi <= 0 ? 'belum' : 'sebagian');
+            $desas->push($desa);
+        }
+    }
+
+    $totalWarga = \App\Models\Warga::count();
+    $totalTerpasang = \App\Models\Warga::whereIn('status_verifikasi', ['terpasang', 'lolos_verifikasi_pusat'])->count();
+
+    $totalTeraliri = $totalTerpasang;
+    $totalRT = $totalWarga;
+    $overallRasio = $totalWarga > 0 ? round(($totalTerpasang / $totalWarga) * 100, 2) : 0.0;
     $totalApprovedGlobal = \App\Models\Warga::whereIn('status_verifikasi', ['disetujui_desa', 'lolos_verifikasi_pusat', 'terpasang'])->count();
 
     return view('welcome', compact('desas', 'totalTeraliri', 'totalRT', 'overallRasio', 'totalApprovedGlobal'));
 })->name('warga.index');
 
-// 2. Halaman Cek Status Berkas (Pencarian NIK) - Rate limited
-Route::get('/cek', [WargaController::class, 'search'])->middleware('throttle:20,1')->name('warga.search');
+Route::get('/api/kpi-stats', function () {
+    $totalWarga = \App\Models\Warga::count();
+    $totalTerpasang = \App\Models\Warga::whereIn('status_verifikasi', ['terpasang', 'lolos_verifikasi_pusat'])->count();
+    $overallRasio = $totalWarga > 0 ? round(($totalTerpasang / $totalWarga) * 100, 2) : 0;
 
-// 3. Halaman Form Input Data Mandiri Warga - Rate limited
-Route::get('/input', [WargaController::class, 'create'])->middleware('throttle:15,1')->name('warga.pengajuan');
+    $totalMenunggu = \App\Models\Warga::whereIn('status_verifikasi', ['menunggu_verifikasi_pusat', 'disetujui_desa', 'terkirim', 'pending'])->count();
+    $totalDisetujui = \App\Models\Warga::whereIn('status_verifikasi', ['lolos_verifikasi_pusat', 'terpasang'])->count();
+    $totalDitolak = \App\Models\Warga::where('status_verifikasi', 'ditolak/perlu_perbaikan')->count();
+    $totalApprovedGlobal = \App\Models\Warga::whereIn('status_verifikasi', ['disetujui_desa', 'lolos_verifikasi_pusat', 'terpasang'])->count();
 
-// 4. Proses Simpan Data & Upload Berkas Foto - Rate limited
-Route::post('/input', [WargaController::class, 'store'])->middleware('throttle:10,1')->name('warga.store');
+    return response()->json([
+        'total_teraliri' => $totalTerpasang,
+        'total_rt' => $totalWarga,
+        'overall_rasio' => $overallRasio,
+        'total_approved_global' => $totalApprovedGlobal,
+        'total_warga' => $totalWarga,
+        'total_menunggu' => $totalMenunggu,
+        'total_disetujui' => $totalDisetujui,
+        'total_ditolak' => $totalDitolak,
+        'total_terpasang' => $totalTerpasang,
+    ]);
+})->name('api.kpi.stats');
 
-// 5. Unduh Bukti Pendaftaran Resmi PDF (Ber-QR Code)
-Route::get('/warga/bukti-pdf/{nik}', [WargaController::class, 'downloadBuktiPdf'])->name('warga.bukti.pdf');
+// 2. Fitur Input & Cek Status Pendaftaran BPBL (Khusus Perangkat Desa & ESDM)
+Route::middleware(['auth', 'role:staff_desa,kepala_desa,verifikator_esdm,super_admin,instansi'])->group(function () {
+    Route::get('/cek', [WargaController::class, 'search'])->name('warga.search');
+    Route::get('/input', [WargaController::class, 'create'])->name('warga.pengajuan');
+    Route::post('/input', [WargaController::class, 'store'])->name('warga.store');
+    Route::get('/warga/bukti-pdf/{nik}', [WargaController::class, 'downloadBuktiPdf'])->name('warga.bukti.pdf');
+});
 
 // ==== KEPALA DESA ====
 Route::middleware(['auth', 'role:kepala_desa'])->prefix('kepaladesa')->name('kepaladesa.')->group(function () {
@@ -79,10 +174,43 @@ Route::middleware(['auth', 'role:kepala_desa'])->prefix('kepaladesa')->name('kep
     Route::delete('/{warga}', [KepalaDesaController::class, 'destroy'])->name('destroy');
 });
 
-// ==== INSTANSI & VERIFIKATOR ESDM ====
-Route::middleware(['auth', 'role:instansi,super_admin,verifikator_esdm'])->prefix('dinasesdm')->name('dinasesdm.')->group(function () {
+// ==== STAFF ADMINISTRASI DESA (ACT-02) ====
+Route::middleware(['auth', 'role:staff_desa,kepala_desa'])->prefix('staffdesa')->name('staffdesa.')->group(function () {
+    Route::get('/pengajuan', [WargaController::class, 'create'])->name('pengajuan');
+    Route::get('/cek', [WargaController::class, 'search'])->name('cek');
+});
+
+// ==== INSTANSI, VERIFIKATOR ESDM, PETUGAS LAPANGAN & VENDOR PLN ====
+Route::middleware(['auth', 'role:instansi,super_admin,verifikator_esdm,petugas_lapangan,pln_vendor'])->prefix('dinasesdm')->name('dinasesdm.')->group(function () {
     Route::get('/', [DinasEsdmController::class, 'index'])->name('index');
     Route::get('/datalist', [DinasEsdmController::class, 'dataList'])->name('datalist');
+
+    // Audit Trail Immutable Logs
+    Route::get('/audit-logs', [DinasEsdmController::class, 'auditLogs'])->name('audit_logs.index');
+
+    // Redundancy Resolution Side-by-Side Panel (UC-ESDM-RED-01)
+    Route::get('/redundancy/{warga}', [\App\Http\Controllers\RedundancyResolutionController::class, 'show'])->name('redundancy.show');
+    Route::patch('/redundancy/{warga}/resolve', [\App\Http\Controllers\RedundancyResolutionController::class, 'resolve'])->name('redundancy.resolve');
+
+    // Legalitas NIDI / SLO / BAST (Admin ESDM ACT-05)
+    Route::patch('/warga/{warga}/legalitas', [DinasEsdmController::class, 'updateLegalitas'])->name('warga.legalitas');
+
+    // Work Orders Management (PLN Vendor & Field Officer & ESDM)
+    Route::get('/work-orders', [\App\Http\Controllers\WorkOrderController::class, 'index'])->name('work_orders.index');
+    Route::post('/work-orders', [\App\Http\Controllers\WorkOrderController::class, 'store'])->name('work_orders.store');
+    Route::match(['put', 'patch'], '/work-orders/{workOrder}/status', [\App\Http\Controllers\WorkOrderController::class, 'updateStatus'])->name('work_orders.updateStatus');
+
+    // Export & Document Generators
+    Route::get('/export/kml', [DinasEsdmController::class, 'exportKml'])->name('export.kml');
+    Route::get('/warga/{warga}/bavl-pdf', [DinasEsdmController::class, 'downloadBavlPdf'])->name('warga.bavl.pdf');
+    Route::get('/lisdes/{id}/map-pdf', [DinasEsdmController::class, 'downloadLisdesMapPdf'])->name('lisdes.map.pdf');
+
+    // Electric Poles Spatial Ingestion
+    Route::post('/electric-poles/import', [DinasEsdmController::class, 'importElectricPoles'])->name('poles.import');
+    Route::get('/electric-poles/geojson', [DinasEsdmController::class, 'exportElectricPolesGeoJson'])->name('poles.geojson');
+
+    // Spatial Clustering Engine (DBSCAN / K-Means)
+    Route::post('/lisdes/clusters/generate', [DinasEsdmController::class, 'generateLisdesClusters'])->name('lisdes.clusters.generate');
 
     // Pengajuan Lisdes oleh Kepala Desa (kelola oleh ESDM) - HARUS di atas /{warga}
     Route::get('/lisdes', [DinasEsdmController::class, 'lisdesIndex'])->name('lisdes.index');
@@ -104,6 +232,14 @@ Route::middleware(['auth', 'role:instansi,super_admin,verifikator_esdm'])->prefi
     Route::get('/export/pdf', [DinasEsdmController::class, 'exportPdf'])->name('export.pdf');
     Route::get('/import/template', [DinasEsdmController::class, 'downloadImportTemplate'])->name('import.template');
     Route::post('/import', [DinasEsdmController::class, 'importExcel'])->name('import.excel');
+
+    // Validasi Realisasi Data Lama SuperAdmin (HARUS di atas /{warga})
+    Route::get('/validasi-realisasi', [DinasEsdmController::class, 'validasiRealisasiIndex'])->name('validasi_realisasi.index');
+    Route::patch('/validasi-realisasi/{warga}/confirm', [DinasEsdmController::class, 'konfirmasiRealisasi'])->name('validasi_realisasi.confirm');
+    Route::post('/validasi-realisasi/bulk-confirm', [DinasEsdmController::class, 'bulkKonfirmasiRealisasi'])->name('validasi_realisasi.bulk_confirm');
+
+    // Fitur Arsip & Data Historis Realisasi BPBL (HARUS di atas /{warga})
+    Route::get('/historis', [DinasEsdmController::class, 'historisIndex'])->name('historis.index');
 
     // Role management - Verifikasi Akun Desa (Bisa diakses Verifikator ESDM & Super Admin)
     Route::get('/users/manage', [DinasEsdmController::class, 'users'])->name('users.index');

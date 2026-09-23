@@ -26,9 +26,24 @@
                     <span>Verifikasi Akun Desa</span>
                 </a>
 
-                <a href="{{ route('dinasesdm.desa.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('dinasesdm.desa.*') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                    <i class="fa-solid fa-map-location-dot text-sm w-5 text-center"></i>
-                    <span>Peta Rasio Elektrifikasi</span>
+                @php
+                    $pendingValidasiCount = \App\Models\Warga::butuhValidasiRealisasi()->count();
+                @endphp
+                <a href="{{ route('dinasesdm.validasi_realisasi.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('dinasesdm.validasi_realisasi.*') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-clipboard-check text-sm w-5 text-center"></i>
+                        <span>Validasi Realisasi Data</span>
+                    </div>
+                    @if($pendingValidasiCount > 0)
+                        <span class="px-2 py-0.5 bg-rose-500 text-white text-[10px] font-black rounded-full shadow-xs animate-pulse">
+                            {{ $pendingValidasiCount }}
+                        </span>
+                    @endif
+                </a>
+
+                <a href="{{ route('dinasesdm.historis.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('dinasesdm.historis.*') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                    <i class="fa-solid fa-clock-rotate-left text-sm w-5 text-center"></i>
+                    <span>Arsip & Data Historis BPBL</span>
                 </a>
             </div>
 
@@ -48,16 +63,28 @@
                 </button>
             </div>
 
-        @elseif(auth()->user()->role === 'kepala_desa')
+        @elseif(in_array(auth()->user()->role, ['kepala_desa', 'staff_desa']))
             <div class="space-y-1">
-                <a href="{{ route('kepaladesa.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('kepaladesa.index') || request()->routeIs('kepaladesa.show') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                    <i class="fa-solid fa-list-check text-sm w-5 text-center"></i>
-                    <span>Verifikasi Warga Desa</span>
+                @if(auth()->user()->role === 'kepala_desa')
+                    <a href="{{ route('kepaladesa.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('kepaladesa.index') || request()->routeIs('kepaladesa.show') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                        <i class="fa-solid fa-list-check text-sm w-5 text-center"></i>
+                        <span>Verifikasi Warga Desa</span>
+                    </a>
+
+                    <a href="{{ route('kepaladesa.lisdes.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('kepaladesa.lisdes.*') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                        <i class="fa-solid fa-tower-cell text-sm w-5 text-center"></i>
+                        <span>Usulan Jaringan Lisdes</span>
+                    </a>
+                @endif
+
+                <a href="{{ route('warga.pengajuan') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('warga.pengajuan') || request()->routeIs('staffdesa.pengajuan') ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                    <i class="fa-solid fa-house-user text-sm w-5 text-center text-emerald-400"></i>
+                    <span>Input Pendaftaran BPBL</span>
                 </a>
 
-                <a href="{{ route('kepaladesa.lisdes.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('kepaladesa.lisdes.*') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                    <i class="fa-solid fa-tower-cell text-sm w-5 text-center"></i>
-                    <span>Usulan Jaringan Lisdes</span>
+                <a href="{{ route('warga.search') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('warga.search') || request()->routeIs('staffdesa.cek') ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                    <i class="fa-solid fa-magnifying-glass text-sm w-5 text-center text-blue-400"></i>
+                    <span>Cek Status NIK Pendaftaran</span>
                 </a>
             </div>
         @endif

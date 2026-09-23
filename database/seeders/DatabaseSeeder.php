@@ -33,7 +33,9 @@ class DatabaseSeeder extends Seeder
             'desa' => 'Sukamakmur',
         ]);
 
-        // Seed Data Rasio Desa Provinsi Jambi
-        $this->call(DesaSeeder::class);
+        $this->call([
+            JambiWilayahSeeder::class,
+            ExcelSeeder::class,
+        ]);
     }
 }

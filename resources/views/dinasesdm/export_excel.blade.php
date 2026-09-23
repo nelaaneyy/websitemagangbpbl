@@ -83,89 +83,135 @@
          $sheetName = 'KAB ' . strtoupper(substr($filters['kabupaten'], 0, 26));
      }
      $sheetName = str_replace(['\\', '/', '?', '*', ':', '[', ']'], '', $sheetName);
+
+     $allColsDef = [
+         'no'          => ['title' => 'NO', 'width' => 35, 'style' => 'DataTextCenter'],
+         'provinsi'    => ['title' => 'PROVINSI', 'width' => 80, 'style' => 'DataTextCenter'],
+         'kabupaten'   => ['title' => 'KABUPATEN / KOTA', 'width' => 140, 'style' => 'DataText'],
+         'kecamatan'   => ['title' => 'KECAMATAN', 'width' => 130, 'style' => 'DataText'],
+         'desa'        => ['title' => 'DESA / KELURAHAN', 'width' => 160, 'style' => 'DataText'],
+         'nama'        => ['title' => 'NAMA KEPALA RMH TANGGA', 'width' => 180, 'style' => 'DataText'],
+         'nik'         => ['title' => 'NIK', 'width' => 140, 'style' => 'DataTextCenter'],
+         'alamat'      => ['title' => 'ALAMAT (RT/RW)', 'width' => 220, 'style' => 'DataText'],
+         'no_hp'       => ['title' => 'NO TELEPON / HP', 'width' => 120, 'style' => 'DataTextCenter'],
+         'jarak_tiang' => ['title' => 'JARAK TIANG (M)', 'width' => 130, 'style' => 'DataTextCenter'],
+         'status'      => ['title' => 'STATUS VERIFIKASI', 'width' => 140, 'style' => 'DataTextCenter'],
+         'tahun'       => ['title' => 'TAHUN USULAN', 'width' => 100, 'style' => 'DataTextCenter'],
+         'keterangan'  => ['title' => 'KETERANGAN / CATATAN', 'width' => 180, 'style' => 'DataText'],
+     ];
+
+     $selectedCols = $selectedColumns ?? [];
+     if (empty($selectedCols)) {
+         $activeCols = ['no', 'provinsi', 'kabupaten', 'kecamatan', 'desa', 'nama', 'nik', 'alamat', 'jarak_tiang', 'status', 'tahun'];
+     } else {
+         $activeCols = array_intersect(array_keys($allColsDef), $selectedCols);
+         if (empty($activeCols)) {
+             $activeCols = array_keys($allColsDef);
+         }
+     }
+     $colCount = count($activeCols);
  @endphp
 
  <Worksheet ss:Name="{{ $sheetName }}">
   <Table>
-   <Column ss:Width="35"/>
-   <Column ss:Width="80"/>
-   <Column ss:Width="140"/>
-   <Column ss:Width="130"/>
-   <Column ss:Width="160"/>
-   <Column ss:Width="180"/>
-   <Column ss:Width="140"/>
-   <Column ss:Width="220"/>
-   <Column ss:Width="150"/>
-   <Column ss:Width="120"/>
+   @foreach ($activeCols as $colKey)
+    <Column ss:Width="{{ $allColsDef[$colKey]['width'] }}"/>
+   @endforeach
 
    <Row>
-    <Cell ss:Index="7" ss:MergeAcross="3" ss:StyleID="LampiranRight"><Data ss:Type="String">LAMPIRAN</Data></Cell>
+    <Cell ss:Index="{{ max(1, $colCount - 3) }}" ss:MergeAcross="{{ min(3, max(0, $colCount - 1)) }}" ss:StyleID="LampiranRight"><Data ss:Type="String">LAMPIRAN</Data></Cell>
    </Row>
    <Row>
-    <Cell ss:Index="7" ss:MergeAcross="3" ss:StyleID="LampiranRight"><Data ss:Type="String">Surat Kepala Dinas ESDM Provinsi Jambi</Data></Cell>
+    <Cell ss:Index="{{ max(1, $colCount - 3) }}" ss:MergeAcross="{{ min(3, max(0, $colCount - 1)) }}" ss:StyleID="LampiranRight"><Data ss:Type="String">Surat Kepala Dinas ESDM Provinsi Jambi</Data></Cell>
    </Row>
    <Row>
-    <Cell ss:Index="7" ss:StyleID="LampiranRight"><Data ss:Type="String">NOMOR</Data></Cell>
-    <Cell ss:MergeAcross="2"><Data ss:Type="String">: {{ $filters['nomor_surat'] }}</Data></Cell>
+    <Cell ss:Index="{{ max(1, $colCount - 3) }}" ss:StyleID="LampiranRight"><Data ss:Type="String">NOMOR</Data></Cell>
+    <Cell ss:MergeAcross="{{ min(2, max(0, $colCount - 2)) }}"><Data ss:Type="String">: {{ $filters['nomor_surat'] }}</Data></Cell>
    </Row>
    <Row>
-    <Cell ss:Index="7" ss:StyleID="LampiranRight"><Data ss:Type="String">TANGGAL</Data></Cell>
-    <Cell ss:MergeAcross="2"><Data ss:Type="String">: {{ $filters['tanggal_surat'] }}</Data></Cell>
+    <Cell ss:Index="{{ max(1, $colCount - 3) }}" ss:StyleID="LampiranRight"><Data ss:Type="String">TANGGAL</Data></Cell>
+    <Cell ss:MergeAcross="{{ min(2, max(0, $colCount - 2)) }}"><Data ss:Type="String">: {{ $filters['tanggal_surat'] }}</Data></Cell>
    </Row>
    <Row/>
    <Row>
-    <Cell ss:MergeAcross="9" ss:StyleID="TitleBold"><Data ss:Type="String">DATA USULAN CALON PENERIMA BPBL TAHUN {{ date('Y') }}</Data></Cell>
+    <Cell ss:MergeAcross="{{ max(0, $colCount - 1) }}" ss:StyleID="TitleBold"><Data ss:Type="String">DATA USULAN CALON PENERIMA BPBL TAHUN {{ date('Y') }}</Data></Cell>
    </Row>
    <Row>
-    <Cell ss:MergeAcross="9" ss:StyleID="TitleBold"><Data ss:Type="String">PROVINSI JAMBI</Data></Cell>
+    <Cell ss:MergeAcross="{{ max(0, $colCount - 1) }}" ss:StyleID="TitleBold"><Data ss:Type="String">PROVINSI JAMBI</Data></Cell>
    </Row>
    <Row/>
 
    <!-- Table Header -->
    <Row ss:Height="25">
-    <Cell ss:StyleID="HeaderYellow"><Data ss:Type="String">NO</Data></Cell>
-    <Cell ss:StyleID="HeaderYellow"><Data ss:Type="String">PROVINSI</Data></Cell>
-    <Cell ss:StyleID="HeaderYellow"><Data ss:Type="String">KABUPATEN</Data></Cell>
-    <Cell ss:StyleID="HeaderYellow"><Data ss:Type="String">KECAMATAN</Data></Cell>
-    <Cell ss:StyleID="HeaderYellow"><Data ss:Type="String">DESA / KELURAHAN / DUSUN</Data></Cell>
-    <Cell ss:StyleID="HeaderYellow"><Data ss:Type="String">NAMA KEPALA RMH TANGGA</Data></Cell>
-    <Cell ss:StyleID="HeaderYellow"><Data ss:Type="String">NIK</Data></Cell>
-    <Cell ss:StyleID="HeaderYellow"><Data ss:Type="String">ALAMAT</Data></Cell>
-    <Cell ss:StyleID="HeaderYellow"><Data ss:Type="String">JARAK DARI SUMBER LISTRIK (METER)</Data></Cell>
-    <Cell ss:StyleID="HeaderYellow"><Data ss:Type="String">STATUS VERIFIKASI</Data></Cell>
+    @foreach ($activeCols as $colKey)
+     <Cell ss:StyleID="HeaderYellow"><Data ss:Type="String">{{ $allColsDef[$colKey]['title'] }}</Data></Cell>
+    @endforeach
    </Row>
 
    <!-- Data Rows -->
+   @php $lastCategory = null; @endphp
    @forelse ($wargas as $index => $warga)
    @php
+       $currentCategory = 'KECAMATAN ' . strtoupper($warga->kecamatan) . ' - DESA/KELURAHAN ' . strtoupper($warga->desa);
        $statusLabel = match($warga->status_verifikasi) {
+           'terpasang' => 'Terpasang (Realisasi)',
            'lolos_verifikasi_pusat' => 'Lolos Pusat',
            'menunggu_verifikasi_pusat' => 'Menunggu Pusat',
            'ditolak/perlu_perbaikan' => 'Ditolak',
            default => ucfirst(str_replace('_', ' ', $warga->status_verifikasi)),
        };
+       $tahunVal = $warga->tahun_usulan ?: ($warga->created_at ? $warga->created_at->format('Y') : '-');
    @endphp
+
+   @if ($lastCategory !== $currentCategory)
+   <Row ss:Height="22">
+    <Cell ss:MergeAcross="{{ max(0, $colCount - 1) }}" ss:StyleID="HeaderYellow">
+     <Data ss:Type="String">=== KATEGORI: {{ $currentCategory }} ===</Data>
+    </Cell>
+   </Row>
+   @php $lastCategory = $currentCategory; @endphp
+   @endif
+
    <Row>
-    <Cell ss:StyleID="DataTextCenter"><Data ss:Type="Number">{{ $index + 1 }}</Data></Cell>
-    <Cell ss:StyleID="DataTextCenter"><Data ss:Type="String">JAMBI</Data></Cell>
-    <Cell ss:StyleID="DataText"><Data ss:Type="String">{{ strtoupper($warga->kabupaten) }}</Data></Cell>
-    <Cell ss:StyleID="DataText"><Data ss:Type="String">{{ strtoupper($warga->kecamatan) }}</Data></Cell>
-    <Cell ss:StyleID="DataText"><Data ss:Type="String">{{ strtoupper($warga->desa) }}</Data></Cell>
-    <Cell ss:StyleID="DataText"><Data ss:Type="String">{{ strtoupper($warga->nama) }}</Data></Cell>
-    <Cell ss:StyleID="DataTextCenter"><Data ss:Type="String">{{ $warga->nik }}</Data></Cell>
-    <Cell ss:StyleID="DataText"><Data ss:Type="String">{{ $warga->alamat }} (RT/RW: {{ $warga->rt_rw }})</Data></Cell>
-    <Cell ss:StyleID="DataTextCenter"><Data ss:Type="String">{{ $warga->jarak_tiang ? $warga->jarak_tiang : '-' }}</Data></Cell>
-    <Cell ss:StyleID="DataTextCenter"><Data ss:Type="String">{{ $statusLabel }}</Data></Cell>
+    @foreach ($activeCols as $colKey)
+     @if ($colKey === 'no')
+      <Cell ss:StyleID="DataTextCenter"><Data ss:Type="Number">{{ $index + 1 }}</Data></Cell>
+     @elseif ($colKey === 'provinsi')
+      <Cell ss:StyleID="DataTextCenter"><Data ss:Type="String">JAMBI</Data></Cell>
+     @elseif ($colKey === 'kabupaten')
+      <Cell ss:StyleID="DataText"><Data ss:Type="String">{{ strtoupper($warga->kabupaten) }}</Data></Cell>
+     @elseif ($colKey === 'kecamatan')
+      <Cell ss:StyleID="DataText"><Data ss:Type="String">{{ strtoupper($warga->kecamatan) }}</Data></Cell>
+     @elseif ($colKey === 'desa')
+      <Cell ss:StyleID="DataText"><Data ss:Type="String">{{ strtoupper($warga->desa) }}</Data></Cell>
+     @elseif ($colKey === 'nama')
+      <Cell ss:StyleID="DataText"><Data ss:Type="String">{{ strtoupper($warga->nama) }}</Data></Cell>
+     @elseif ($colKey === 'nik')
+      <Cell ss:StyleID="DataTextCenter"><Data ss:Type="String">{{ $warga->nik }}</Data></Cell>
+     @elseif ($colKey === 'alamat')
+      <Cell ss:StyleID="DataText"><Data ss:Type="String">{{ $warga->alamat }} (RT/RW: {{ $warga->rt_rw }})</Data></Cell>
+     @elseif ($colKey === 'no_hp')
+      <Cell ss:StyleID="DataTextCenter"><Data ss:Type="String">{{ $warga->no_hp ?: '-' }}</Data></Cell>
+     @elseif ($colKey === 'jarak_tiang')
+      <Cell ss:StyleID="DataTextCenter"><Data ss:Type="String">{{ $warga->jarak_tiang ? $warga->jarak_tiang : '-' }}</Data></Cell>
+     @elseif ($colKey === 'status')
+      <Cell ss:StyleID="DataTextCenter"><Data ss:Type="String">{{ $statusLabel }}</Data></Cell>
+     @elseif ($colKey === 'tahun')
+      <Cell ss:StyleID="DataTextCenter"><Data ss:Type="String">{{ $tahunVal }}</Data></Cell>
+     @elseif ($colKey === 'keterangan')
+      <Cell ss:StyleID="DataText"><Data ss:Type="String">{{ $warga->keterangan_import ?: '-' }}</Data></Cell>
+     @endif
+    @endforeach
    </Row>
    @empty
    <Row>
-    <Cell ss:MergeAcross="9" ss:StyleID="DataTextCenter"><Data ss:Type="String">Tidak ada data usulan yang sesuai dengan kriteria filter.</Data></Cell>
+    <Cell ss:MergeAcross="{{ max(0, $colCount - 1) }}" ss:StyleID="DataTextCenter"><Data ss:Type="String">Tidak ada data usulan yang sesuai dengan kriteria filter.</Data></Cell>
    </Row>
    @endforelse
 
    @if(count($wargas) > 0)
    <Row>
-    <Cell ss:MergeAcross="8" ss:StyleID="TotalFooter"><Data ss:Type="String">TOTAL USULAN CP-BPBL:</Data></Cell>
+    <Cell ss:MergeAcross="{{ max(0, $colCount - 2) }}" ss:StyleID="TotalFooter"><Data ss:Type="String">TOTAL DATA CP-BPBL:</Data></Cell>
     <Cell ss:StyleID="TotalFooterCenter"><Data ss:Type="Number">{{ count($wargas) }}</Data></Cell>
    </Row>
    @endif

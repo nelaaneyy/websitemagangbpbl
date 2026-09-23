@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="id" class="scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIPELITA ESDM - Portal Transparansi Bantuan Pasang Baru Listrik</title>
+    <title>E-LISTRIK ESDM - Portal Transparansi Bantuan Pasang Baru Listrik dan Listrik Perdesaan</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0F172A">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -12,217 +13,251 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     @stack('styles')
     <style>
-        [x-cloak] { display: none !important; }
-        body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+        [x-cloak] {
+            display: none !important;
+        }
+
+        html {
+            scrollbar-gutter: stable;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+        }
     </style>
 </head>
-<body class="bg-linear-to-br from-slate-50 via-slate-50 to-blue-50/50 text-slate-900 min-h-screen flex flex-col justify-between antialiased selection:bg-amber-500 selection:text-slate-950" x-data="{ mobileMenu: false }">
 
-    <!-- Top Utility Announcement & Call Center Bar -->
-    <div class="bg-slate-900 text-white text-xs py-2 px-4 border-b border-slate-800">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
-            <div class="flex items-center gap-2">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-extrabold text-[11px] border border-amber-500/30">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                    Portal Data & Layanan Publik ESDM
-                </span>
-                <span class="text-slate-300 text-[11px] font-semibold hidden md:inline">Sistem Pelayanan & Elektrifikasi Listrik Terpadu (SIPELITA)</span>
-            </div>
-            <div class="flex items-center gap-4 text-[11px] text-slate-300 font-medium">
-                <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-phone text-amber-400"></i> Call Center: 135 / (021) 3804242</span>
-                <span class="hidden sm:inline-flex items-center gap-1.5"><i class="fa-solid fa-clock text-amber-400"></i> Jam Kerja: 08.00 - 16.00 WIB</span>
-            </div>
-        </div>
-    </div>
+<body class="bg-linear-to-br from-slate-50 via-slate-50 to-blue-50/50 text-slate-900 min-h-screen flex flex-col justify-between antialiased selection:bg-amber-500 selection:text-slate-950">
 
-    {{-- NAVBAR UTAMA (Clean Minimalist White & Backdrop Blur) --}}
-    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 shadow-xs">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <!-- Logo & Instansi Header -->
-                <a href="{{ route('warga.index') }}" class="flex items-center gap-3.5 group">
-                    <div class="w-11 h-11 bg-slate-900 text-amber-400 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200">
-                        <i class="fa-solid fa-bolt-lightning text-xl"></i>
-                    </div>
-                    <div class="flex flex-col">
-                        <div class="flex items-center gap-2">
-                            <span class="font-extrabold text-xl text-slate-900 tracking-tight group-hover:text-amber-600 transition-colors">SIPELITA</span>
-                            <span class="px-2 py-0.5 bg-amber-500 text-slate-950 text-[10px] font-black rounded uppercase tracking-wider">ESDM</span>
-                        </div>
-                        <span class="text-[11px] font-bold text-slate-500 tracking-wide">Portal Transparansi BPBL</span>
-                    </div>
+    {{-- NAVBAR CONTAINER --}}
+    <header class="fixed top-0 left-0 right-0 z-50 pt-3 px-3 sm:px-6 lg:px-8 pointer-events-none"
+            x-data="{
+                scrolled: false,
+                mobileMenu: false,
+                activeTab: window.location.hash ? window.location.hash.replace('#', '') : ('{{ request()->routeIs('warga.search') ? 'cek-status' : 'beranda' }}'),
+                isAutoScrolling: false
+            }"
+            x-init="
+                scrolled = window.pageYOffset > 20;
+
+                @if(request()->routeIs('warga.index'))
+                    if (window.location.hash) {
+                        isAutoScrolling = true;
+                        setTimeout(() => { isAutoScrolling = false; }, 800);
+                    }
+
+                    const checkScroll = () => {
+                        if (isAutoScrolling) return;
+                        const scrollPos = window.scrollY + 200;
+                        const tahapan = document.getElementById('tahapan-proses');
+                        const realisasi = document.getElementById('dashboard-elektrifikasi');
+
+                        if (realisasi && scrollPos >= realisasi.offsetTop) {
+                            activeTab = 'realisasi';
+                        } else if (tahapan && scrollPos >= tahapan.offsetTop) {
+                            activeTab = 'tahapan-proses';
+                        } else {
+                            activeTab = 'beranda';
+                        }
+                    };
+
+                    window.addEventListener('scroll', () => {
+                        scrolled = window.pageYOffset > 20;
+                        checkScroll();
+                    }, { passive: true });
+                @else
+                    window.addEventListener('scroll', () => {
+                        scrolled = window.pageYOffset > 20;
+                    }, { passive: true });
+                @endif
+            ">
+
+        <!-- Outer Pill Wrapper -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2 rounded-full flex items-center justify-between pointer-events-auto relative border border-slate-200/80 bg-white/50 backdrop-blur-md shadow-xs transition-shadow duration-300"
+             :class="scrolled ? 'shadow-md shadow-slate-900/5' : ''">
+
+            <!-- Sisi Kiri: Branding & Logo -->
+            <a href="{{ route('warga.index') }}" class="flex items-center gap-2.5 sm:gap-3 select-none group">
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <img src="{{ asset('images/logo-jambi.png') }}" alt="Logo Jambi" class="h-8 sm:h-9 w-auto object-contain">
+                    <div class="h-4 sm:h-5 w-px bg-slate-300"></div>
+                    <img src="{{ asset('images/logo-esdm.png') }}" alt="Logo ESDM" class="h-7 sm:h-8 w-auto object-contain">
+                </div>
+                <div class="flex flex-col justify-center">
+                    <span class="font-extrabold text-sm sm:text-base tracking-tight leading-tight text-slate-900">
+                        Dinas ESDM
+                    </span>
+                    <span class="text-[8px] sm:text-[9px] font-bold text-amber-500 uppercase tracking-widest leading-tight">
+                        Provinsi Jambi
+                    </span>
+                </div>
+            </a>
+
+            <!-- Sisi Tengah: Menu Desktop & Laptop (Hidden di bawah lg) -->
+            <nav class="hidden lg:flex items-center gap-1.5 text-xs font-bold">
+                <!-- 1. Beranda -->
+                <a href="{{ route('warga.index') }}"
+                   @click="{{ request()->routeIs('warga.index') ? "event.preventDefault(); isAutoScrolling = true; activeTab = 'beranda'; window.scrollTo({top: 0, behavior: 'smooth'}); setTimeout(() => isAutoScrolling = false, 700);" : "" }}"
+                   class="relative px-4 py-2 rounded-full inline-flex items-center justify-center text-center select-none cursor-pointer transition-colors duration-200"
+                   :class="activeTab === 'beranda' && {{ request()->routeIs('warga.index') ? 'true' : 'false' }} ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900'">
+                    <span class="absolute inset-0 rounded-full transition-opacity duration-200 -z-10 pointer-events-none"
+                          :class="activeTab === 'beranda' && {{ request()->routeIs('warga.index') ? 'true' : 'false' }} ? 'bg-slate-100 ring-1 ring-slate-200/80 opacity-100' : 'bg-transparent opacity-0'"></span>
+                    <span>Beranda</span>
                 </a>
 
-                <!-- Nav Links (Desktop) -->
-                <div class="hidden md:flex items-center gap-1.5">
-                    <a href="{{ route('warga.index') }}" class="text-xs font-bold text-slate-700 hover:text-slate-900 px-3.5 py-2 rounded-xl hover:bg-slate-100 transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-house text-amber-500 text-xs"></i> Beranda
-                    </a>
-                    <a href="{{ route('warga.index') }}#dashboard-elektrifikasi" class="text-xs font-bold text-slate-700 hover:text-slate-900 px-3.5 py-2 rounded-xl hover:bg-slate-100 transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-chart-simple text-blue-600 text-xs"></i> Realisasi
-                    </a>
-                    <a href="{{ route('warga.search') }}" class="text-xs font-bold text-slate-700 hover:text-slate-900 px-3.5 py-2 rounded-xl hover:bg-slate-100 transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-magnifying-glass text-amber-500 text-xs"></i> Cek Status
-                    </a>
+                <!-- 2. Tahapan Proses -->
+                <a href="{{ route('warga.index') }}#tahapan-proses"
+                   @click="{{ request()->routeIs('warga.index') ? "event.preventDefault(); isAutoScrolling = true; activeTab = 'tahapan-proses'; document.getElementById('tahapan-proses')?.scrollIntoView({behavior: 'smooth'}); setTimeout(() => isAutoScrolling = false, 700);" : "" }}"
+                   class="relative px-4 py-2 rounded-full inline-flex items-center justify-center text-center select-none cursor-pointer transition-colors duration-200"
+                   :class="(activeTab === 'tahapan-proses' || activeTab === 'tahapan') && {{ request()->routeIs('warga.index') ? 'true' : 'false' }} ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900'">
+                    <span class="absolute inset-0 rounded-full transition-opacity duration-200 -z-10 pointer-events-none"
+                          :class="(activeTab === 'tahapan-proses' || activeTab === 'tahapan') && {{ request()->routeIs('warga.index') ? 'true' : 'false' }} ? 'bg-slate-100 ring-1 ring-slate-200/80 opacity-100' : 'bg-transparent opacity-0'"></span>
+                    <span>Tahapan Proses</span>
+                </a>
 
-                    <!-- CTAs -->
-                    <div class="ml-3 flex items-center gap-2.5">
-                        <a href="{{ route('warga.pengajuan') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs rounded-xl transition-all shadow-xs hover:-translate-y-0.5">
-                            <i class="fa-solid fa-paper-plane text-slate-950"></i> Daftar Calon Penerima
-                        </a>
+                <!-- 3. Realisasi -->
+                <a href="{{ route('warga.index') }}#dashboard-elektrifikasi"
+                   @click="{{ request()->routeIs('warga.index') ? "event.preventDefault(); isAutoScrolling = true; activeTab = 'dashboard-elektrifikasi'; document.getElementById('dashboard-elektrifikasi')?.scrollIntoView({behavior: 'smooth'}); setTimeout(() => isAutoScrolling = false, 700);" : "" }}"
+                   class="relative px-4 py-2 rounded-full inline-flex items-center justify-center text-center select-none cursor-pointer transition-colors duration-200"
+                   :class="(activeTab === 'dashboard-elektrifikasi' || activeTab === 'realisasi') && {{ request()->routeIs('warga.index') ? 'true' : 'false' }} ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900'">
+                    <span class="absolute inset-0 rounded-full transition-opacity duration-200 -z-10 pointer-events-none"
+                          :class="(activeTab === 'dashboard-elektrifikasi' || activeTab === 'realisasi') && {{ request()->routeIs('warga.index') ? 'true' : 'false' }} ? 'bg-slate-100 ring-1 ring-slate-200/80 opacity-100' : 'bg-transparent opacity-0'"></span>
+                    <span>Realisasi</span>
+                </a>
+            </nav>
 
-                        @auth
-                            <!-- User Profile Dropdown Pill (Alpine.js) -->
-                            <div class="relative" x-data="{ userMenuOpen: false }">
-                                <button @click.stop="userMenuOpen = !userMenuOpen" @click.away="userMenuOpen = false" type="button" class="flex items-center gap-2.5 p-1.5 pl-2 text-xs font-semibold text-slate-800 hover:bg-slate-100 rounded-2xl transition border border-slate-200 bg-white shadow-2xs cursor-pointer">
-                                    <div class="w-8 h-8 bg-gradient-to-br from-blue-700 to-indigo-700 text-white rounded-xl flex items-center justify-center font-extrabold text-sm shadow-xs">
-                                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                                    </div>
-                                    <div class="hidden sm:block text-left pr-1">
-                                        <span class="block text-xs font-bold text-slate-900 leading-tight truncate max-w-[140px]">{{ auth()->user()->name }}</span>
-                                        <span class="block text-[10px] text-slate-500 font-medium capitalize">
-                                            @if(auth()->user()->role === 'kepala_desa')
-                                                Kepala Desa {{ auth()->user()->desa ? '('.auth()->user()->desa.')' : '' }}
-                                            @elseif(auth()->user()->role === 'verifikator_esdm')
-                                                Verifikator ESDM
-                                            @else
-                                                Super Admin ESDM
-                                            @endif
-                                        </span>
-                                    </div>
-                                    <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 px-1"></i>
-                                </button>
+            <!-- Sisi Kanan: Login Desktop & Hamburger Mobile -->
+            <div class="flex items-center gap-2">
+                <!-- Tombol Login Petugas Desktop -->
+                <a href="{{ url('/login') }}"
+                   class="hidden sm:inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-xs shadow-xs transition-colors duration-150">
+                    <span>Login Petugas</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </a>
 
-                                <!-- Dropdown Menu -->
-                                <div x-cloak x-show="userMenuOpen"
-                                     x-transition:enter="transition ease-out duration-100"
-                                     x-transition:enter-start="transform opacity-0 scale-95"
-                                     x-transition:enter-end="transform opacity-100 scale-100"
-                                     x-transition:leave="transition ease-in duration-75"
-                                     x-transition:leave-start="transform opacity-100 scale-100"
-                                     x-transition:leave-end="transform opacity-0 scale-95"
-                                     class="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 py-2 divide-y divide-slate-100" @click.stop>
-                                    <div class="px-4 py-2.5">
-                                        <p class="text-xs font-extrabold text-slate-900 truncate">{{ auth()->user()->name }}</p>
-                                        <p class="text-[11px] text-slate-500 truncate mt-0.5">{{ auth()->user()->email }}</p>
-                                        <span class="mt-1.5 inline-block px-2 py-0.5 bg-blue-50 text-blue-800 text-[10px] font-extrabold rounded-md border border-blue-200">
-                                            @if(auth()->user()->role === 'kepala_desa')
-                                                Kepala Desa {{ auth()->user()->desa }}
-                                            @elseif(auth()->user()->role === 'verifikator_esdm')
-                                                Verifikator ESDM
-                                            @else
-                                                Super Admin ESDM
-                                            @endif
-                                        </span>
-                                    </div>
-                                    <div class="py-1 text-xs font-bold">
-                                        <a href="{{ auth()->user()->role === 'kepala_desa' ? route('kepaladesa.index') : (auth()->user()->role === 'verifikator_esdm' ? route('dinasesdm.datalist') : route('dinasesdm.index')) }}" class="px-4 py-2 text-slate-700 hover:bg-slate-50 transition flex items-center gap-2.5">
-                                            <i class="fa-solid fa-gauge-high text-blue-600"></i>
-                                            <span>Kembali ke Dasbor</span>
-                                        </a>
-                                        <form method="POST" action="{{ route('logout') }}" class="block">
-                                            @csrf
-                                            <button type="submit" class="w-full text-left px-4 py-2 text-rose-600 hover:bg-rose-50 transition flex items-center gap-2.5 font-bold cursor-pointer">
-                                                <i class="fa-solid fa-right-from-bracket"></i>
-                                                <span>Keluar Dari Panel</span>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        @else
-                            <a href="{{ url('/login') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-bold text-xs rounded-xl transition-all">
-                                <i class="fa-solid fa-user-lock text-slate-500"></i> Portal Petugas
-                            </a>
-                        @endauth
-                    </div>
-                </div>
-
-                <!-- Mobile Hamburger Button -->
-                <button @click.stop="mobileMenu = !mobileMenu" type="button" class="md:hidden inline-flex items-center justify-center p-2.5 rounded-xl text-slate-700 hover:bg-slate-100 focus:outline-none transition">
-                    <i class="fa-solid" :class="mobileMenu ? 'fa-xmark text-xl' : 'fa-bars text-xl'"></i>
+                <!-- Tombol Hamburger Mobile -->
+                <button type="button"
+                        @click="mobileMenu = !mobileMenu"
+                        class="lg:hidden h-9 w-9 rounded-full inline-flex items-center justify-center text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition focus:outline-none"
+                        aria-label="Menu Utama">
+                    <i class="fa-solid text-base transition-transform duration-200"
+                       :class="mobileMenu ? 'fa-xmark scale-110 text-slate-900' : 'fa-bars'"></i>
                 </button>
             </div>
         </div>
 
-        <!-- Mobile Drawer Navigation -->
-        <div x-cloak x-show="mobileMenu" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 shadow-xl space-y-2" @click.stop>
-            <a href="{{ url ('/') }}" class="flex items-center gap-3 px-4 py-3 text-slate-800 font-bold rounded-xl hover:bg-slate-50 transition">
-                <i class="fa-solid fa-house text-amber-500 w-5 text-center"></i> Beranda
+        <!-- Menu Dropdown Mobile Floating (Tampil di Layar HP & Tablet) -->
+        <div x-show="mobileMenu"
+             x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-3 scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+             x-transition:leave-end="opacity-0 -translate-y-3 scale-95"
+             @click.outside="mobileMenu = false"
+             class="lg:hidden max-w-7xl mx-auto mt-2 p-3.5 rounded-3xl border border-slate-200/80 bg-white/95 backdrop-blur-xl shadow-xl pointer-events-auto flex flex-col gap-1 text-sm font-bold">
+
+            <!-- Mobile Nav Item: Beranda -->
+            <a href="{{ route('warga.index') }}"
+               @click="{{ request()->routeIs('warga.index') ? "event.preventDefault(); isAutoScrolling = true; activeTab = 'beranda'; mobileMenu = false; window.scrollTo({top: 0, behavior: 'smooth'}); setTimeout(() => isAutoScrolling = false, 700);" : "mobileMenu = false;" }}"
+               class="px-4 py-2.5 rounded-2xl flex items-center justify-between transition-colors"
+               :class="activeTab === 'beranda' && {{ request()->routeIs('warga.index') ? 'true' : 'false' }} ? 'bg-slate-100 text-slate-950 ring-1 ring-slate-200/70' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-house text-xs text-amber-500 w-4 text-center"></i>
+                    <span>Beranda</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
             </a>
-            <a href="{{ url ('/') }}" class="flex items-center gap-3 px-4 py-3 text-slate-800 font-bold rounded-xl hover:bg-slate-50 transition">
-                <i class="fa-solid fa-chart-simple text-blue-600 w-5 text-center"></i> Realisasi Data
+
+            <!-- Mobile Nav Item: Tahapan Proses -->
+            <a href="{{ route('warga.index') }}#tahapan-proses"
+               @click="{{ request()->routeIs('warga.index') ? "event.preventDefault(); isAutoScrolling = true; activeTab = 'tahapan-proses'; mobileMenu = false; document.getElementById('tahapan-proses')?.scrollIntoView({behavior: 'smooth'}); setTimeout(() => isAutoScrolling = false, 700);" : "mobileMenu = false;" }}"
+               class="px-4 py-2.5 rounded-2xl flex items-center justify-between transition-colors"
+               :class="(activeTab === 'tahapan-proses' || activeTab === 'tahapan') && {{ request()->routeIs('warga.index') ? 'true' : 'false' }} ? 'bg-slate-100 text-slate-950 ring-1 ring-slate-200/70' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-list-check text-xs text-amber-500 w-4 text-center"></i>
+                    <span>Tahapan Proses</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
             </a>
-            <a href="{{ url('/cek') }}" class="flex items-center gap-3 px-4 py-3 text-slate-800 font-bold rounded-xl hover:bg-slate-50 transition">
-                <i class="fa-solid fa-magnifying-glass text-amber-500 w-5 text-center"></i> Cek Status
+
+            <!-- Mobile Nav Item: Realisasi -->
+            <a href="{{ route('warga.index') }}#dashboard-elektrifikasi"
+               @click="{{ request()->routeIs('warga.index') ? "event.preventDefault(); isAutoScrolling = true; activeTab = 'dashboard-elektrifikasi'; mobileMenu = false; document.getElementById('dashboard-elektrifikasi')?.scrollIntoView({behavior: 'smooth'}); setTimeout(() => isAutoScrolling = false, 700);" : "mobileMenu = false;" }}"
+               class="px-4 py-2.5 rounded-2xl flex items-center justify-between transition-colors"
+               :class="(activeTab === 'dashboard-elektrifikasi' || activeTab === 'realisasi') && {{ request()->routeIs('warga.index') ? 'true' : 'false' }} ? 'bg-slate-100 text-slate-950 ring-1 ring-slate-200/70' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-chart-pie text-xs text-amber-500 w-4 text-center"></i>
+                    <span>Realisasi</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
             </a>
-            <div class="pt-3 border-t border-slate-100 space-y-2">
-                <a href="{{ url('/input') }}" class="flex items-center justify-center gap-2 px-4 py-3 bg-amber-500 text-slate-950 font-extrabold rounded-xl shadow-xs transition">
-                    <i class="fa-solid fa-paper-plane text-slate-950"></i> Daftar Calon Penerima
+
+            <!-- Mobile Nav Item: Cek Status -->
+            <a href="{{ route('warga.search') }}"
+               @click="mobileMenu = false"
+               class="px-4 py-2.5 rounded-2xl flex items-center justify-between transition-colors"
+               :class="{{ request()->routeIs('warga.search') ? 'true' : 'false' }} ? 'bg-slate-100 text-slate-950 ring-1 ring-slate-200/70' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-magnifying-glass text-xs text-amber-500 w-4 text-center"></i>
+                    <span>Cek Status</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+            </a>
+
+            <!-- Tombol Login Khusus Layar Kecil (< sm) -->
+            <div class="pt-2 mt-1 border-t border-slate-100 sm:hidden">
+                <a href="{{ url('/login') }}"
+                   class="w-full py-2.5 px-4 rounded-xl bg-slate-900 text-white flex items-center justify-center gap-2 text-xs font-bold shadow-sm">
+                    <span>Login Petugas</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
                 </a>
-                @auth
-                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-700 to-indigo-700 text-white rounded-xl flex items-center justify-center font-extrabold text-xs shadow-xs">
-                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <span class="block text-xs font-bold text-slate-900 leading-tight truncate">{{ auth()->user()->name }}</span>
-                                <span class="block text-[10px] text-slate-500 font-medium capitalize">
-                                    {{ auth()->user()->role === 'kepala_desa' ? 'Kepala Desa ' . auth()->user()->desa : (auth()->user()->role === 'verifikator_esdm' ? 'Verifikator ESDM' : 'Super Admin ESDM') }}
-                                </span>
-                            </div>
-                        </div>
-                        <a href="{{ auth()->user()->role === 'kepala_desa' ? route('kepaladesa.index') : (auth()->user()->role === 'verifikator_esdm' ? route('dinasesdm.datalist') : route('dinasesdm.index')) }}" class="flex items-center justify-center gap-2 px-3 py-2 text-white bg-slate-900 rounded-xl text-xs font-bold transition">
-                            <i class="fa-solid fa-gauge-high text-amber-400"></i> Kembali ke Dasbor Admin
-                        </a>
-                    </div>
-                @else
-                    <a href="{{ url('/login') }}" class="flex items-center justify-center gap-2 px-4 py-3 text-slate-700 border border-slate-300 rounded-xl font-bold hover:bg-slate-50 transition">
-                        <i class="fa-solid fa-user-lock text-slate-500"></i> Portal Petugas
-                    </a>
-                @endauth
             </div>
         </div>
     </header>
 
     {{-- KONTEN UTAMA --}}
     <main class="mb-auto flex-1">
-        @yield('content')
+        <section class="pt-24 pb-16">
+            @yield('content')
+        </section>
     </main>
 
     {{-- FOOTER E-GOVERNMENT --}}
     <footer class="bg-slate-900 text-white border-t-4 border-amber-500 mt-16 pt-12 pb-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-slate-800">
-                <!-- Branding -->
-                <div class="space-y-4 md:col-span-1">
+            <!-- Grid 4 Kolom -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pb-10 border-b border-slate-800">
+
+                <!-- Kolom 1: Branding -->
+                <div class="space-y-4">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-slate-950 font-bold">
-                            <i class="fa-solid fa-bolt-lightning text-lg"></i>
+                        <div class="flex items-center gap-2">
+                            <img src="{{ asset('images/logo-jambi.png') }}" alt="Logo Jambi" class="h-9 w-auto object-contain">
+                            <div class="h-6 w-px bg-slate-600"></div>
+                            <img src="{{ asset('images/logo-esdm.png') }}" alt="Logo ESDM" class="h-8 w-auto object-contain">
                         </div>
-                        <div>
-                            <h4 class="font-extrabold text-white text-base">SIPELITA ESDM</h4>
-                            <p class="text-xs text-amber-400 font-semibold">Pemerintah Provinsi & Daerah</p>
+                        <div class="flex flex-col justify-center">
+                            <span class="font-extrabold text-lg text-white tracking-tight leading-tight">Dinas ESDM</span>
+                            <span class="text-[10px] font-bold text-amber-500 uppercase tracking-wider leading-tight">Provinsi Jambi</span>
                         </div>
                     </div>
                     <p class="text-xs text-slate-400 leading-relaxed font-medium">
-                        Sistem Pelayanan & Elektrifikasi Listrik Terpadu untuk pemerataan energi listrik dan bantuan pasang baru gratis bagi masyarakat kurang mampu.
+                        Elektronik Layanan Informasi Bantuan Listrik (E-LISTRIK) untuk pemerataan energi listrik dan bantuan pasang baru gratis bagi masyarakat kurang mampu di Provinsi Jambi.
                     </p>
                 </div>
 
-                <!-- Navigasi Cepat -->
+                <!-- Kolom 2: Portal Layanan -->
                 <div class="space-y-3">
-                    <h5 class="font-bold text-sm text-amber-400 uppercase tracking-wider">Layanan Publik</h5>
+                    <h5 class="font-bold text-sm text-amber-400 uppercase tracking-wider">Portal Layanan</h5>
                     <ul class="space-y-2 text-xs text-slate-300 font-medium">
-                        <li><a href="{{ url('/input') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Pendaftaran Pasang Baru</a></li>
-                        <li><a href="{{ url('/cek') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Lacak Status NIK Permohonan</a></li>
-                        <li><a href="{{ url('/panduan') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Panduan & Syarat DTKS</a></li>
-                        <li><a href="{{ url('/login') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Portal Verifikator ESDM & Desa</a></li>
+                        <li><a href="{{ route('login') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Portal Login Perangkat Desa & ESDM</a></li>
+                        <li><a href="{{ route('panduan.index') }}" class="hover:text-amber-400 transition flex items-center gap-1.5"><i class="fa-solid fa-chevron-right text-[9px] text-amber-400"></i> Panduan Pelatihan Perangkat Desa</a></li>
                     </ul>
                 </div>
 
-                <!-- Kontak Resmi -->
+                <!-- Kolom 3: Kontak Resmi -->
                 <div class="space-y-3">
                     <h5 class="font-bold text-sm text-amber-400 uppercase tracking-wider">Kontak Instansi</h5>
                     <ul class="space-y-2 text-xs text-slate-300 font-medium">
@@ -241,26 +276,15 @@
                     </ul>
                 </div>
 
-                <!-- Maklumat Pelayanan -->
-                <div class="space-y-3">
-                    <h5 class="font-bold text-sm text-amber-400 uppercase tracking-wider">Komitmen Layanan</h5>
-                    <div class="bg-slate-800/90 p-3.5 rounded-2xl border border-slate-700 text-xs text-slate-300 space-y-2">
-                        <div class="flex items-center gap-2 text-amber-400 font-bold">
-                            <i class="fa-solid fa-shield-halved"></i> 100% Bebas Biaya (Gratis)
-                        </div>
-                        <p class="text-[11px] text-slate-400 leading-normal font-medium">
-                            Seluruh verifikasi dan pemasangan Bantuan Pasang Baru Listrik (BPBL) tidak dipungut biaya apapun dari warga penerima manfaat.
-                        </p>
-                    </div>
-                </div>
             </div>
 
+            <!-- Bagian Copyright -->
             <div class="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4 font-medium">
-                <p>&copy; {{ date('Y') }} Dinas Energi dan Sumber Daya Mineral . Hak Cipta Dilindungi Undang-Undang.</p>
+                <p>&copy; {{ date('Y') }} Dinas Energi dan Sumber Daya Mineral Provinsi Jambi. Hak Cipta Dilindungi Undang-Undang.</p>
                 <div class="flex items-center gap-4">
                     <span class="hover:text-white transition cursor-pointer">Privasi & Ketentuan</span>
                     <span>•</span>
-                    <span class="hover:text-white transition cursor-pointer">Standar SPBE e-Gov</span>
+                    <span class="hover:text-white transition cursor-pointer">Bantuan Teknis</span>
                 </div>
             </div>
         </div>
@@ -268,5 +292,5 @@
 
     @stack('scripts')
 </body>
-</html>
 
+</html>

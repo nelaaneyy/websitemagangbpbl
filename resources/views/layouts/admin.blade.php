@@ -120,14 +120,8 @@
                             </div>
                             <div class="hidden md:block text-left pr-1">
                                 <span class="block text-xs font-bold text-slate-900 leading-tight">{{ auth()->user()->name }}</span>
-                                <span class="block text-[10px] text-slate-500 font-medium capitalize">
-                                    @if(in_array(auth()->user()->role, ['super_admin', 'instansi']))
-                                        Admin ESDM
-                                    @elseif(auth()->user()->role === 'verifikator_esdm')
-                                        Verifikator Dinas ESDM Provinsi Jambi
-                                    @else
-                                        Kepala Desa
-                                    @endif
+                                <span class="block text-[10px] text-slate-500 font-medium">
+                                    {{ auth()->user()->role_label }}
                                 </span>
                             </div>
                             <i class="fa-solid fa-chevron-down text-xs text-slate-400 px-1"></i>
@@ -138,8 +132,8 @@
                             <div class="px-4 py-2.5">
                                 <p class="text-xs font-bold text-slate-900 truncate">{{ auth()->user()->name }}</p>
                                 <p class="text-[11px] text-slate-500 truncate mt-0.5">{{ auth()->user()->email }}</p>
-                                <span class="mt-1.5 inline-block px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md border border-blue-200">
-                                    Role: {{ in_array(auth()->user()->role, ['super_admin', 'instansi']) ? 'Super Admin ESDM' : (auth()->user()->role === 'verifikator_esdm' ? 'Verifikator ESDM' : 'Kepala Desa') }}
+                                <span class="mt-1.5 inline-block px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-md border border-blue-200">
+                                    {{ auth()->user()->role_label }}
                                 </span>
                             </div>
                             <div class="py-1">
