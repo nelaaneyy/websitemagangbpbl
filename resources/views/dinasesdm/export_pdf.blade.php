@@ -25,7 +25,8 @@
         }
         .page-last {
             width: 100%;
-            page-break-after: avoid;
+            page-break-after: auto;
+            page-break-inside: avoid;
         }
 
         /* Kop Surat Resmi Pemprov Jambi */
@@ -63,7 +64,6 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             line-height: 1.1;
-            font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
         }
         .kop-title-dinas {
             margin: 3px 0 0 0;
@@ -73,7 +73,6 @@
             text-transform: uppercase;
             letter-spacing: 0.3px;
             line-height: 1.1;
-            font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
         }
         .kop-bar-bottom {
             width: 100%;
@@ -141,34 +140,60 @@
         .font-mono { font-family: 'Courier', monospace; font-size: 8.5pt; }
 
         /* Signature Table */
-        .signature-wrapper {
+        .signature-table {
             width: 100%;
+            border-collapse: collapse;
             margin-top: 15px;
+            page-break-inside: avoid;
         }
-        .signature-box {
-            width: 260px;
-            float: right;
-            text-align: center;
-            font-size: 9pt;
-            line-height: 1.3;
-        }
-        .signature-space {
-            height: 45px;
-        }
-        .signature-name {
-            font-weight: bold;
-            text-decoration: underline;
-            text-transform: uppercase;
-        }
-        .clear {
-            clear: both;
+        .signature-table td {
+            border: none;
+            vertical-align: top;
         }
     </style>
 </head>
 <body>
 @php
-    $logoPath = public_path('images/logo-jambi.png');
-    $logoSrc = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+    // 1. Ambil Nama Kabupaten dari Filter / Data Kades
+    $kabupatenName = $filters['kabupaten'] ?? ($Kepaladesa->kabupaten ?? null);
+
+    $desaLogoSrc = '';
+
+    // 2. Format Nama File Logo Kabupaten (Contoh: "KABUPATEN KERINCI" -> "kabupaten_kerinci")
+    if (!empty($kabupatenName) && $kabupatenName !== 'Semua Kabupaten') {
+        $formattedName = strtolower(str_replace(' ', '_', trim($kabupatenName)));
+
+        $pngPath = public_path('images/logo/' . $formattedName . '.png');
+        $jpgPath = public_path('images/logo/' . $formattedName . '.jpg');
+
+        if (file_exists($pngPath)) {
+            $desaLogoSrc = 'data:image/png;base64,' . base64_encode(file_get_contents($pngPath));
+        } elseif (file_exists($jpgPath)) {
+            $desaLogoSrc = 'data:image/jpeg;base64,' . base64_encode(file_get_contents($jpgPath));
+        }
+    }
+
+    // 3. Cadangan (Fallback): Jika logo spesifik kabupaten belum di-copas ke public/images/logo/
+    if (empty($desaLogoSrc)) {
+        $defaultLogoPath = public_path('images/logo/default_kabupaten.png');
+        if (file_exists($defaultLogoPath)) {
+            $desaLogoSrc = 'data:image/png;base64,' . base64_encode(file_get_contents($defaultLogoPath));
+        }
+    }
+
+    $totalWarga = is_countable($wargas) ? count($wargas) : 0;
+
+    if (!isset($Kepaladesa) || !$Kepaladesa) {
+        $desas = $filters['desa'] ?? ($filters['desa_filter'] ?? null);
+        $Kepaladesa = \App\Models\User::whereIn('role', ['kepala_desa', 'kades', 'desa'])
+            ->where(function($q) use ($desas) {
+                if ($desas && $desas !== 'Semua Desa') {
+                    $q->where('desa', 'like', '%' . $desas . '%')
+                      ->orWhereRaw('LOWER(desa) = ?', [strtolower(trim($desas))]);
+                }
+            })
+            ->first();
+    }
 @endphp
 
     <!-- HALAMAN 1: FORMULIR PENDATAAN PEMETAAN RUMAH TANGGA BERLISTRIK / BELUM BERLISTRIK -->
@@ -228,7 +253,7 @@
             <tr><td style="border: none;">Jumlah Kepala Keluarga</td><td style="border: none;">: &nbsp;.................... KK</td></tr>
             <tr><td style="border: none;">Jumlah Seluruh Rumah yang ada di Desa/Kelurahan</td><td style="border: none;">: &nbsp;.................... rumah</td></tr>
             <tr><td style="border: none;">Jumlah Rumah Berlistrik dari PLN (Pelanggan PLN)</td><td style="border: none;">: &nbsp;.................... rumah</td></tr>
-            <tr><td style="border: none;">Jumlah Rumah Belum Berlistrik Sama Sekali</td><td style="border: none;">: &nbsp;<strong>{{ count($wargas) }}</strong> rumah</td></tr>
+            <tr><td style="border: none;">Jumlah Rumah Belum Berlistrik Sama Sekali</td><td style="border: none;">: &nbsp;<strong>{{ $totalWarga }}</strong> rumah</td></tr>
         </table>
 
         <!-- C. Pendataan Fasilitas Umum -->
@@ -261,16 +286,18 @@
         </table>
 
         <!-- Tanda Tangan Halaman 1 -->
-        <div class="signature-wrapper">
-            <div class="signature-box">
-                <p>Desa/Kelurahan: {{ $filters['desa'] !== 'Semua Desa' ? $filters['desa'] : '....................' }}<br>Tanggal: {{ $filters['tanggal_surat'] }}</p>
-                <p><strong>KEPALA DESA / LURAH {{ $filters['desa'] !== 'Semua Desa' ? strtoupper($filters['desa']) : '' }}</strong></p>
-                <div class="signature-space"></div>
-                <p class="signature-name">( {{ $filters['nama_kadis'] ?: '_______________________________' }} )</p>
-                <p style="font-size: 8pt;">No. HP: {{ $filters['nip_kadis'] ?: '08............................' }}</p>
-            </div>
-            <div class="clear"></div>
-        </div>
+        <table class="signature-table">
+            <tr>
+                <td style="width: 55%;"></td>
+                <td style="width: 45%; text-align: center;">
+                    <p>Desa/Kelurahan: {{ $filters['desa'] !== 'Semua Desa' ? $filters['desa'] : '....................' }}<br>Tanggal: {{ $filters['tanggal_surat'] }}</p>
+                    <p><strong>KEPALA DESA / LURAH {{ $filters['desa'] !== 'Semua Desa' ? strtoupper($filters['desa']) : '' }}</strong></p>
+                    <div style="height: 45px;"></div>
+                    <p style="font-weight: bold; text-decoration: underline; text-transform: uppercase;">( {{ $filters['nama_kadis'] ?: '_______________________________' }} )</p>
+                    <p style="font-size: 8pt;">NIP/NIK: {{ $filters['nip_kadis'] ?: '........................................' }}</p>
+                </td>
+            </tr>
+        </table>
     </div>
 
 
@@ -334,15 +361,17 @@
             3. Data yang diusulkan adalah data kondisi saat ini di lokasi.
         </div>
 
-        <div class="signature-wrapper">
-            <div class="signature-box">
-                <p>{{ $filters['desa'] !== 'Semua Desa' ? $filters['desa'] : 'Jambi' }}, {{ $filters['tanggal_surat'] }}</p>
-                <p><strong>KEPALA DESA / LURAH {{ $filters['desa'] !== 'Semua Desa' ? strtoupper($filters['desa']) : '' }}</strong></p>
-                <div class="signature-space"></div>
-                <p class="signature-name">( {{ $filters['nama_kadis'] ?: '_______________________________' }} )</p>
-            </div>
-            <div class="clear"></div>
-        </div>
+        <table class="signature-table">
+            <tr>
+                <td style="width: 55%;"></td>
+                <td style="width: 45%; text-align: center;">
+                    <p>{{ $filters['desa'] !== 'Semua Desa' ? $filters['desa'] : 'Jambi' }}, {{ $filters['tanggal_surat'] }}</p>
+                    <p><strong>KEPALA DESA / LURAH {{ $filters['desa'] !== 'Semua Desa' ? strtoupper($filters['desa']) : '' }}</strong></p>
+                    <div style="height: 45px;"></div>
+                    <p style="font-weight: bold; text-decoration: underline; text-transform: uppercase;">( {{ $filters['nama_kadis'] ?: '_______________________________' }} )</p>
+                </td>
+            </tr>
+        </table>
     </div>
 
 
@@ -404,15 +433,17 @@
             3. Data yang diusulkan adalah data kondisi saat ini di lokasi.
         </div>
 
-        <div class="signature-wrapper">
-            <div class="signature-box">
-                <p>{{ $filters['desa'] !== 'Semua Desa' ? $filters['desa'] : 'Jambi' }}, {{ $filters['tanggal_surat'] }}</p>
-                <p><strong>KEPALA DESA / LURAH {{ $filters['desa'] !== 'Semua Desa' ? strtoupper($filters['desa']) : '' }}</strong></p>
-                <div class="signature-space"></div>
-                <p class="signature-name">( {{ $filters['nama_kadis'] ?: '_______________________________' }} )</p>
-            </div>
-            <div class="clear"></div>
-        </div>
+        <table class="signature-table">
+            <tr>
+                <td style="width: 55%;"></td>
+                <td style="width: 45%; text-align: center;">
+                    <p>{{ $filters['desa'] !== 'Semua Desa' ? $filters['desa'] : 'Jambi' }}, {{ $filters['tanggal_surat'] }}</p>
+                    <p><strong>KEPALA DESA / LURAH {{ $filters['desa'] !== 'Semua Desa' ? strtoupper($filters['desa']) : '' }}</strong></p>
+                    <div style="height: 45px;"></div>
+                    <p style="font-weight: bold; text-decoration: underline; text-transform: uppercase;">( {{ $filters['nama_kadis'] ?: '_______________________________' }} )</p>
+                </td>
+            </tr>
+        </table>
     </div>
 
 
@@ -551,56 +582,69 @@
             2. Tarikan Kabel Saluran Rumah (SR) maksimal 30 meter dari tiang Listrik/rumah tetangga berlistrik.
         </div>
 
-        <div class="signature-wrapper">
-            <div class="signature-box">
-                <p>{{ $filters['desa'] !== 'Semua Desa' ? $filters['desa'] : 'Jambi' }}, {{ $filters['tanggal_surat'] }}</p>
-                <p><strong>KEPALA DESA / LURAH {{ $filters['desa'] !== 'Semua Desa' ? strtoupper($filters['desa']) : '' }}</strong></p>
-                <div class="signature-space"></div>
-                <p class="signature-name">( {{ $filters['nama_kadis'] ?: '_______________________________' }} )</p>
-            </div>
-            <div class="clear"></div>
-        </div>
+        <table class="signature-table">
+            <tr>
+                <td style="width: 55%;"></td>
+                <td style="width: 45%; text-align: center;">
+                    <p>{{ $filters['desa'] !== 'Semua Desa' ? $filters['desa'] : 'Jambi' }}, {{ $filters['tanggal_surat'] }}</p>
+                    <p><strong>KEPALA DESA / LURAH {{ $filters['desa'] !== 'Semua Desa' ? strtoupper($filters['desa']) : '' }}</strong></p>
+                    <div style="height: 45px;"></div>
+                    <p style="font-weight: bold; text-decoration: underline; text-transform: uppercase;">( {{ $filters['nama_kadis'] ?: '_______________________________' }} )</p>
+                </td>
+            </tr>
+        </table>
     </div>
 
 
     <!-- HALAMAN 5: SURAT VALIDASI LAYAK MENERIMA BANTUAN PASANG BARU LISTRIK -->
     <div class="page-last">
-        <table class="kop-surat-table">
+        <!-- KOP SURAT RESMI PEMERINTAH DESA RATA TENGAH -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 2px;">
             <tr>
-                <td class="kop-logo-cell">
-                    @if(!empty($logoSrc))
-                        <img src="{{ $logoSrc }}" class="kop-logo-img" alt="Logo Pemprov Jambi">
+                <td style="text-align: center; border: none; padding: 0;">
+                    @if(!empty($desaLogoSrc))
+                        <div style="margin-bottom: 5px;">
+                            <img src="{{ $desaLogoSrc }}" style="height: 55px; width: auto; display: inline-block;" alt="Logo Desa">
+                        </div>
                     @endif
-                </td>
-                <td class="kop-text-cell">
-                    <div class="kop-title-prov">PEMERINTAH PROVINSI JAMBI</div>
-                    <div class="kop-title-dinas">DINAS ENERGI DAN SUMBER DAYA MINERAL</div>
+                    <div style="font-size: 11pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #1e293b; line-height: 1.2;">
+                        PEMERINTAH KABUPATEN {{ strtoupper($filters['kabupaten']) }}
+                    </div>
+                    <div style="font-size: 11pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #1e293b; line-height: 1.2;">
+                        KECAMATAN {{ strtoupper($filters['kecamatan']) }}
+                    </div>
+                    <div style="font-size: 12.5pt; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #0f172a; line-height: 1.2; margin-top: 2px;">
+                        KANTOR KEPALA DESA {{ strtoupper($filters['desa']) }}
+                    </div>
+                    <div style="font-size: 8pt; color: #475569; margin-top: 3px;">
+                        Alamat: {{ $Kepaladesa->alamat ?? ('Kantor Kepala Desa ' . $filters['desa'] . ', Kec. ' . $filters['kecamatan']) }}
+                    </div>
                 </td>
             </tr>
         </table>
-        <div class="kop-bar-bottom"></div>
+        <div style="width: 100%; height: 3px; border-top: 1.5px solid #000; border-bottom: 0.5px solid #000; margin-top: 8px; margin-bottom: 12px;"></div>
 
-        <div class="form-header-title" style="margin-top: 10px; margin-bottom: 12px;">
-            <u style="font-size: 10.5pt;">VALIDASI LAYAK MENERIMA BANTUAN PASANG BARU LISTRIK</u>
+        <div class="form-header-title" style="margin-top: 8px; margin-bottom: 10px; text-align: center;">
+            <u style="font-size: 11.5pt;">VALIDASI LAYAK MENERIMA BANTUAN PASANG BARU LISTRIK (BPBL)</u>
         </div>
 
-        <div style="font-size: 9.5pt; line-height: 1.6; color: #000000; text-align: justify;">
+        <div style="font-size: 9pt; line-height: 1.5; color: #000000; text-align: justify;">
             <p style="text-indent: 25px; margin-bottom: 8px;">
                 Sesuai dengan ketentuan Pasal 3 Ayat 2 huruf c Peraturan Menteri Energi dan Sumber Daya Mineral Nomor 3 Tahun 2022 tentang Bantuan Pasang Baru Listrik (BPBL) Bagi Rumah Tangga Tidak Mampu, bahwa salah satu syarat calon penerima BPBL adalah berdasarkan validasi Kepala Desa/Lurah atau Pejabat yang setingkat layak menerima BPBL.
             </p>
 
             <p style="margin-bottom: 4px;">Untuk maksud tersebut, kami yang bertanda tangan di bawah ini:</p>
-            
-            <table class="info-table" style="margin: 2px 0 10px 15px; line-height: 1.5;">
+
+            <table class="info-table" style="margin: 2px 0 10px 15px; line-height: 1.45; font-size: 9pt;">
                 <tr>
-                    <td style="width: 130px;">Nama</td>
+                    <td style="width: 140px;">Nama Kepala Desa</td>
                     <td style="width: 12px;">:</td>
-                    <td style="font-weight: bold;">{{ $filters['nama_kadis'] ?: '................................................................................' }}</td>
+                    <td style="font-weight: bold;">{{ $filters['nama_kades'] ?: ($filters['nama_kadis'] ?: ($Kepaladesa->name ?? '................................................')) }}</td>
                 </tr>
                 <tr>
-                    <td>NIK / NIP</td>
+                    <td>NIK / NIPD</td>
                     <td>:</td>
-                    <td>{{ $filters['nip_kadis'] ?: '................................................................................' }}</td>
+                    <td>{{ $filters['nip_kades'] ?: ($filters['nip_kadis'] ?: ($Kepaladesa->nipd ?? '................................................')) }}</td>
                 </tr>
                 <tr>
                     <td>Jabatan</td>
@@ -630,7 +674,7 @@
             </table>
 
             <p style="text-indent: 25px; margin-bottom: 8px;">
-                Berdasarkan pantauan dan verifikasi terhadap sejumlah <strong>{{ count($wargas) }}</strong> rumah tangga sebagaimana terlampir, maka kami menyatakan bahwa terhadap rumah tangga sejumlah tersebut di atas <strong>LAYAK MENERIMA BPBL</strong>.
+                Berdasarkan pantauan dan verifikasi terhadap sejumlah <strong>{{ $totalWarga }}</strong> rumah tangga sebagaimana terlampir, maka kami menyatakan bahwa terhadap rumah tangga sejumlah tersebut di atas <strong>LAYAK MENERIMA BPBL</strong>.
             </p>
 
             <p style="text-indent: 25px;">
@@ -638,15 +682,35 @@
             </p>
         </div>
 
-        <div class="signature-wrapper" style="margin-top: 15px;">
-            <div class="signature-box">
-                <p>{{ $filters['desa'] !== 'Semua Desa' ? $filters['desa'] : 'Jambi' }}, {{ $filters['tanggal_surat'] }}</p>
-                <p><strong>KEPALA DESA / LURAH {{ $filters['desa'] !== 'Semua Desa' ? strtoupper($filters['desa']) : '' }}</strong></p>
-                <div class="signature-space"></div>
-                <p class="signature-name">( {{ $filters['nama_kadis'] ?: '_______________________________' }} )</p>
-            </div>
-            <div class="clear"></div>
-        </div>
+        <table class="signature-table" style="width: 100%; margin-top: 12px;">
+            <tr>
+                <td style="width: 48%;"></td>
+                <td style="width: 52%; text-align: center;">
+                    <p style="font-size: 8.5pt;">{{ $filters['desa'] !== 'Semua Desa' ? $filters['desa'] : 'Jambi' }}, {{ $filters['tanggal_surat'] }}</p>
+                    <p style="font-size: 9pt; font-weight: bold;">KEPALA DESA {{ $filters['desa'] !== 'Semua Desa' ? strtoupper($filters['desa']) : '' }}</p>
+
+                    <!-- Stempel Keabsahan Resmi Digital DISETUJUI -->
+                    <div style="margin: 6px auto; padding: 5px 8px; border: 2px solid #047857; background-color: #ecfdf5; border-radius: 6px; width: 220px;">
+                        <span style="font-size: 7.5pt; font-weight: 800; color: #047857; display: block; letter-spacing: 0.5px;">
+                            ✓ DISETUJUI SECARA ELEKTRONIK
+                        </span>
+                        <span style="font-size: 6.5pt; color: #065f46; display: block; margin-top: 1px;">
+                            Keabsahan Sah Pengganti Cap & Tanda Tangan Desa
+                        </span>
+                        <span style="font-size: 6pt; color: #4b5563; display: block; margin-top: 2px; font-family: monospace;">
+                            ID Validasi: ESDM-BPBL-{{ date('Y') }}-{{ strtoupper(substr(md5($filters['desa']), 0, 8)) }}
+                        </span>
+                    </div>
+
+                    <p style="font-weight: bold; text-decoration: underline; text-transform: uppercase; font-size: 8.5pt;">
+                        ( {{ $filters['nama_kades'] ?: ($filters['nama_kadis'] ?: ($Kepaladesa->name ?? '_______________________________')) }} )
+                    </p>
+                    @if(!empty($filters['nip_kades']) || !empty($Kepaladesa->nipd))
+                        <p style="font-size: 7.5pt; color: #374151; margin-top: 1px;">NIPD/NIP: {{ $filters['nip_kades'] ?: ($Kepaladesa->nipd ?? '') }}</p>
+                    @endif
+                </td>
+            </tr>
+        </table>
     </div>
 
 </body>

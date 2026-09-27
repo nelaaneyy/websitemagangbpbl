@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-jambi.png') }}">
     @stack('styles')
     <style>
         [x-cloak] {
@@ -34,7 +35,7 @@
             x-data="{
                 scrolled: false,
                 mobileMenu: false,
-                activeTab: window.location.hash ? window.location.hash.replace('#', '') : ('{{ request()->routeIs('warga.search') ? 'cek-status' : 'beranda' }}'),
+                activeTab: window.location.hash ? window.location.hash.replace('#', '') : ('{{ request()->routeIs('staffdesa.cek') ? 'cek-status' : 'beranda' }}'),
                 isAutoScrolling: false
             }"
             x-init="
@@ -195,10 +196,10 @@
             </a>
 
             <!-- Mobile Nav Item: Cek Status -->
-            <a href="{{ route('warga.search') }}"
+            <a href="{{ route('staffdesa.cek') }}"
                @click="mobileMenu = false"
                class="px-4 py-2.5 rounded-2xl flex items-center justify-between transition-colors"
-               :class="{{ request()->routeIs('warga.search') ? 'true' : 'false' }} ? 'bg-slate-100 text-slate-950 ring-1 ring-slate-200/70' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'">
+               :class="{{ request()->routeIs('staffdesa.cek') ? 'true' : 'false' }} ? 'bg-slate-100 text-slate-950 ring-1 ring-slate-200/70' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'">
                 <div class="flex items-center gap-3">
                     <i class="fa-solid fa-magnifying-glass text-xs text-amber-500 w-4 text-center"></i>
                     <span>Cek Status</span>

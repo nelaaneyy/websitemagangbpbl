@@ -9,10 +9,44 @@ use Illuminate\Support\Facades\DB;
 
 class WargaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('warga.search');
-    }
+        if (auth()->check() && in_array(auth()->user()->role, ['staff_desa', 'staf_desa'])) {
+            $desaUser = auth()->user()->desa;
+
+            // Query dasar: Ambil warga sesuai desa staff
+            $query = Warga::where('desa', $desaUser);
+
+            $query->where(function($q) {
+                $q->whereNull('batch_id')
+                ->orWhere('status_verifikasi', 'Perlu Perbaikan');
+            });
+
+            // PASTIKAN membuang/mengecualikan status yang sudah lolos/realisasi/proses lanjutan
+            $query->whereNotIn('status_verifikasi', [
+                'Disetujui',
+                'Terpasang',
+                'Selesai',
+                'Proses Verifikasi',
+                'Dikirim ke Kades'
+            ]);
+
+            // Fitur Pencarian NIK / Nama jika ada
+            if ($request->filled('q')) {
+                $keyword = $request->q;
+                $query->where(function($q) use ($keyword) {
+                    $q->where('nama', 'like', "%{$keyword}%")
+                    ->orWhere('nik', 'like', "%{$keyword}%");
+                });
+            }
+
+            $wargas = $query->latest()->paginate(10);
+
+            return view('staffdesa.index', compact('wargas'));
+        }
+    // Tampilan default untuk umum/warga publik
+    return view('welcome');
+}
 
     public function search(Request $request)
     {
@@ -34,7 +68,7 @@ class WargaController extends Controller
             }
         }
 
-        return view('warga.search', compact('warga', 'nik', 'notFound'));
+        return view('staffdesa.search', compact('warga', 'nik', 'notFound'));
     }
 
     public function create(Request $request)
@@ -44,7 +78,33 @@ class WargaController extends Controller
         if ($nik) {
             $warga = Warga::where('nik', $nik)->where('status_verifikasi', 'ditolak/perlu_perbaikan')->first();
         }
-        return view('warga.pengajuan', compact('nik', 'warga'));
+
+        $activeBatch = null;
+        if (auth()->check() && (auth()->user()->isStaffDesa() || auth()->user()->isKepalaDesa())) {
+            $desa = auth()->user()->desa;
+            $tahun = (int)date('Y');
+            $activeBatch = \App\Models\PengajuanBatch::firstOrCreate(
+                [
+                    'desa' => $desa,
+                    'tahun_anggaran' => $tahun,
+                ],
+                [
+                    'kode_batch' => 'BPBL-' . $tahun . '-' . \Illuminate\Support\Str::slug($desa) . '-' . strtoupper(\Illuminate\Support\Str::random(4)),
+                    'kecamatan' => auth()->user()->kecamatan ?? null,
+                    'kabupaten' => auth()->user()->kabupaten ?? null,
+                    'created_by_user_id' => auth()->id(),
+                    'status' => 'draft_staff',
+                ]
+            );
+            $activeBatch->total_warga = $activeBatch->wargas()->count();
+            $activeBatch->save();
+
+            if (request()->routeIs('staffdesa.*') || auth()->user()->isStaffDesa()) {
+                return view('staffdesa.pengajuan', compact('nik', 'warga', 'activeBatch'));
+            }
+        }
+
+        return view('warga.pengajuan', compact('nik', 'warga', 'activeBatch'));
     }
 
     public function store(Request $request)
@@ -66,6 +126,7 @@ class WargaController extends Controller
             'kecamatan'                   => 'required|string|max:255',
             'desa'                        => 'required|string|max:255',
             'rt_rw'                       => 'required|string|max:10',
+            'desil'                       => 'nullable|string|max:50',
             'no_hp'                       => 'required|numeric',
             'alamat'                      => 'required|string',
             'latitude'                    => 'required|numeric|between:-90,90',
@@ -91,6 +152,27 @@ class WargaController extends Controller
             '*.max'                                => 'Ukuran foto maksimal adalah 2 MB.',
         ]);
 
+        // Pengelolaan Batching Desa (Maksimal 100 data warga per batch per tahun)
+        $desa = $validated['desa'];
+        $tahun = (int)date('Y');
+        $activeBatch = \App\Models\PengajuanBatch::firstOrCreate(
+            [
+                'desa' => $desa,
+                'tahun_anggaran' => $tahun,
+            ],
+            [
+                'kode_batch' => 'BPBL-' . $tahun . '-' . \Illuminate\Support\Str::slug($desa) . '-' . strtoupper(\Illuminate\Support\Str::random(4)),
+                'kecamatan' => $validated['kecamatan'] ?? null,
+                'kabupaten' => $validated['kabupaten'] ?? null,
+                'created_by_user_id' => auth()->id() ?? null,
+                'status' => 'draft_staff',
+            ]
+        );
+
+        if (!$isResubmit && $activeBatch->isFull()) {
+            return back()->withErrors(['error' => 'Kuota pengajuan usulan desa tahun ' . $tahun . ' (' . $desa . ') sudah mencapai batas maksimal 100 data warga!'])->withInput();
+        }
+
         // ---- 1. Eksekusi 3-Layer Duplicate Checking Engine ----
         $dupChecker = new \App\Services\DuplicateCheckingService();
         $dupResult = $dupChecker->check(
@@ -114,15 +196,18 @@ class WargaController extends Controller
         $nearestPoleInfo = \App\Services\SpatialEngine::findNearestPole((float)$validated['latitude'], (float)$validated['longitude']);
         $calculatedDistance = $nearestPoleInfo ? $nearestPoleInfo['distance_meters'] : 0.0;
 
-        DB::transaction(function () use ($request, $validated, $isResubmit, $wargaExists, $dupResult, $exifResult, $calculatedDistance) {
+        DB::transaction(function () use ($request, $validated, $isResubmit, $wargaExists, $dupResult, $exifResult, $calculatedDistance, $activeBatch, $tahun) {
             $wargaData = [
+                'batch_id'              => $activeBatch->id,
                 'nik'                   => $validated['nik'],
+                'no_kk'                 => $request->input('no_kk'),
                 'id_pelanggan'          => $request->input('id_pelanggan'),
                 'nama'                  => $validated['nama'],
                 'kabupaten'             => $validated['kabupaten'],
                 'kecamatan'             => $validated['kecamatan'],
                 'desa'                  => $validated['desa'],
                 'rt_rw'                 => $validated['rt_rw'],
+                'desil'                 => $request->input('desil', 'Desil 1'),
                 'no_hp'                 => $validated['no_hp'],
                 'alamat'                => $validated['alamat'],
                 'latitude'              => $validated['latitude'],
@@ -137,6 +222,8 @@ class WargaController extends Controller
                 'risiko_duplikasi'      => $dupResult['risk_level'],
                 'catatan_duplikasi'     => $dupResult['summary'],
                 'status_verifikasi'     => 'terkirim',
+                'tahun_usulan'          => $tahun,
+                'created_by_user_id'    => auth()->id() ?? null,
                 'catatan'               => null,
                 'ditolak_oleh'          => null,
             ];
@@ -144,7 +231,7 @@ class WargaController extends Controller
             if ($isResubmit) {
                 $wargaExists->update($wargaData);
                 $warga = $wargaExists;
-                
+
                 // Hapus berkas lama
                 if ($warga->berkas) {
                     $filesToDelete = [
@@ -178,6 +265,11 @@ class WargaController extends Controller
                 'foto_sktm'                   => $pathSktm,
             ]);
 
+            // Update kuota batch
+            $activeBatch->update([
+                'total_warga' => $activeBatch->wargas()->count(),
+            ]);
+
             // Record Immutable Activity Log with GPS Coords & State Snapshot
             \App\Models\ActivityLog::record(
                 $isResubmit ? 'warga_resubmit' : 'warga_register',
@@ -188,9 +280,14 @@ class WargaController extends Controller
             );
         });
 
+        if (auth()->check() && auth()->user()->isStaffDesa()) {
+            return redirect()->route('staffdesa.pengajuan')
+                ->with('success', 'Warga ' . $validated['nama'] . ' berhasil ditambahkan ke dalam Batch Pengajuan ' . $activeBatch->kode_batch . ' (Total: ' . $activeBatch->total_warga . '/100 warga).');
+        }
+
         $message = $isResubmit ? 'Perbaikan berkas pendaftaran berhasil dikirim!' : 'Pendaftaran bantuan listrik berhasil dikirim! Silakan cek status berkas Anda secara berkala.';
-        
-        return redirect()->route('warga.search', ['nik' => $request->nik])
+
+        return redirect()->route('warga.index', ['nik' => $request->nik])
             ->with('success', $message);
     }
 
@@ -200,9 +297,9 @@ class WargaController extends Controller
     public function downloadBuktiPdf($nik)
     {
         $warga = Warga::where('nik', $nik)->firstOrFail();
-        
+
         $filename = 'Bukti_Pendaftaran_BPBL_' . $warga->nik . '.pdf';
-        
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('warga.bukti_pdf', compact('warga'))
             ->setPaper('a4', 'portrait');
 
@@ -215,45 +312,16 @@ class WargaController extends Controller
         return $pdf->download($filename);
     }
 
-    /**
-     * Integrasi API Web Service Kemensos (SIKS-NG) DTKS Lookup
-     */
-    public function checkDtksApi($nik)
+
+    public function processData()
     {
-        $apiEndpoint = env('DTKS_API_ENDPOINT', 'https://siks.kemensos.go.id/api/v1/dtks/check');
-        $apiKey = env('DTKS_API_KEY', null);
+        set_time_limit(300);
 
-        // Jika API Key tersedia di .env, lakukan HTTP REST Request ke Kemensos SIKS-NG
-        if ($apiKey) {
-            try {
-                $response = \Illuminate\Support\Facades\Http::withHeaders([
-                    'X-Api-Key' => $apiKey,
-                    'Accept'    => 'application/json',
-                ])->timeout(5)->get("{$apiEndpoint}/{$nik}");
-
-                if ($response->successful()) {
-                    return response()->json($response->json());
-                }
-            } catch (\Exception $e) {
-                // Fallback ke simulasi jika API Kemensos timeout
+        Warga::chunk(100, function ($wargas) {
+            foreach ($wargas as $warga) {
             }
-        }
+        });
 
-        // Simulasi Validasi Real-time DTKS Kemensos berbasis NIK
-        $isRegistered = (strlen($nik) === 16);
-        $desilList = ['Desil 1 (Sangat Miskin)', 'Desil 2 (Miskin)', 'Desil 3 (Hampir Miskin)'];
-        $desil = $desilList[hexdec(substr(md5($nik), 0, 2)) % count($desilList)];
-
-        return response()->json([
-            'status' => 'success',
-            'nik' => $nik,
-            'terdaftar_dtks' => $isRegistered,
-            'id_dtks' => 'DTKS-' . date('Y') . '-' . strtoupper(substr(md5($nik), 0, 8)),
-            'desil_p3ke' => $desil,
-            'bantuan_aktif' => ['PKH', 'BPNT', 'KIS PBI JKN'],
-            'keterangan' => 'NIK Valid & Terdaftar Resmi dalam Database DTKS Kemensos RI',
-            'verified_at' => now()->translatedFormat('d F Y H:i:s') . ' WIB',
-            'sumber_data' => $apiKey ? 'Web Service API SIKS-NG Kemensos RI' : 'Simulasi REST API SIKS-NG Kemensos (API-Ready Framework)'
-        ]);
+        return redirect()->back()->with('success', 'Data berhasil diproses!');
     }
 }

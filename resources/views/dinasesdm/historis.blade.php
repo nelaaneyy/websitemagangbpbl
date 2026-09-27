@@ -178,6 +178,116 @@
         </form>
     </div>
 
+    <!-- Batch-Based Arsip Cards (Daftar Batch Pengajuan per Desa per Tahun) -->
+    {{-- @if(isset($batches) && $batches->count() > 0)
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-folder-tree text-amber-600"></i>
+                Arsip Batch Usulan per Desa per Tahun
+                <span class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-black rounded-lg border border-amber-200">{{ $batches->count() }} Batch</span>
+            </h3>
+        </div>
+
+        <div class="p-4 sm:p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                @foreach($batches as $batch)
+                <div class="bg-gradient-to-br from-slate-50 to-white border border-slate-200/80 rounded-2xl p-5 hover:shadow-md transition-all duration-200 group relative overflow-hidden">
+                    <!-- Year Badge -->
+                    <div class="absolute top-3 right-3">
+                        <span class="px-2.5 py-1 bg-indigo-100 text-indigo-800 border border-indigo-200 font-black text-[11px] rounded-lg shadow-2xs">
+                            <i class="fa-solid fa-calendar-day text-indigo-600 mr-0.5"></i> {{ $batch->tahun_anggaran }}
+                        </span>
+                    </div>
+
+                    <!-- Batch Header -->
+                    <div class="mb-3">
+                        <h4 class="text-sm font-extrabold text-slate-900 leading-tight">
+                            <i class="fa-solid fa-building-flag text-blue-600 mr-1"></i> Desa {{ $batch->desa }}
+                        </h4>
+                        <p class="text-[11px] text-slate-500 font-medium mt-0.5">
+                            Kec. {{ $batch->user?->kecamatan ?? ($batch->user?->desa ?? '-') }}, {{ $batch->user?->kabupaten ?? '-' }}
+                        </p>                        
+                        <p class="text-[10px] text-slate-400 font-mono mt-1">
+                            {{ $batch->kode_batch }}
+                        </p>
+                    </div>
+
+                    <!-- Warga Counter -->
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="flex-1 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
+                            <div class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Jumlah Warga</div>
+                            <div class="text-lg font-black text-blue-900">{{ $batch->wargas_count ?? $batch->total_warga }}<span class="text-xs font-bold text-blue-400"> Warga</span></div>
+                        </div>
+                        <!-- Progress Bar -->
+                        <div class="flex-1">
+                            <div class="w-full bg-slate-200 rounded-full h-2.5 mb-1.5">
+                                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full transition-all" style="width: {{ min(100, ($batch->wargas_count ?? $batch->total_warga)) }}%"></div>
+                            </div>
+                            <div class="text-[10px] text-slate-500 font-bold text-center">{{ min(100, ($batch->wargas_count ?? $batch->total_warga)) }}% Terisi</div>
+                        </div>
+                    </div>
+
+                    <!-- Status Badge -->
+                    <div class="mb-3">
+                        @php
+                            $statusColors = [
+                                'draft_staff' => 'bg-slate-100 text-slate-700 border-slate-200',
+                                'dikirim_ke_kades' => 'bg-amber-50 text-amber-800 border-amber-200',
+                                'diverifikasi_kades' => 'bg-sky-50 text-sky-800 border-sky-200',
+                                'diajukan_ke_esdm' => 'bg-blue-50 text-blue-800 border-blue-200',
+                                'disetujui_esdm' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                                'ditolak' => 'bg-rose-50 text-rose-800 border-rose-200',
+                            ];
+                            $statusColor = $statusColors[$batch->status] ?? 'bg-slate-100 text-slate-700 border-slate-200';
+                        @endphp
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 {{ $statusColor }} border text-[10px] font-bold rounded-lg">
+                            @if($batch->status === 'disetujui_esdm')
+                                <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                            @elseif($batch->status === 'diajukan_ke_esdm')
+                                <i class="fa-solid fa-paper-plane text-blue-600"></i>
+                            @elseif($batch->status === 'ditolak')
+                                <i class="fa-solid fa-circle-xmark text-rose-600"></i>
+                            @else
+                                <i class="fa-solid fa-clock text-slate-500"></i>
+                            @endif
+                            {{ $batch->status_label }}
+                        </span>
+
+                        @if($batch->sptjm_accepted_at)
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-bold rounded-md ml-1">
+                            <i class="fa-solid fa-stamp"></i> SPTJM Sah
+                        </span>
+                        @endif
+                    </div>
+
+                    <!-- SPTJM Info -->
+                    @if($batch->sptjm_accepted_at)
+                    <div class="text-[10px] text-slate-500 font-medium mb-3 flex items-center gap-1">
+                        <i class="fa-solid fa-calendar-check text-emerald-600"></i>
+                        Disahkan: {{ $batch->sptjm_accepted_at->translatedFormat('d M Y H:i') }} WIB
+                    </div>
+                    @endif
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-2 pt-3 border-t border-slate-100">
+                        <a href="{{ route('dinasesdm.historis.index', ['desa' => $batch->desa, 'tahun' => $batch->tahun_anggaran]) }}"
+                            class="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-[11px] transition">
+                            <i class="fa-solid fa-users text-[10px]"></i> Lihat Warga
+                        </a>
+                        <a href="{{ route('dinasesdm.export.pdf', ['batch_id' => $batch->id, 'desa' => $batch->desa, 'kecamatan' => $batch->kecamatan, 'kabupaten' => $batch->kabupaten, 'scope' => 'historis']) }}"
+                            target="_blank"
+                            class="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold rounded-xl text-[11px] transition">
+                            <i class="fa-solid fa-file-pdf text-[10px]"></i> Ekspor PDF
+                        </a>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif --}}
+
     <!-- Data Table -->
     <div class="bg-white rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">

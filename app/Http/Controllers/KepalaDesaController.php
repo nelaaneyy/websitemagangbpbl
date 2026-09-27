@@ -3,17 +3,55 @@
 namespace App\Http\Controllers;
 
 use App\Models\Warga;
+use App\Models\PengajuanBatch;
+use App\Models\ActivityLog;
+use App\Models\PengajuanLisdes;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class KepalaDesaController extends Controller
 {
-    // List warga di desa yang sama dengan kepala desa yang login
+    // List warga di desa yang sama dengan kepala desa yang login (khusus batch aktif tahun berjalan)
     public function index(Request $request)
     {
+        $user = $request->user();
+        $tahun = (int) date('Y');
+
+        // 1. Cari atau buat Batch Aktif untuk Desa & Tahun berjalan
+        $activeBatch = PengajuanBatch::firstOrCreate(
+            [
+                'desa' => $user->desa,
+                'tahun_anggaran' => $tahun,
+            ],
+            [
+                'kode_batch' => 'BPBL-' . $tahun . '-' . Str::slug($user->desa),
+                'kecamatan' => $user->kecamatan ?? null,
+                'kabupaten' => $user->kabupaten ?? null,
+                'created_by_user_id' => $user->id,
+                'status' => 'draft_staff',
+            ]
+        );
+
+        // Update hitungan total warga di batch aktif
+        $activeBatch->total_warga = $activeBatch->wargas()->count();
+        $activeBatch->save();
+
+        // 2. Query Warga KHUSUS yang masuk ke dalam Batch Aktif Tahun Berjalan (bukan data historis)
         $wargas = Warga::with('berkas')
-            ->where('desa', $request->user()->desa)
+            ->where('desa', $user->desa)
+            ->where(function ($q) use ($activeBatch, $tahun) {
+                $q->where('batch_id', $activeBatch->id)
+                  ->orWhere(function ($sub) use ($tahun) {
+                      $sub->whereNull('batch_id')
+                          ->where(function ($t) use ($tahun) {
+                              $t->where('tahun_usulan', $tahun)
+                                ->orWhereNull('tahun_usulan');
+                          })
+                          ->whereNotIn('status_verifikasi', ['terpasang', 'realisasi_selesai']);
+                  });
+            })
             ->when($request->search, function ($query, $search) {
-                return $query->where(function($q) use ($search) {
+                return $query->where(function ($q) use ($search) {
                     $q->where('nik', 'like', "%{$search}%")
                       ->orWhere('nama', 'like', "%{$search}%");
                 });
@@ -25,14 +63,66 @@ class KepalaDesaController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        // 3. Statistik khusus untuk usulan aktif di desa ini
+        $baseQuery = Warga::where('desa', $user->desa)
+            ->where(function ($q) use ($activeBatch, $tahun) {
+                $q->where('batch_id', $activeBatch->id)
+                  ->orWhere(function ($sub) use ($tahun) {
+                      $sub->whereNull('batch_id')
+                          ->where(function ($t) use ($tahun) {
+                              $t->where('tahun_usulan', $tahun)
+                                ->orWhereNull('tahun_usulan');
+                          })
+                          ->whereNotIn('status_verifikasi', ['terpasang', 'realisasi_selesai']);
+                  });
+            });
+
         $stats = [
-            'total' => Warga::where('desa', $request->user()->desa)->count(),
-            'menunggu' => Warga::where('desa', $request->user()->desa)->whereIn('status_verifikasi', ['terkirim', 'pending'])->count(),
-            'disetujui' => Warga::where('desa', $request->user()->desa)->whereIn('status_verifikasi', ['menunggu_verifikasi_pusat', 'lolos_verifikasi_pusat'])->count(),
-            'ditolak' => Warga::where('desa', $request->user()->desa)->where('status_verifikasi', 'ditolak/perlu_perbaikan')->count(),
+            'total'     => (clone $baseQuery)->count(),
+            'menunggu'  => (clone $baseQuery)->whereIn('status_verifikasi', ['terkirim', 'pending'])->count(),
+            'disetujui' => (clone $baseQuery)->whereIn('status_verifikasi', ['diverifikasi_kades', 'disetujui_desa', 'menunggu_verifikasi_pusat', 'lolos_verifikasi_pusat'])->count(),
+            'ditolak'   => (clone $baseQuery)->where('status_verifikasi', 'ditolak/perlu_perbaikan')->count(),
         ];
 
-        return view('kepaladesa.index', compact('wargas', 'stats'));
+        return view('kepaladesa.index', compact('wargas', 'stats', 'activeBatch'));
+    }
+    
+     /* Kepala Desa mengesahkan SPTJM dan meneruskan Batch ke Dinas ESDM
+     */
+    public function submitBatchToEsdm(Request $request, PengajuanBatch $batch)
+    {
+        if (mb_strtolower(trim($batch->desa)) !== mb_strtolower(trim($request->user()->desa))) {
+            abort(403, 'Anda hanya dapat mengelola data usulan di desa Anda.');
+        }
+
+        $request->validate([
+            'sptjm_agreement'       => 'accepted',
+            'nomor_surat_pengantar' => 'nullable|string|max:100',
+            'catatan_kades'         => 'nullable|string|max:1000',
+        ], [
+            'sptjm_agreement.accepted' => 'Anda wajib menyetujui pernyataan keabsahan dan legalitas dokumen (SPTJM) sebelum mengirim berkas ke Dinas ESDM.',
+        ]);
+
+        $batch->update([
+            'status'                => 'diajukan_ke_esdm',
+            'sptjm_accepted_at'     => now(),
+            'kades_id'              => $request->user()->id,
+            'nomor_surat_pengantar' => $request->nomor_surat_pengantar ?: ('B-500.10.17/' . date('Y') . '/' . strtoupper(Str::slug($batch->desa))),
+            'catatan_kades'         => $request->catatan_kades,
+            'total_warga'           => $batch->wargas()->count(),
+        ]);
+
+        // Teruskan semua warga di batch ke verifikasi pusat (ESDM)
+        $batch->wargas()->whereIn('status_verifikasi', ['terkirim', 'pending', 'diverifikasi_kades', 'disetujui_desa'])->update([
+            'status_verifikasi' => 'menunggu_verifikasi_pusat',
+        ]);
+
+        ActivityLog::record(
+            'kades_submit_batch_esdm',
+            'Kepala Desa ' . $batch->desa . ' resmi mengesahkan SPTJM dan meneruskan Batch Usulan ' . $batch->kode_batch . ' (' . $batch->total_warga . ' warga) ke Dinas ESDM.'
+        );
+
+        return back()->with('success', 'Batch Usulan ' . $batch->kode_batch . ' beserta Surat Pernyataan Tanggung Jawab Mutlak (SPTJM) telah resmi dikirim ke Dinas ESDM!');
     }
 
     public function show(Warga $warga)
@@ -47,14 +137,14 @@ class KepalaDesaController extends Controller
     {
         $this->authorizeDesa($warga);
 
-        $warga->update(['status_verifikasi' => 'disetujui_desa']);
+        $warga->update(['status_verifikasi' => 'diverifikasi_kades']);
 
-        \App\Models\ActivityLog::record(
+        ActivityLog::record(
             'kades_approve',
-            'Kepala Desa menyetujui pengajuan warga NIK ' . $warga->nik . ' (' . $warga->nama . ')'
+            'Kepala Desa memverifikasi kelayakan warga NIK ' . $warga->nik . ' (' . $warga->nama . ' - Desil: ' . ($warga->desil ?? '-') . ')'
         );
 
-        return back()->with('success', 'Berkas warga telah diverifikasi dan diteruskan ke instansi.');
+        return back()->with('success', 'Berkas warga telah divalidasi layak oleh Kepala Desa.');
     }
 
     // Reject -> minta perbaikan
@@ -72,7 +162,7 @@ class KepalaDesaController extends Controller
             'ditolak_oleh'      => 'kades',
         ]);
 
-        \App\Models\ActivityLog::record(
+        ActivityLog::record(
             'kades_reject',
             'Kepala Desa menolak berkas warga NIK ' . $warga->nik . ' dengan catatan: ' . ($request->catatan ?: 'Tanpa catatan')
         );
@@ -115,17 +205,17 @@ class KepalaDesaController extends Controller
 
     public function lisdesIndex(Request $request)
     {
-        $lisdesList = \App\Models\PengajuanLisdes::where('desa', $request->user()->desa)
+        $lisdesList = PengajuanLisdes::where('desa', $request->user()->desa)
             ->orWhere('user_id', $request->user()->id)
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
         $stats = [
-            'total'               => \App\Models\PengajuanLisdes::where('desa', $request->user()->desa)->count(),
-            'menunggu_verifikasi' => \App\Models\PengajuanLisdes::where('desa', $request->user()->desa)->where('status', 'menunggu_verifikasi')->count(),
-            'disetujui'           => \App\Models\PengajuanLisdes::where('desa', $request->user()->desa)->where('status', 'disetujui')->count(),
-            'ditolak'             => \App\Models\PengajuanLisdes::where('desa', $request->user()->desa)->where('status', 'ditolak')->count(),
+            'total'               => PengajuanLisdes::where('desa', $request->user()->desa)->count(),
+            'menunggu_verifikasi' => PengajuanLisdes::where('desa', $request->user()->desa)->where('status', 'menunggu_verifikasi')->count(),
+            'disetujui'           => PengajuanLisdes::where('desa', $request->user()->desa)->where('status', 'disetujui')->count(),
+            'ditolak'             => PengajuanLisdes::where('desa', $request->user()->desa)->where('status', 'ditolak')->count(),
         ];
 
         return view('kepaladesa.lisdes.index', compact('lisdesList', 'stats'));
@@ -155,7 +245,7 @@ class KepalaDesaController extends Controller
         $proposalPath = $request->file('proposal_lisdes')->store('pengajuan_lisdes/proposal', 'public');
         $fotoPath = $request->file('foto_wilayah')->store('pengajuan_lisdes/foto', 'public');
 
-        \App\Models\PengajuanLisdes::create([
+        PengajuanLisdes::create([
             'user_id'            => $request->user()->id,
             'desa'               => $request->user()->desa,
             'nama_dusun'         => $validated['nama_dusun'],

@@ -5,6 +5,7 @@ use App\Http\Controllers\WargaController;
 use App\Http\Controllers\KepalaDesaController;
 use App\Http\Controllers\DinasEsdmController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BatchController;
 use App\Models\Desa;
 
 Route::get('/', function () {
@@ -26,7 +27,7 @@ Route::get('/', function () {
         $kecamatan = $first->kecamatan ?: 'ALAM BARAJO';
 
         $dbDesa = Desa::whereRaw('LOWER(nama_desa) = ?', [$cleanName])->first();
-        
+
         $knownCoords = [
             'bagan pete'       => ['lat' => -1.6435, 'lng' => 103.5580],
             'kenali besar'     => ['lat' => -1.6244345, 'lng' => 103.5501182],
@@ -152,21 +153,27 @@ Route::get('/api/kpi-stats', function () {
 
 // 2. Fitur Input & Cek Status Pendaftaran BPBL (Khusus Perangkat Desa & ESDM)
 Route::middleware(['auth', 'role:staff_desa,kepala_desa,verifikator_esdm,super_admin,instansi'])->group(function () {
-    Route::get('/cek', [WargaController::class, 'search'])->name('warga.search');
+    Route::get('/cek', [WargaController::class, 'search'])->name('staffdesa.cek');
     Route::get('/input', [WargaController::class, 'create'])->name('warga.pengajuan');
     Route::post('/input', [WargaController::class, 'store'])->name('warga.store');
     Route::get('/warga/bukti-pdf/{nik}', [WargaController::class, 'downloadBuktiPdf'])->name('warga.bukti.pdf');
 });
 
 // ==== KEPALA DESA ====
-Route::middleware(['auth', 'role:kepala_desa'])->prefix('kepaladesa')->name('kepaladesa.')->group(function () {
+Route::middleware(['auth', 'role:kepala_desa,kades'])->prefix('kepaladesa')->name('kepaladesa.')->group(function () {
     Route::get('/', [KepalaDesaController::class, 'index'])->name('index');
 
-    // Route lisdes (static path HARUS di atas wildcard /{warga})
+    // 1. Static & Batch Routes (HARUS ditaruh SEBELUM wildcard /{warga})
     Route::get('/lisdes', [KepalaDesaController::class, 'lisdesIndex'])->name('lisdes.index');
     Route::get('/lisdes/create', [KepalaDesaController::class, 'createLisdes'])->name('lisdes.create');
     Route::post('/lisdes/store', [KepalaDesaController::class, 'storeLisdes'])->name('lisdes.store');
 
+    // Route Khusus Kades: Review & Kirim Batch + S&K ke ESDM
+    Route::get('/batch/{id}/review', [BatchController::class, 'reviewForm'])->name('batch.review');
+    Route::post('/batch/{id}/approve-and-send', [BatchController::class, 'approveAndSendToEsdm'])->name('batch.approve');
+    Route::post('/batch/{batch}/submit-esdm', [KepalaDesaController::class, 'submitBatchToEsdm'])->name('batch.submit_esdm');
+
+    // 2. Wildcard Routes (Selalu ditaruh paling bawah di dalam grup)
     Route::get('/{warga}', [KepalaDesaController::class, 'show'])->name('show');
     Route::put('/{warga}', [KepalaDesaController::class, 'update'])->name('update');
     Route::patch('/{warga}/approve', [KepalaDesaController::class, 'approve'])->name('approve');
@@ -174,10 +181,21 @@ Route::middleware(['auth', 'role:kepala_desa'])->prefix('kepaladesa')->name('kep
     Route::delete('/{warga}', [KepalaDesaController::class, 'destroy'])->name('destroy');
 });
 
+
 // ==== STAFF ADMINISTRASI DESA (ACT-02) ====
-Route::middleware(['auth', 'role:staff_desa,kepala_desa'])->prefix('staffdesa')->name('staffdesa.')->group(function () {
+Route::middleware(['auth', 'role:staf_desa,staff_desa,kepala_desa,kades'])->prefix('staffdesa')->name('staffdesa.')->group(function () {
+    Route::get('/', [WargaController::class, 'index'])->name('index');
     Route::get('/pengajuan', [WargaController::class, 'create'])->name('pengajuan');
     Route::get('/cek', [WargaController::class, 'search'])->name('cek');
+
+    // Tambahkan route edit warga ini
+    Route::get('/warga/{warga}/edit', [WargaController::class, 'edit'])->name('warga.edit');
+    Route::put('/warga/{warga}', [WargaController::class, 'update'])->name('warga.update');
+
+    // Aksi Input & Batch Draf oleh Staff
+    Route::post('/warga/store-draft', [WargaController::class, 'storeDraft'])->name('warga.store.draft');
+    Route::post('/batch/create-from-draft', [BatchController::class, 'createFromDraft'])->name('batch.create');
+    Route::post('/batch/{batch}/kirim-ke-kades', [BatchController::class, 'kirimBatchKeKades'])->name('batch.kirim');
 });
 
 // ==== INSTANSI, VERIFIKATOR ESDM, PETUGAS LAPANGAN & VENDOR PLN ====

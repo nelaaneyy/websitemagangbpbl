@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Admin SIPELITA ESDM</title>
+    <title>Portal Admin E-Listrik ESDM</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-jambi.png') }}">
+
     @stack('styles')
     <style>
         [x-cloak] { display: none !important; }
@@ -35,7 +37,7 @@
                         <i class="fa-solid fa-bolt-lightning text-lg"></i>
                     </div>
                     <div>
-                        <span class="font-extrabold text-base tracking-tight text-white block">SIPELITA ESDM</span>
+                        <span class="font-extrabold text-base tracking-tight text-white block">E-Listrik ESDM</span>
                         <span class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider block">Panel Verifikasi</span>
                     </div>
                 </div>
@@ -56,10 +58,9 @@
                     </div>
                     <div>
                         <div class="flex items-center gap-1.5">
-                            <span class="font-extrabold text-base text-white tracking-tight">SIPELITA</span>
-                            <span class="px-1.5 py-0.2 bg-amber-500 text-slate-950 text-[10px] font-black rounded uppercase">ESDM</span>
+                            <span class="font-extrabold text-base text-white tracking-tight">E-Listrik</span>
+                            <span class="px-1.5 py-0.2 bg-amber-500 text-slate-950 text-[10px] font-black rounded uppercase">ESDM Prov Jambi</span>
                         </div>
-                        <span class="text-[11px] text-slate-400 font-medium">Panel Layanan e-Gov</span>
                     </div>
                 </a>
             </div>
@@ -95,7 +96,7 @@
                                 @if(auth()->user()->role === 'kepala_desa')
                                     Verifikasi Kepala Desa
                                 @else
-                                    Dinas Energi dan Sumber Daya Mineral Provinsi Jambi
+                                    E-Listrik Dinas Energi dan Sumber Daya Mineral Provinsi Jambi
                                 @endif
                             </span>
                         </div>
@@ -157,7 +158,7 @@
                 </div>
 
                 <footer class="mt-16 text-center text-xs text-slate-400 py-6 border-t border-slate-200/60">
-                    &copy; {{ date('Y') }} Sistem Pelayanan & Elektrifikasi Listrik Terpadu (SIPELITA) Dinas Energi & Sumber Daya Mineral Provinsi Jambi. All rights reserved.
+                    &copy; {{ date('Y') }} E-Listrik Dinas Energi & Sumber Daya Mineral Provinsi Jambi. All rights reserved.
                 </footer>
             </main>
 

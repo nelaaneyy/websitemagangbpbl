@@ -17,7 +17,7 @@
             </div>
 
             <div class="relative z-10 mt-8 lg:mt-0">
-                <h3 class="text-2xl font-bold leading-tight">Selamat Datang di Portal Petugas SIPELITA Dinas ESDM Provinsi Jambi</h3>
+                <h3 class="text-2xl font-bold leading-tight">Selamat Datang di Portal Petugas E-Listrik Dinas ESDM Provinsi Jambi</h3>
                 <p class="text-xs text-indigo-100/80 mt-2 font-normal leading-relaxed">
                     Akses terintegrasi untuk pemantauan dan pengelolaan usulan bantuan daerah.
                 </p>

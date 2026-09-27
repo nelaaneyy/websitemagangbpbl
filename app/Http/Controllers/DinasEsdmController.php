@@ -439,8 +439,22 @@ class DinasEsdmController extends Controller
             $desaFilter = implode(', ', array_filter($desaFilter));
         }
 
-        $namaKadis = $request->nama_kadis;
-        $nipKadis  = $request->nip_kadis;
+        if ($request->batch_id) {
+            $query->where('batch_id', $request->batch_id);
+            $batchObj = \App\Models\PengajuanBatch::find($request->batch_id);
+            if ($batchObj) {
+                $desaFilter = $batchObj->desa;
+                $request->merge([
+                    'desa' => $batchObj->desa,
+                    'kecamatan' => $batchObj->kecamatan,
+                    'kabupaten' => $batchObj->kabupaten,
+                ]);
+            }
+        }
+
+        $namaKades = $request->nama_kades ?: $request->nama_kadis;
+        $nipKades  = $request->nip_kades ?: $request->nip_kadis;
+        $kadesUser = null;
 
         if (!empty($desaFilter) && $desaFilter !== 'Semua Desa') {
             $firstDesaName = trim(explode(',', $desaFilter)[0]);
@@ -452,25 +466,29 @@ class DinasEsdmController extends Controller
                 ->first();
 
             if ($kadesUser) {
-                if (empty($namaKadis)) {
-                    $namaKadis = $kadesUser->name;
+                if (empty($namaKades)) {
+                    $namaKades = $kadesUser->name;
                 }
-                if (empty($nipKadis)) {
-                    $nipKadis = $kadesUser->nipd ?: $kadesUser->no_hp;
+                if (empty($nipKades)) {
+                    $nipKades = $kadesUser->nipd ?: $kadesUser->no_hp;
                 }
             }
         }
 
+        $Kepaladesa = $kadesUser;
+
         $filters = [
-            'kabupaten'     => $request->kabupaten ?: 'Semua Kabupaten',
-            'kecamatan'     => $request->kecamatan ?: 'Semua Kecamatan',
+            'kabupaten'     => $request->kabupaten ?: ($kadesUser->kabupaten ?? 'Semua Kabupaten'),
+            'kecamatan'     => $request->kecamatan ?: ($kadesUser->kecamatan ?? 'Semua Kecamatan'),
             'desa'          => $desaFilter ?: 'Semua Desa',
             'dusun'         => $request->dusun ?: 'Semua Dusun/RT',
             'status'        => $request->status ? str_replace('_', ' ', $request->status) : 'Semua Status',
             'nomor_surat'   => $request->nomor_surat ?: 'B-500.10.17.2/        /DESDM/II/' . date('Y'),
             'tanggal_surat' => $this->formatTanggalIndo($request->tanggal_surat),
-            'nama_kadis'    => $namaKadis ?: '',
-            'nip_kadis'     => $nipKadis ?: '',
+            'nama_kades'    => $namaKades ?: '',
+            'nip_kades'     => $nipKades ?: '',
+            'nama_kadis'    => $namaKades ?: '', // Backward compatibility
+            'nip_kadis'     => $nipKades ?: '',
         ];
 
         $stats = [
@@ -482,7 +500,7 @@ class DinasEsdmController extends Controller
 
         $filename = ($request->scope === 'historis' ? 'Data_Historis_BPBL_ESDM_' : 'Laporan_Pengajuan_BPBL_ESDM_') . date('Ymd_His') . '.pdf';
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('dinasesdm.export_pdf', compact('wargas', 'filters', 'stats', 'selectedColumns'))
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('dinasesdm.export_pdf', compact('wargas', 'filters', 'stats', 'selectedColumns', 'Kepaladesa'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->download($filename);
@@ -1400,90 +1418,114 @@ class DinasEsdmController extends Controller
      * Halaman Arsip & Data Historis Realisasi BPBL per Tahun
      */
     public function historisIndex(Request $request)
-{
-    $query = Warga::with('berkas');
+    {
+        $query = Warga::with('berkas');
 
-    // 1. Filter dasar data historis
-    $query->where(function ($q) {
-        $q->where('status_verifikasi', 'terpasang')
-          ->orWhere('butuh_validasi_realisasi', false);
-    });
-
-    // 2. Filter Search (NIK / Nama / Desa / Kecamatan / Alamat)
-    $query->when($request->search, function ($q, $search) {
-        return $q->where(function ($sub) use ($search) {
-            $sub->where('nik', 'like', "%{$search}%")
-                ->orWhere('nama', 'like', "%{$search}%")
-                ->orWhere('desa', 'like', "%{$search}%")
-                ->orWhere('kecamatan', 'like', "%{$search}%")
-                ->orWhere('alamat', 'like', "%{$search}%");
+        // 1. Filter dasar data historis
+        $query->where(function ($q) {
+            $q->where('status_verifikasi', 'terpasang')
+              ->orWhere('butuh_validasi_realisasi', false);
         });
-    });
 
-    // 3. Filter Tahun Usulan
-    $query->when($request->tahun, function ($q, $tahun) {
-        return $q->where('tahun_usulan', $tahun);
-    });
+        // 2. Filter Search (NIK / Nama / Desa / Kecamatan / Alamat)
+        $query->when($request->search, function ($q, $search) {
+            return $q->where(function ($sub) use ($search) {
+                $sub->where('nik', 'like', "%{$search}%")
+                    ->orWhere('nama', 'like', "%{$search}%")
+                    ->orWhere('desa', 'like', "%{$search}%")
+                    ->orWhere('kecamatan', 'like', "%{$search}%")
+                    ->orWhere('alamat', 'like', "%{$search}%");
+            });
+        });
 
-    // 4. Filter Kecamatan
-    $query->when($request->kecamatan, function ($q, $kecamatan) {
-        return $q->where('kecamatan', $kecamatan);
-    });
+        // 3. Filter Tahun Usulan
+        $query->when($request->tahun, function ($q, $tahun) {
+            return $q->where('tahun_usulan', $tahun);
+        });
 
-    // 5. Filter Desa
-    $query->when($request->desa, function ($q, $desa) {
-        return $q->where('desa', $desa);
-    });
+        // 4. Filter Kabupaten
+        $query->when($request->kabupaten, function ($q, $kabupaten) {
+            return $q->where('kabupaten', $kabupaten);
+        });
 
-    // Ambil opsi daftar tahun unik untuk dropdown filter ($allYears)
-    $allYears = Warga::select('tahun_usulan')
-        ->distinct()
-        ->orderBy('tahun_usulan', 'desc')
-        ->pluck('tahun_usulan');
-
-    // Ambil opsi daftar kecamatan unik untuk dropdown filter ($kecamatans)
-    $kecamatans = Warga::select('kecamatan')
-        ->whereNotNull('kecamatan')
-        ->distinct()
-        ->orderBy('kecamatan', 'asc')
-        ->pluck('kecamatan');
-
-    // (Opsional) Jika Anda butuh dropdown desa yang dinamis berdasarkan kecamatan atau seluruhnya:
-    $desas = Warga::select('desa')
-        ->whereNotNull('desa')
-        ->when($request->kecamatan, function ($q, $kecamatan) {
+        // 5. Filter Kecamatan
+        $query->when($request->kecamatan, function ($q, $kecamatan) {
             return $q->where('kecamatan', $kecamatan);
-        })
-        ->distinct()
-        ->orderBy('desa', 'asc')
-        ->pluck('desa');
+        });
 
-    $kabupatens = Warga::select('kabupaten')
-        ->whereNotNull('kabupaten')
-        ->distinct()
-        ->orderBy('kabupaten', 'asc')
-        ->pluck('kabupaten');
+        // 6. Filter Desa
+        $query->when($request->desa, function ($q, $desa) {
+            return $q->where('desa', $desa);
+        });
 
-    // Hitung total data historis (sesuai filter aktif)
-    $totalHistoris = (clone $query)->count();
+        // Ambil opsi daftar tahun unik untuk dropdown filter ($allYears)
+        $allYears = Warga::select('tahun_usulan')
+            ->distinct()
+            ->orderBy('tahun_usulan', 'desc')
+            ->pluck('tahun_usulan');
 
-    // Hitung total data terpasang/realisasi
-    $totalTerpasang = (clone $query)->where(function ($q) {
-        $q->where('status_verifikasi', 'terpasang')
-          ->orWhere('butuh_validasi_realisasi', false);
-    })->count();
+        // Ambil opsi daftar kecamatan unik untuk dropdown filter ($kecamatans)
+        $kecamatans = Warga::select('kecamatan')
+            ->whereNotNull('kecamatan')
+            ->distinct()
+            ->orderBy('kecamatan', 'asc')
+            ->pluck('kecamatan');
 
-    // Ambil data dengan paginasi
-    $wargas = $query->latest()->paginate(10)->withQueryString();
+        $desas = Warga::select('desa')
+            ->whereNotNull('desa')
+            ->when($request->kecamatan, function ($q, $kecamatan) {
+                return $q->where('kecamatan', $kecamatan);
+            })
+            ->distinct()
+            ->orderBy('desa', 'asc')
+            ->pluck('desa');
 
-    return view('dinasesdm.historis', compact(
-        'wargas',
-        'totalHistoris',
-        'totalTerpasang',
-        'allYears',
-        'kecamatans',
-        'desas',
-        'kabupatens' // Sertakan juga jika dibutuhkan di view
-    ));
-}
+        $kabupatens = Warga::select('kabupaten')
+            ->whereNotNull('kabupaten')
+            ->distinct()
+            ->orderBy('kabupaten', 'asc')
+            ->pluck('kabupaten');
+
+        // === BATCH-BASED ARSIP (Daftar Batch Pengajuan per Desa per Tahun) ===
+        $batchQuery = \App\Models\PengajuanBatch::withCount('wargas')
+            ->when($request->tahun, function ($q, $tahun) {
+                return $q->where('tahun_anggaran', $tahun);
+            })
+            ->when($request->kabupaten, function ($q, $kabupaten) {
+                return $q->where('kabupaten', $kabupaten);
+            })
+            ->when($request->kecamatan, function ($q, $kecamatan) {
+                return $q->where('kecamatan', $kecamatan);
+            })
+            ->when($request->desa, function ($q, $desa) {
+                return $q->where('desa', $desa);
+            })
+            ->orderBy('tahun_anggaran', 'desc')
+            ->orderBy('desa', 'asc');
+
+        $batches = $batchQuery->get();
+
+        // Hitung total data historis (sesuai filter aktif)
+        $totalHistoris = (clone $query)->count();
+
+        // Hitung total data terpasang/realisasi
+        $totalTerpasang = (clone $query)->where(function ($q) {
+            $q->where('status_verifikasi', 'terpasang')
+              ->orWhere('butuh_validasi_realisasi', false);
+        })->count();
+
+        // Ambil data dengan paginasi
+        $wargas = $query->latest()->paginate(10)->withQueryString();
+
+        return view('dinasesdm.historis', compact(
+            'wargas',
+            'totalHistoris',
+            'totalTerpasang',
+            'allYears',
+            'kecamatans',
+            'desas',
+            'kabupatens',
+            'batches'
+        ));
+    }
 }

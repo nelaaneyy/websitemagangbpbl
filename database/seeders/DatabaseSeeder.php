@@ -17,20 +17,39 @@ class DatabaseSeeder extends Seeder
     {
         // Akun Admin Instansi ESDM
         User::create([
-            'name' => 'Admin ESDM',
+            'name' => 'Super Admin Dinas ESDM Provinsi Jambi',
             'email' => 'esdm@test.com',
             'password' => bcrypt('password'),
-            'role' => 'instansi',
+            'role' => 'super_admin',
+            'desa' => null,
+        ]);
+
+        // Akun Verifikator ESDM
+        User::create([
+            'name' => 'Verifikator Dinas ESDM Provinsi Jambi',
+            'email' => 'verifikator@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'verifikator',
             'desa' => null,
         ]);
 
         // Akun Kepala Desa
         User::create([
-            'name' => 'Kepala Desa Sukamakmur',
-            'email' => 'kades@test.com',
+            'name' => 'M. Haryanto Sudarjat. S.Sos',
+            'email' => 'kadessimpangrimbo@test.com',
             'password' => bcrypt('password'),
             'role' => 'kepala_desa',
-            'desa' => 'Sukamakmur',
+            'desa' => 'Simpang Rimbo',
+        ]);
+
+
+        // Akun Staff Desa
+        User::create([
+            'name' => 'Susanti. S.Kom',
+            'email' => 'staffsimpangrimbo@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'staff_desa',
+            'desa' => 'Simpang Rimbo',
         ]);
 
         $this->call([

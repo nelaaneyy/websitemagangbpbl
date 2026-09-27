@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Kecamatan;
 
 class Desa extends Model
 {
@@ -12,6 +13,7 @@ class Desa extends Model
     protected $fillable = [
         'nama_desa',
         'kabupaten',
+        'kecamatan',
         'latitude',
         'longitude',
         'total_rt',
@@ -63,5 +65,10 @@ class Desa extends Model
             return 'red';
         }
         return 'gold';
+    }
+
+    public function kecamatan()
+    {
+        return $this->belongsTo(Kecamatan::class, 'kecamatan_id');
     }
 }

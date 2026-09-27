@@ -12,6 +12,7 @@ class Warga extends Model
     use HasFactory;
 
     protected $fillable = [
+        'batch_id',
         'nik',
         'no_kk',
         'id_pelanggan',
@@ -21,6 +22,7 @@ class Warga extends Model
         'desa',
         'dusun',
         'rt_rw',
+        'desil',
         'no_hp',
         'alamat',
         'jarak_tiang',
@@ -56,6 +58,11 @@ class Warga extends Model
         'is_exif_valid' => 'boolean',
         'butuh_validasi_realisasi' => 'boolean',
     ];
+
+    public function batch()
+    {
+        return $this->belongsTo(PengajuanBatch::class, 'batch_id');
+    }
 
     public function berkas()
     {

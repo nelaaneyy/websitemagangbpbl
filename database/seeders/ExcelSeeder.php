@@ -129,7 +129,8 @@ class ExcelSeeder extends Seeder
             $knownKabs = [
                 'BUNGO', 'KERINCI', 'KOTA JAMBI', 'KOTA SUNGAI PENUH',
                 'MERANGIN', 'SAROLANGON', 'SAROLANGUN', 'TEBO',
-                'MUARO JAMBI', 'BATANGHARI', 'TANJUNG JABUNG BARAT', 'TANJUNG JABUNG TIMUR'
+                'MUARO JAMBI', 'BATANGHARI', 'TANJUNG JABUNG BARAT','TANJAB BARAT',
+                'TANJABBAR', 'TANJUNG JABUNG TIMUR', 'TANJAB TIMUR', 'TANJABTIM',
             ];
 
             foreach (array_reverse($parts) as $part) {

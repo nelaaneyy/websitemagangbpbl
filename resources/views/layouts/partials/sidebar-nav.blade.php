@@ -7,7 +7,7 @@
                 @if(in_array(auth()->user()->role, ['instansi', 'super_admin']))
                     <a href="{{ route('dinasesdm.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('dinasesdm.index') ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
                         <i class="fa-solid fa-chart-pie text-sm w-5 text-center"></i>
-                        <span>Dasbor Analytics & KPI</span>
+                        <span>Dasbor Analisis & KPI</span>
                     </a>
                 @endif
 
@@ -47,6 +47,8 @@
                 </a>
             </div>
 
+
+
             <div class="mt-6 pt-4 border-t border-slate-800 space-y-1">
                 <p class="px-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Laporan & Ekspor</p>
 
@@ -77,12 +79,18 @@
                     </a>
                 @endif
 
-                <a href="{{ route('warga.pengajuan') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('warga.pengajuan') || request()->routeIs('staffdesa.pengajuan') ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('staffdesa.index') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('staffdesa.index') ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                    <i class="fa-solid fa-list-check text-sm"></i>
+                    <span>Manajemen Usulan BPBL</span>
+                 </a>
+
+                <a href="{{ route('staffdesa.pengajuan') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('warga.pengajuan') || request()->routeIs('staffdesa.pengajuan') ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
                     <i class="fa-solid fa-house-user text-sm w-5 text-center text-emerald-400"></i>
                     <span>Input Pendaftaran BPBL</span>
                 </a>
 
-                <a href="{{ route('warga.search') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('warga.search') || request()->routeIs('staffdesa.cek') ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('staffdesa.cek') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all {{ request()->routeIs('warga.search') || request()->routeIs('staffdesa.cek') ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
                     <i class="fa-solid fa-magnifying-glass text-sm w-5 text-center text-blue-400"></i>
                     <span>Cek Status NIK Pendaftaran</span>
                 </a>

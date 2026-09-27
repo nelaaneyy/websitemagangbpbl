@@ -13,7 +13,7 @@
                     <i class="fa-solid fa-bolt-lightning text-blue-600 mr-1"></i> KPI Cards BPBL
                 </span>
             </div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Dasbor Analytics & Ringkasan Tahapan Berkas</h1>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Dasbor Analisis & Ringkasan Tahapan Berkas</h1>
             <p class="text-xs text-slate-500 font-medium">Visualisasi KPI tahapan verifikasi pengajuan bantuan pasang baru listrik (BPBL) warga.</p>
         </div>
 

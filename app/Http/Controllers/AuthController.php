@@ -15,6 +15,7 @@ class AuthController extends Controller
         if (Auth::check()) {
             return match (Auth::user()->role) {
                 'kepala_desa'      => redirect()->route('kepaladesa.index'),
+                'staff_desa'    => redirect()->route('staffdesa.index'),    
                 'verifikator_esdm' => redirect()->route('dinasesdm.datalist'),
                 'instansi', 'super_admin' => redirect()->route('dinasesdm.index'),
                 default            => redirect('/'),
@@ -70,36 +71,42 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
+            'role'     => 'required|in:kepala_desa, staf_desa, staff_desa',
             'nipd'     => 'nullable|string|max:50',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'desa'     => 'required|string|max:255',
+            'alamat'  => 'nullable|string|max:255',
             'no_hp'    => 'nullable|string|max:20',
-            'sk_file'  => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'sk_file'  => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'
         ], [
             'name.required'     => 'Nama lengkap wajib diisi.',
+            'role.required'     => 'Peran pengguna wajib dipilih.',
+            'role.in'           => 'Peran pengguna tidak valid.',
             'email.required'    => 'Email wajib diisi.',
             'email.unique'      => 'Email sudah terdaftar.',
             'password.required' => 'Password wajib diisi.',
             'password.min'      => 'Password minimal 8 karakter.',
-            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'password.confirmed'=> 'Konfirmasi password tidak cocok.',
             'desa.required'     => 'Nama desa wajib diisi.',
+            'alamat.required'   => 'Alamat Kantor Kepala Desa wajib diisi.',
             'sk_file.mimes'     => 'File SK harus berformat PDF, JPG, JPEG, atau PNG.',
             'sk_file.max'       => 'Ukuran file SK maksimal 5MB.',
         ]);
 
         $skPath = null;
         if ($request->hasFile('sk_file')) {
-            $skPath = $request->file('sk_file')->store('sk_files', 'public');
+            $skPath = $request->file('sk_file')->store('documents/sk', 'public');
         }
 
         User::create([
             'name'     => $validated['name'],
             'nipd'     => $validated['nipd'] ?? null,
+            'role'     => $validated['role'],
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role'     => 'kepala_desa',
             'desa'     => $validated['desa'],
+            'alamat'   => $validated['alamat'] ?? null,
             'no_hp'    => $validated['no_hp'] ?? null,
             'sk_file'  => $skPath,
             'status'   => 'pending',

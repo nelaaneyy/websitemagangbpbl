@@ -24,9 +24,9 @@
             <div class="relative z-10 mt-8 lg:mt-0 space-y-4">
                 <div>
                     <span class="text-xs uppercase tracking-widest text-amber-200 font-semibold block mb-1">Registrasi Akun</span>
-                    <h3 class="text-2xl font-bold leading-tight">Perangkat Desa SIPELITA</h3>
+                    <h3 class="text-2xl font-bold leading-tight">Perangkat Desa E-Listrik</h3>
                     <p class="text-xs text-amber-100/90 mt-2 font-normal leading-relaxed">
-                        Daftarkan akun Kepala Desa atau Sekretaris Desa untuk memverifikasi dan mengajukan bantuan ketenagalistrikan daerah secara terpadu.
+                        Daftarkan akun Kepala Desa atau Staff Administrasi Desa untuk memverifikasi dan mengajukan bantuan ketenagalistrikan daerah secara terpadu.
                     </p>
                 </div>
             </div>
@@ -68,13 +68,33 @@
                         </div>
                     </div>
 
+                    <div class="pt-1">
+                        <label for="role" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Daftar Sebagai <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <select id="role" name="role" required
+                                class="block w-full px-3 py-2.5 text-xs border border-slate-200 rounded-2xl bg-slate-50 focus:outline-none focus:border-amber-500 text-slate-700 appearance-none">
+                                <option value=""> Pilih Peran / Jabatan </option>
+                                <option value="kades" {{ old('role') == 'kades' ? 'selected' : '' }}>Kepala Desa / Lurah</option>
+                                <option value="staf_desa" {{ old('role') == 'staf_desa' ? 'selected' : '' }}>Staf Administrasi Desa / Perangkat Desa</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                        @error('role')
+                            <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- NIPD / NIK -->
                     <div>
-                        <label for="nipd" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">NIPD / NIK</label>
+                        <label for="nipd" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">NIK</label>
                         <div class="relative">
                             <input id="nipd" name="nipd" type="text" value="{{ old('nipd') }}"
                                 class="w-full pl-11 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-amber-600 focus:border-orange-600 text-xs font-medium transition placeholder:text-slate-400"
-                                placeholder="Nomor Induk Perangkat Desa">
+                                placeholder="Nomor Induk Kependudukan">
                             <i class="fa-solid fa-id-card absolute left-4 top-3 text-slate-400 text-xs"></i>
                         </div>
                     </div>
@@ -87,6 +107,16 @@
                                 class="w-full pl-11 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-amber-600 focus:border-orange-600 text-xs font-medium transition placeholder:text-slate-400"
                                 placeholder="Contoh: Desa Suka Makmur">
                             <i class="fa-solid fa-building-flag absolute left-4 top-3 text-slate-400 text-xs"></i>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="alamat" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">Alamat Kantor Kepala Desa <span class="text-rose-500">*</span></label>
+                        <div class="relative">
+                            <input id="alamat" name="alamat" type="text" required value="{{ old('alamat') }}"
+                                class="w-full pl-11 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-amber-600 focus:border-orange-600 text-xs font-medium transition placeholder:text-slate-400"
+                                placeholder="Contoh: Jalan Raya Suka Makmur No. 1">
+                            <i class="fa-solid fa-home absolute left-4 top-3 text-slate-400 text-xs"></i>
                         </div>
                     </div>
 
@@ -135,14 +165,15 @@
                     </div>
                 </div>
 
-                <!-- Upload File SK -->
+                <!-- Upload File SK Kepala Desa -->
+
                 <div class="pt-1">
                     <label for="sk_file" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                         Scan SK Pengangkatan / Surat Tugas <span class="text-slate-400 font-normal lowercase">(PDF/JPG maks. 5MB)</span>
                     </label>
                     <input id="sk_file" name="sk_file" type="file" accept=".pdf,.jpg,.jpeg,.png"
                         class="block w-full text-xs text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-amber-100/70 file:text-amber-900 border border-slate-200 rounded-2xl bg-slate-50 cursor-pointer focus:outline-none">
-                    <p class="text-[10px] text-slate-400 mt-1">Dokumen ini digunakan verifikator ESDM untuk memeriksa legalitas kepengurusan desa.</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Dokumen ini akan digunakan pihak Dinas ESDM Provinsi Jambi untuk memeriksa legalitas kepengurusan desa.</p>
                 </div>
 
                 <!-- Tombol Submit -->
