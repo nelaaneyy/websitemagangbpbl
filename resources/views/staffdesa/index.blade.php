@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.staffdesa')
 
 @section('content')
 <div class="space-y-5">
@@ -18,7 +18,7 @@
 
         <div class="flex items-center gap-2">
             @if(isset($activeBatch) && $activeBatch->total_warga > 0 && $activeBatch->status === 'draft_staff')
-                <form action="{{ route('staffdesa.batch.submit_kades', $activeBatch->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengirim berkas batch ini ke Kepala Desa untuk diverifikasi?')">
+                <form action="{{ route('staffdesa.batch.kirim', $activeBatch->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengirim berkas batch ini ke Kepala Desa untuk diverifikasi?')">
                     @csrf
                     @method('PATCH')
                     <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
@@ -28,7 +28,7 @@
                 </form>
             @endif
 
-            <a href="{{ route('warga.pengajuan') }}" class="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-extrabold rounded-xl transition shadow-xs flex items-center gap-1.5">
+            <a href="{{ route('staffdesa.pengajuan') }}" class="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-extrabold rounded-xl transition shadow-xs flex items-center gap-1.5">
                 <i class="fa-solid fa-user-plus text-xs"></i> Tambah Warga
             </a>
         </div>
@@ -96,7 +96,7 @@
                     <span class="text-blue-700 font-bold font-mono">{{ number_format(($activeBatch->total_warga / 1000) * 100, 1) }}% Terisi ({{ $activeBatch->total_warga }}/1000)</span>
                 </div>
                 <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: {{ min(100, max(1, ($activeBatch->total_warga / 1000) * 100)) }}%;"></div>
+                    <div class="bg-linear-to-r from-blue-600 to-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: {{ min(100, max(1, ($activeBatch->total_warga / 1000) * 100)) }}%;"></div>
                 </div>
             </div>
         </div>

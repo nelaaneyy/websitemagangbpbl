@@ -12,7 +12,7 @@
         <!-- Back Link & Title Header -->
         <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             @auth
-                <a href="{{ auth()->user()->role === 'kepala_desa' ? route('kepaladesa.index') : (auth()->user()->role === 'verifikator_esdm' ? route('dinasesdm.datalist') : route('dinasesdm.index')) }}"
+                <a href="{{ auth()->user()->role === 'kepala_desa' ? route('kepaladesa.index') : (auth()->user()->role === 'verifikator_esdm' ? route('admin.datalist') : route('admin.index')) }}"
                    class="inline-flex items-center gap-2 text-xs font-bold text-blue-700 hover:text-blue-900 transition">
                     <i class="fa-solid fa-arrow-left text-amber-500"></i>
                     <span>Kembali ke Dashboard {{ auth()->user()->role === 'kepala_desa' ? 'Kepala Desa (' . auth()->user()->desa . ')' : 'Admin ESDM' }}</span>
@@ -83,7 +83,7 @@
 
                     <!-- Visual Progress Bar -->
                     <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-5 shadow-inner border border-slate-200/50">
-                        <div id="wizard-progress-bar" class="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 h-full rounded-full transition-all duration-500 ease-out" style="width: 33.33%;"></div>
+                        <div id="wizard-progress-bar" class="bg-linear-to-r from-amber-400 via-amber-500 to-amber-600 h-full rounded-full transition-all duration-500 ease-out" style="width: 33.33%;"></div>
                     </div>
 
                     <!-- Step Nav Badges -->
@@ -126,7 +126,7 @@
                     </div>
                 </div>
 
-                <form action="{{ route('warga.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+                <form action="{{ route('staffdesa.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                     @csrf
 
                     {{-- TAHAP 1: DATA IDENTITAS WARGA --}}
@@ -148,7 +148,7 @@
                                 <div class="relative">
                                     <input type="text" name="nik" id="nik_input" value="{{ old('nik', $warga->nik ?? $nik ?? '') }}" maxlength="16" required
                                            placeholder="16 Digit NIK KTP..." {{ isset($warga) ? 'readonly' : '' }}
-                                           class="w-full pl-10 pr-10 py-3 bg-slate-50 border @error('nik') border-rose-400 @else border-slate-300 @enderror {{ isset($warga) ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'focus:bg-white' }} rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
+                                           class="w-full pl-10 pr-10 py-3 bg-slate-50 border @error('nik') border-rose-400 @else @enderror {{ isset($warga) ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'focus:bg-white' }} rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
                                     <i class="fa-solid fa-id-card absolute left-3.5 top-3.5 text-slate-400"></i>
                                     <div id="nik-status-icon" class="absolute right-3.5 top-3.5 hidden"></div>
                                 </div>
@@ -164,7 +164,7 @@
                                 <div class="relative">
                                     <input type="text" name="nama" value="{{ old('nama', $warga->nama ?? '') }}" required
                                            placeholder="Nama lengkap sesuai KTP..."
-                                           class="w-full pl-10 pr-4 py-3 bg-slate-50 border @error('nama') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
+                                           class="w-full pl-10 pr-4 py-3 bg-slate-50 border @error('nama') border-rose-400 @else @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
                                     <i class="fa-solid fa-user absolute left-3.5 top-3.5 text-slate-400"></i>
                                 </div>
                                 @error('nama') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
@@ -176,7 +176,7 @@
                                     Kabupaten / Kota <span class="text-rose-500">*</span>
                                 </label>
                                 <select name="kabupaten" id="kabupaten" required
-                                       class="w-full px-4 py-3 bg-slate-50 border @error('kabupaten') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
+                                       class="w-full px-4 py-3 bg-slate-50 border @error('kabupaten') border-rose-400 @else @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
                                     <option value="">-- Pilih Kabupaten / Kota --</option>
                                     <option value="KABUPATEN KERINCI" data-id="1501" {{ old('kabupaten', isset($warga) ? $warga->kabupaten : '') == 'KABUPATEN KERINCI' ? 'selected' : '' }}>KABUPATEN KERINCI</option>
                                     <option value="KABUPATEN MERANGIN" data-id="1502" {{ old('kabupaten', isset($warga) ? $warga->kabupaten : '') == 'KABUPATEN MERANGIN' ? 'selected' : '' }}>KABUPATEN MERANGIN</option>
@@ -199,7 +199,7 @@
                                     Kecamatan <span class="text-rose-500">*</span>
                                 </label>
                                 <select name="kecamatan" id="kecamatan" required disabled
-                                       class="w-full px-4 py-3 bg-slate-50 border @error('kecamatan') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                       class="w-full px-4 py-3 bg-slate-50 border @error('kecamatan') border-rose-400 @else @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed">
                                     <option value="">-- Pilih Kecamatan --</option>
                                 </select>
                                 @error('kecamatan') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
@@ -211,7 +211,7 @@
                                     Desa / Kelurahan <span class="text-rose-500">*</span>
                                 </label>
                                 <select name="desa" id="desa" required disabled
-                                       class="w-full px-4 py-3 bg-slate-50 border @error('desa') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                       class="w-full px-4 py-3 bg-slate-50 border @error('desa') border-rose-400 @else @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed">
                                     <option value="">-- Pilih Desa / Kelurahan --</option>
                                 </select>
                                 @error('desa') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
@@ -223,7 +223,7 @@
                                     RT / RW <span class="text-rose-500">*</span>
                                 </label>
                                 <input type="text" name="rt_rw" value="{{ old('rt_rw', $warga->rt_rw ?? '') }}" placeholder="Contoh: RT 02 / RW 01" required
-                                       class="w-full px-4 py-3 bg-slate-50 border @error('rt_rw') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
+                                       class="w-full px-4 py-3 bg-slate-50 border @error('rt_rw') border-rose-400 @else @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
                                 @error('rt_rw') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
                             </div>
 
@@ -234,7 +234,7 @@
                                 </label>
                                 <div class="relative">
                                     <input type="text" name="no_hp" value="{{ old('no_hp', $warga->no_hp ?? '') }}" placeholder="08xxxxxxxxxx" required
-                                           class="w-full pl-10 pr-4 py-3 bg-slate-50 border @error('no_hp') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
+                                           class="w-full pl-10 pr-4 py-3 bg-slate-50 border @error('no_hp') @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
                                     <i class="fa-brands fa-whatsapp absolute left-3.5 top-3.5 text-emerald-600 text-lg"></i>
                                 </div>
                                 @error('no_hp') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
@@ -247,7 +247,7 @@
                                 Alamat Domisili Lengkap <span class="text-rose-500">*</span>
                             </label>
                             <textarea name="alamat" rows="3" required placeholder="Nama jalan, nomor rumah, patokan bangunan..."
-                                      class="w-full px-4 py-3 bg-slate-50 border @error('alamat') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition resize-none">{{ old('alamat', $warga->alamat ?? '') }}</textarea>
+                                      class="w-full px-4 py-3 bg-slate-50 border @error('alamat') border-rose-400 @else @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition resize-none">{{ old('alamat', $warga->alamat ?? '') }}</textarea>
                             @error('alamat') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
@@ -349,7 +349,7 @@
                             @endphp
 
                             @foreach($files as $name => $fileInfo)
-                                <div class="p-5 border-2 border-dashed @error($name) border-rose-300 bg-rose-50/20 @else border-slate-300 bg-slate-50/50 @enderror rounded-2xl text-center space-y-3 relative hover:border-blue-500 transition">
+                                <div class="p-5 border-2 border-dashed @error($name) border-rose-300 bg-rose-50/20 @else @enderror rounded-2xl text-center space-y-3 relative hover:border-blue-500 transition">
                                     <label class="block text-xs font-extrabold text-slate-900 uppercase tracking-wider">
                                         {{ $fileInfo['label'] }} <span class="text-rose-500">*</span>
                                     </label>
@@ -397,7 +397,7 @@
                     {{-- STEPPER NAVIGATION CONTROLS (Next / Back) --}}
                     <div class="pt-6 border-t border-slate-200 flex flex-col-reverse sm:flex-row items-center justify-between gap-3">
                         <!-- Back Button -->
-                        <button type="button" id="btn-wizard-prev" onclick="prevStep()" class="hidden w-full sm:w-auto px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-sm rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer border border-slate-300">
+                        <button type="button" id="btn-wizard-prev" onclick="prevStep()" class="hidden w-full sm:w-auto px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-sm rounded-xl transition-all items-center justify-center gap-2 cursor-pointer border border-slate-300">
                             <i class="fa-solid fa-arrow-left text-slate-500"></i>
                             <span>Kembali</span>
                         </button>
@@ -410,7 +410,7 @@
                             </button>
 
                             <!-- Submit Button (Only Step 3) -->
-                            <button type="submit" id="btn-wizard-submit" class="hidden w-full sm:w-auto px-8 py-3.5 bg-slate-900 hover:bg-slate-800 text-amber-400 font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2.5 cursor-pointer border border-slate-800">
+                            <button type="submit" id="btn-wizard-submit" class="hidden w-full sm:w-auto px-8 py-3.5 bg-slate-900 hover:bg-slate-800 text-amber-400 font-extrabold text-sm rounded-xl shadow-md transition-all items-center justify-center gap-2.5 cursor-pointer border border-slate-800">
                                 <i class="fa-solid fa-paper-plane text-amber-400"></i>
                                 <span>{{ isset($warga) ? 'Simpan Perbaikan & Kirim Ulang' : 'Kirim Form Pendaftaran BPBL' }}</span>
                             </button>
@@ -749,7 +749,7 @@ function previewImage(input, name) {
 
 // Fitur PWA IndexedDB Offline Queue Submission
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.querySelector('form[action="{{ route("warga.store") }}"]');
+    const form = document.querySelector('form[action="{{ route("staffdesa.store") }}"]');
     if (!form) return;
 
     form.addEventListener('submit', function(e) {

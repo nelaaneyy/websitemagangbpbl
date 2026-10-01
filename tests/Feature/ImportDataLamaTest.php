@@ -26,7 +26,7 @@ class ImportDataLamaTest extends TestCase
         $file = UploadedFile::fake()->createWithContent('import_test.csv', $csvContent);
 
         $response = $this->actingAs($superAdmin)
-            ->post(route('dinasesdm.import.excel'), [
+            ->post(route('admin.import.excel'), [
                 'file' => $file,
             ]);
 
@@ -60,7 +60,7 @@ class ImportDataLamaTest extends TestCase
             'kabupaten'                => 'KOTA JAMBI',
             'kecamatan'                => 'ALAM BARAJO',
             'desa'                     => 'BAGAN PETE',
-            'rt_rw'                    => '01/01',
+            'rt_rw'                    => '',
             'no_hp'                    => '-',
             'alamat'                   => 'JL. R SAYUTI PERUM. PINANG MERAH',
             'latitude'                 => 0.0,
@@ -71,19 +71,19 @@ class ImportDataLamaTest extends TestCase
         ]);
 
         // Access validation list page
-        $response = $this->actingAs($superAdmin)->get(route('dinasesdm.validasi_realisasi.index'));
+        $response = $this->actingAs($superAdmin)->get(route('admin.validasi_realisasi.index'));
         $response->assertStatus(200);
         $response->assertSee('SANDI PRASETYO');
         $response->assertSee('1571070904930001');
 
         // Confirm Single: Sudah Realisasi
         $confirmResponse = $this->actingAs($superAdmin)
-            ->patch(route('dinasesdm.validasi_realisasi.confirm', $warga->id), [
+            ->patch(route('admin.validasi_realisasi.confirm', $warga->id), [
                 'keputusan' => 'sudah_realisasi',
             ]);
 
         $confirmResponse->assertRedirect();
-        
+
         $warga->refresh();
         $this->assertEquals('terpasang', $warga->status_verifikasi);
         $this->assertFalse((bool)$warga->butuh_validasi_realisasi);
@@ -101,7 +101,7 @@ class ImportDataLamaTest extends TestCase
             'kabupaten'                => 'KOTA JAMBI',
             'kecamatan'                => 'ALAM BARAJO',
             'desa'                     => 'BAGAN PETE',
-            'rt_rw'                    => '01/01',
+            'rt_rw'                    => '',
             'no_hp'                    => '-',
             'alamat'                   => 'ALAMAT 1',
             'latitude'                 => 0.0,
@@ -116,7 +116,7 @@ class ImportDataLamaTest extends TestCase
             'kabupaten'                => 'KOTA JAMBI',
             'kecamatan'                => 'ALAM BARAJO',
             'desa'                     => 'BAGAN PETE',
-            'rt_rw'                    => '01/01',
+            'rt_rw'                    => '',
             'no_hp'                    => '-',
             'alamat'                   => 'ALAMAT 2',
             'latitude'                 => 0.0,
@@ -126,7 +126,7 @@ class ImportDataLamaTest extends TestCase
         ]);
 
         $bulkResponse = $this->actingAs($superAdmin)
-            ->post(route('dinasesdm.validasi_realisasi.bulk_confirm'), [
+            ->post(route('admin.validasi_realisasi.bulk_confirm'), [
                 'warga_ids' => [$w1->id, $w2->id],
                 'keputusan' => 'sudah_realisasi',
             ]);

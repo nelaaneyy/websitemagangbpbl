@@ -271,7 +271,7 @@ if (empty($nik) || strlen($nik) !== 16) {
                         'kecamatan'                => strtoupper($kecamatan),
                         'desa'                     => strtoupper($desa),
                         'dusun'                    => $data['dusun'] ?? null,
-                        'rt_rw'                    => $data['rt_rw'] ?? '01/01',
+                        'rt_rw'                    => $data['rt_rw'],
                         'no_hp'                    => $data['no_hp'] ?? '-',
                         'alamat'                   => $alamat,
                         'latitude'                 => is_numeric($data['latitude'] ?? null) ? (float)$data['latitude'] : 0.0,

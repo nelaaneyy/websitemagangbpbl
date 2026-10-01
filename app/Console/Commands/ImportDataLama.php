@@ -44,7 +44,7 @@ class ImportDataLama extends Command
                 }
 
                 $rowJoined = strtolower(implode(' | ', array_map('strval', $row)));
-                
+
                 $keywords = ['nik', 'nama', 'kecamatan', 'desa', 'kelurahan', 'alamat', 'realisasi', 'usulan'];
                 $matchCount = 0;
                 foreach ($keywords as $kw) {
@@ -215,6 +215,7 @@ class ImportDataLama extends Command
 
             $nama = $namaRaw ?: ($data['nama'] ?? 'WARGA PEMOHON');
             $desa = $desaRaw ?: ($data['desa'] ?? 'BAGAN PETE');
+            $rtRwRaw = $data['rt_rw'] ?? $data['rt'] ?? $data['rt/rw'] ?? null;
             $kecamatan = (!empty($kecRaw) && $kecRaw !== '-') ? $kecRaw : ($data['kecamatan'] ?? 'ALAM BARAJO');
             $kabupaten = (!empty($kabRaw) && $kabRaw !== '-' && $kabRaw !== 'KABUPATEN MUARO JAMBI') ? $kabRaw : ($data['kabupaten'] ?? 'KOTA JAMBI');
             if (strtoupper($kecamatan) === 'ALAM BARAJO') {
@@ -229,6 +230,12 @@ class ImportDataLama extends Command
                 $failedCount++;
                 $bar->advance();
                 continue;
+            }
+
+            if (empty($rtRwRaw) && !empty($alamat)) {
+                if (preg_match('/rt\s*[:\.]?\s*(\d+)/i', $alamat, $matches)) {
+                    $rtRwRaw = sprintf('%03d', (int)$matches[1]);
+                }
             }
 
             $realisasiResult = $this->parseRealisasiStatus($realisasiVal);
@@ -246,7 +253,7 @@ class ImportDataLama extends Command
                 'kecamatan'                => $kecamatan,
                 'desa'                     => $desa,
                 'dusun'                    => $data['dusun'] ?? null,
-                'rt_rw'                    => $data['rt_rw'] ?? '01/01',
+                'rt_rw'                    => $rtRwRaw ?: '001',
                 'no_hp'                    => $data['no_hp'] ?? '-',
                 'alamat'                   => $alamat,
                 'latitude'                 => is_numeric($data['latitude'] ?? null) ? (float)$data['latitude'] : 0.0,

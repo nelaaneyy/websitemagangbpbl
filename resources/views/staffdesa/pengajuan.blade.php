@@ -1,31 +1,30 @@
-@extends('layouts.admin')
-
-@push('styles')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-@endpush
+@extends('layouts.staffdesa')
 
 @section('content')
+{{-- Leaflet dimuat langsung di sini (tidak bergantung @stack di layout) --}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 <div class="py-12 bg-slate-50 min-h-screen">
     <div class="max-w-4xl mx-auto px-4 sm:px-6">
 
         <!-- Back Link & Title Header -->
         <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         @auth
-            <a href="{{ in_array(auth()->user()->role, ['staff_desa', 'staf_desa']) ? route('staffdesa.index') : (auth()->user()->role === 'verifikator_esdm' ? route('dinasesdm.datalist') : route('dinasesdm.index')) }}"
+            <a href="{{ in_array(auth()->user()->role, ['staff_desa', 'staf_desa']) ? route('staffdesa.index') : (auth()->user()->role === 'verifikator_esdm' ? route('admin.datalist') : route('admin.index')) }}"
             class="inline-flex items-center gap-2 text-xs font-bold text-blue-700 hover:text-blue-900 transition">
                 <i class="fa-solid fa-arrow-left text-amber-500"></i>
                 <span>Kembali ke Dashboard {{ in_array(auth()->user()->role, ['staff_desa', 'staf_desa']) ? 'Staff Administrasi Desa (' . auth()->user()->desa . ')' : 'Admin ESDM' }}</span>
             </a>
         @else
-            <a href="{{ route('warga.index') }}" class="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+            <a href="{{ route('staffdesa.index') }}" class="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition">
                 <i class="fa-solid fa-arrow-left text-amber-500"></i> Kembali ke Beranda
             </a>
         @endauth
-</div>
+        </div>
 
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden relative">
-            <!-- Header Accent Banner (Midnight Slate & ESDM Amber) -->
+            <!-- Header Accent Banner -->
             <div class="bg-slate-900 text-white p-6 sm:p-10 relative overflow-hidden border-b border-slate-800">
                 <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-amber-500/10 blur-2xl"></div>
 
@@ -73,7 +72,6 @@
 
                 <!-- STEPPER WIZARD HEADER INDICATOR -->
                 <div class="border-b border-slate-200/80 pb-6">
-                    <!-- Progress Info Mobile & Desktop -->
                     <div class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
                         <span id="wizard-step-label" class="flex items-center gap-1.5 font-extrabold text-slate-800">
                             <i class="fa-solid fa-list-check text-amber-500"></i> Tahap 1 dari 3: Data Diri Pemohon
@@ -81,52 +79,41 @@
                         <span id="wizard-step-percent" class="text-amber-600 font-black">33% Selesai</span>
                     </div>
 
-                    <!-- Visual Progress Bar -->
                     <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-5 shadow-inner border border-slate-200/50">
                         <div id="wizard-progress-bar" class="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 h-full rounded-full transition-all duration-500 ease-out" style="width: 33.33%;"></div>
                     </div>
 
-                    <!-- Step Nav Badges -->
                     <div class="grid grid-cols-3 gap-2 sm:gap-4">
-                        <!-- Step 1 Badge -->
                         <button type="button" onclick="goToStep(1)" id="step-badge-1"
                                 class="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 p-2.5 sm:p-3.5 rounded-2xl border transition-all cursor-pointer bg-slate-900 border-slate-900 text-white shadow-md ring-2 ring-amber-400/50">
-                            <div id="step-icon-1" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-xs sm:text-sm font-black shrink-0">
-                                1
-                            </div>
+                            <div id="step-icon-1" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-xs sm:text-sm font-black shrink-0">1</div>
                             <div class="text-center sm:text-left min-w-0">
                                 <p class="text-[10px] sm:text-[11px] uppercase font-extrabold tracking-wider opacity-80 leading-none">Tahap 1</p>
                                 <p class="text-xs sm:text-sm font-bold truncate mt-0.5">Data Diri</p>
                             </div>
                         </button>
 
-                        <!-- Step 2 Badge -->
                         <button type="button" onclick="goToStep(2)" id="step-badge-2"
                                 class="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 p-2.5 sm:p-3.5 rounded-2xl border transition-all cursor-pointer bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100">
-                            <div id="step-icon-2" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center text-xs sm:text-sm font-black shrink-0">
-                                2
-                            </div>
+                            <div id="step-icon-2" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center text-xs sm:text-sm font-black shrink-0">2</div>
                             <div class="text-center sm:text-left min-w-0">
                                 <p class="text-[10px] sm:text-[11px] uppercase font-extrabold tracking-wider opacity-70 leading-none">Tahap 2</p>
                                 <p class="text-xs sm:text-sm font-bold truncate mt-0.5">Lokasi Rumah</p>
                             </div>
                         </button>
 
-                        <!-- Step 3 Badge -->
                         <button type="button" onclick="goToStep(3)" id="step-badge-3"
                                 class="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 p-2.5 sm:p-3.5 rounded-2xl border transition-all cursor-pointer bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100">
-                            <div id="step-icon-3" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center text-xs sm:text-sm font-black shrink-0">
-                                3
-                            </div>
+                            <div id="step-icon-3" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center text-xs sm:text-sm font-black shrink-0">3</div>
                             <div class="text-center sm:text-left min-w-0">
                                 <p class="text-[10px] sm:text-[11px] uppercase font-extrabold tracking-wider opacity-70 leading-none">Tahap 3</p>
-                                <p class="text-xs sm:text-sm font-bold truncate mt-0.5">Dokumen & Form</p>
+                                <p class="text-xs sm:text-sm font-bold truncate mt-0.5">Dokumen &amp; Form</p>
                             </div>
                         </button>
                     </div>
                 </div>
 
-                <form action="{{ route('warga.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+                <form id="form-pengajuan" action="{{ route('staffdesa.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                     @csrf
 
                     {{-- TAHAP 1: DATA IDENTITAS WARGA --}}
@@ -148,7 +135,7 @@
                                 <div class="relative">
                                     <input type="text" name="nik" id="nik_input" value="{{ old('nik', $warga->nik ?? $nik ?? '') }}" maxlength="16" required
                                            placeholder="16 Digit NIK KTP..." {{ isset($warga) ? 'readonly' : '' }}
-                                           class="w-full pl-10 pr-10 py-3 bg-slate-50 border @error('nik') border-rose-400 @else border-slate-300 @enderror {{ isset($warga) ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'focus:bg-white' }} rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
+                                           class="w-full pl-10 pr-10 py-3 bg-slate-50 border {{ $errors->has('nik') ? 'border-rose-400' : 'border-slate-300' }} {{ isset($warga) ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'focus:bg-white' }} rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
                                     <i class="fa-solid fa-id-card absolute left-3.5 top-3.5 text-slate-400"></i>
                                     <div id="nik-status-icon" class="absolute right-3.5 top-3.5 hidden"></div>
                                 </div>
@@ -164,7 +151,7 @@
                                 <div class="relative">
                                     <input type="text" name="nama" value="{{ old('nama', $warga->nama ?? '') }}" required
                                            placeholder="Nama lengkap sesuai KTP..."
-                                           class="w-full pl-10 pr-4 py-3 bg-slate-50 border @error('nama') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
+                                           class="w-full pl-10 pr-4 py-3 bg-slate-50 border {{ $errors->has('nama') ? 'border-rose-400' : 'border-slate-300' }} focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
                                     <i class="fa-solid fa-user absolute left-3.5 top-3.5 text-slate-400"></i>
                                 </div>
                                 @error('nama') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
@@ -176,19 +163,27 @@
                                     Kabupaten / Kota <span class="text-rose-500">*</span>
                                 </label>
                                 <select name="kabupaten" id="kabupaten" required
-                                       class="w-full px-4 py-3 bg-slate-50 border @error('kabupaten') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
+                                       class="w-full px-4 py-3 bg-slate-50 border {{ $errors->has('kabupaten') ? 'border-rose-400' : 'border-slate-300' }} focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
                                     <option value="">-- Pilih Kabupaten / Kota --</option>
-                                    <option value="KABUPATEN KERINCI" data-id="1501" {{ old('kabupaten', isset($warga) ? $warga->kabupaten : '') == 'KABUPATEN KERINCI' ? 'selected' : '' }}>KABUPATEN KERINCI</option>
-                                    <option value="KABUPATEN MERANGIN" data-id="1502" {{ old('kabupaten', isset($warga) ? $warga->kabupaten : '') == 'KABUPATEN MERANGIN' ? 'selected' : '' }}>KABUPATEN MERANGIN</option>
-                                    <option value="KABUPATEN SAROLANGUN" data-id="1503" {{ old('kabupaten', isset($warga) ? $warga->kabupaten : '') == 'KABUPATEN SAROLANGUN' ? 'selected' : '' }}>KABUPATEN SAROLANGUN</option>
-                                    <option value="KABUPATEN BATANG HARI" data-id="1504" {{ old('kabupaten', isset($warga) ? $warga->kabupaten : '') == 'KABUPATEN BATANG HARI' ? 'selected' : '' }}>KABUPATEN BATANG HARI</option>
-                                    <option value="KABUPATEN MUARO JAMBI" data-id="1505" {{ old('kabupaten', isset($warga) ? $warga->kabupaten : '') == 'KABUPATEN MUARO JAMBI' ? 'selected' : '' }}>KABUPATEN MUARO JAMBI</option>
-                                    <option value="KABUPATEN TANJUNG JABUNG TIMUR" data-id="1506" {{ old('kabupaten', isset($warga) ? $warga->kabupaten : '') == 'KABUPATEN TANJUNG JABUNG TIMUR' ? 'selected' : '' }}>KABUPATEN TANJUNG JABUNG TIMUR</option>
-                                    <option value="KABUPATEN TANJUNG JABUNG BARAT" data-id="1507" {{ old('kabupaten', isset($warga) ? $warga->kabupaten : '') == 'KABUPATEN TANJUNG JABUNG BARAT' ? 'selected' : '' }}>KABUPATEN TANJUNG JABUNG BARAT</option>
-                                    <option value="KABUPATEN TEBO" data-id="1508" {{ old('kabupaten', isset($warga) ? $warga->kabupaten : '') == 'KABUPATEN TEBO' ? 'selected' : '' }}>KABUPATEN TEBO</option>
-                                    <option value="KABUPATEN BUNGO" data-id="1509" {{ old('kabupaten', isset($warga) ? $warga->kabupaten : '') == 'KABUPATEN BUNGO' ? 'selected' : '' }}>KABUPATEN BUNGO</option>
-                                    <option value="KOTA JAMBI" data-id="1571" {{ old('kabupaten', isset($warga) ? $warga->kabupaten : '') == 'KOTA JAMBI' ? 'selected' : '' }}>KOTA JAMBI</option>
-                                    <option value="KOTA SUNGAI PENUH" data-id="1572" {{ old('kabupaten', isset($warga) ? $warga->kabupaten : '') == 'KOTA SUNGAI PENUH' ? 'selected' : '' }}>KOTA SUNGAI PENUH</option>
+                                    @php
+                                        $kabList = [
+                                            'KABUPATEN KERINCI' => '15.01',
+                                            'KABUPATEN MERANGIN' => '15.02',
+                                            'KABUPATEN SAROLANGUN' => '15.03',
+                                            'KABUPATEN BATANG HARI' => '15.04',
+                                            'KABUPATEN MUARO JAMBI' => '15.05',
+                                            'KABUPATEN TANJUNG JABUNG TIMUR' => '15.06',
+                                            'KABUPATEN TANJUNG JABUNG BARAT' => '15.07',
+                                            'KABUPATEN TEBO' => '15.08',
+                                            'KABUPATEN BUNGO' => '15.09',
+                                            'KOTA JAMBI' => '15.71',
+                                            'KOTA SUNGAI PENUH' => '15.72',
+                                        ];
+                                        $selectedKab = old('kabupaten', isset($warga) ? $warga->kabupaten : '');
+                                    @endphp
+                                    @foreach($kabList as $kabName => $kabId)
+                                        <option value="{{ $kabName }}" {{ $selectedKab == $kabName ? 'selected' : '' }}>{{ $kabName }}</option>
+                                    @endforeach
                                 </select>
                                 @error('kabupaten') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
                             </div>
@@ -199,7 +194,7 @@
                                     Kecamatan <span class="text-rose-500">*</span>
                                 </label>
                                 <select name="kecamatan" id="kecamatan" required disabled
-                                       class="w-full px-4 py-3 bg-slate-50 border @error('kecamatan') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                       class="w-full px-4 py-3 bg-slate-50 border {{ $errors->has('kecamatan') ? 'border-rose-400' : 'border-slate-300' }} focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed">
                                     <option value="">-- Pilih Kecamatan --</option>
                                 </select>
                                 @error('kecamatan') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
@@ -211,7 +206,7 @@
                                     Desa / Kelurahan <span class="text-rose-500">*</span>
                                 </label>
                                 <select name="desa" id="desa" required disabled
-                                       class="w-full px-4 py-3 bg-slate-50 border @error('desa') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                       class="w-full px-4 py-3 bg-slate-50 border {{ $errors->has('desa') ? 'border-rose-400' : 'border-slate-300' }} focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed">
                                     <option value="">-- Pilih Desa / Kelurahan --</option>
                                 </select>
                                 @error('desa') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
@@ -219,15 +214,13 @@
 
                             {{-- Kode Pos --}}
                             <div class="space-y-3">
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                    Kode Pos
-                                </label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Kode Pos</label>
                                 <div class="relative">
-                                    <input type="text" name="kode_pos" id="kode_pos"
-                                        value="{{ old('kode_pos', $warga->kode_pos ?? '') }}"
-                                        placeholder="Contoh: 36128" maxlength="5"
-                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border @error('kode_pos') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
-                                    <i class="fa-solid fa-mail-bulk absolute left-3.5 top-3.5 text-slate-400"></i>
+                                    <select name="kode_pos" id="kode_pos" disabled
+                                            class="w-full pl-10 pr-4 py-3 bg-slate-50 border {{ $errors->has('kode_pos') ? 'border-rose-400' : 'border-slate-300' }} focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <option value="">-- Pilih Kode Pos --</option>
+                                    </select>
+                                    <i class="fa-solid fa-mail-bulk absolute left-3.5 top-3.5 text-slate-400 pointer-events-none"></i>
                                 </div>
                                 @error('kode_pos') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
                             </div>
@@ -238,7 +231,7 @@
                                     RT / RW <span class="text-rose-500">*</span>
                                 </label>
                                 <input type="text" name="rt_rw" value="{{ old('rt_rw', $warga->rt_rw ?? '') }}" placeholder="Contoh: RT 02 / RW 01" required
-                                       class="w-full px-4 py-3 bg-slate-50 border @error('rt_rw') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
+                                       class="w-full px-4 py-3 bg-slate-50 border {{ $errors->has('rt_rw') ? 'border-rose-400' : 'border-slate-300' }} focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
                                 @error('rt_rw') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
                             </div>
 
@@ -249,7 +242,7 @@
                                 </label>
                                 <div class="relative">
                                     <input type="text" name="no_hp" value="{{ old('no_hp', $warga->no_hp ?? '') }}" placeholder="08xxxxxxxxxx" required
-                                           class="w-full pl-10 pr-4 py-3 bg-slate-50 border @error('no_hp') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
+                                           class="w-full pl-10 pr-4 py-3 bg-slate-50 border {{ $errors->has('no_hp') ? 'border-rose-400' : 'border-slate-300' }} focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
                                     <i class="fa-brands fa-whatsapp absolute left-3.5 top-3.5 text-emerald-600 text-lg"></i>
                                 </div>
                                 @error('no_hp') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
@@ -262,7 +255,7 @@
                                 Alamat Domisili Lengkap <span class="text-rose-500">*</span>
                             </label>
                             <textarea name="alamat" rows="3" required placeholder="Nama jalan, nomor rumah, patokan bangunan..."
-                                      class="w-full px-4 py-3 bg-slate-50 border @error('alamat') border-rose-400 @else border-slate-300 @enderror focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition resize-none">{{ old('alamat', $warga->alamat ?? '') }}</textarea>
+                                      class="w-full px-4 py-3 bg-slate-50 border {{ $errors->has('alamat') ? 'border-rose-400' : 'border-slate-300' }} focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition resize-none">{{ old('alamat', $warga->alamat ?? '') }}</textarea>
                             @error('alamat') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
@@ -286,21 +279,19 @@
                                 </button>
                             </div>
 
-                            <!-- Leaflet Interactive Map Container -->
                             <div class="space-y-3">
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                                         <i class="fa-solid fa-map-location-dot text-amber-500 mr-1"></i> Peta Interaktif Penentuan Lokasi
                                     </label>
 
-                                    <!-- Toggle Mode Peta (Jalan vs Satelit + Nama Jalan) -->
                                     <div class="inline-flex p-1 bg-slate-200/80 rounded-xl gap-1 self-start sm:self-auto shadow-xs border border-slate-300/60">
                                         <button type="button" id="btn-mode-streets" onclick="switchMapTile('streets')"
-                                                class="px-3 py-1.5 bg-white text-slate-900 shadow-xs rounded-lg text-xs font-extrabold transition flex items-center gap-1.5 cursor-pointer">
+                                                class="px-3 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
                                             <i class="fa-solid fa-map text-blue-600"></i> Peta Jalan
                                         </button>
                                         <button type="button" id="btn-mode-satellite" onclick="switchMapTile('satellite')"
-                                                class="px-3 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                                                class="px-3 py-1.5 bg-white text-slate-900 shadow-xs rounded-lg text-xs font-extrabold transition flex items-center gap-1.5 cursor-pointer">
                                             <i class="fa-solid fa-satellite text-amber-500"></i> Satelit + Nama Jalan
                                         </button>
                                     </div>
@@ -308,18 +299,17 @@
 
                                 <div id="map-picker" class="h-80 w-full rounded-2xl border border-slate-300 shadow-inner z-0 overflow-hidden relative"></div>
 
-                                <!-- Info Deteksi Nama Jalan & Alamat Otomatis -->
                                 <div id="street-name-info" class="p-3.5 bg-blue-50/90 border border-blue-200 rounded-xl text-xs font-semibold text-blue-900 flex items-start gap-2.5 shadow-xs">
                                     <i class="fa-solid fa-road text-blue-600 text-sm mt-0.5"></i>
                                     <div>
-                                        <strong class="text-blue-950 block text-xs">Deteksi Nama Jalan & Alamat:</strong>
+                                        <strong class="text-blue-950 block text-xs">Deteksi Nama Jalan &amp; Alamat:</strong>
                                         <span class="text-slate-600 text-[11px] font-medium leading-snug">Geser penanda biru di peta atau klik lokasi rumah Anda untuk mendeteksi nama jalan secara otomatis.</span>
                                     </div>
                                 </div>
 
                                 <div class="p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs font-semibold text-amber-900 flex items-center gap-2">
                                     <i class="fa-solid fa-circle-info text-amber-600 text-sm"></i>
-                                    <span>Petunjuk: Pilih mode <strong>"Satelit + Nama Jalan"</strong> di atas peta untuk melihat atap bangunan & nama jalan dengan jelas.</span>
+                                    <span>Petunjuk: Pilih mode <strong>"Satelit + Nama Jalan"</strong> di atas peta untuk melihat atap bangunan &amp; nama jalan dengan jelas.</span>
                                 </div>
                             </div>
 
@@ -347,7 +337,7 @@
                         <div class="flex items-center gap-3 pb-3 border-b border-slate-200">
                             <div class="w-9 h-9 rounded-xl bg-slate-900 text-amber-400 font-extrabold flex items-center justify-center text-sm shadow-sm">3</div>
                             <div>
-                                <h3 class="text-lg font-extrabold text-slate-900 tracking-tight">Unggah Dokumen & Foto Fisik</h3>
+                                <h3 class="text-lg font-extrabold text-slate-900 tracking-tight">Unggah Dokumen &amp; Foto Fisik</h3>
                                 <p class="text-xs text-slate-500">Format JPG / PNG, ukuran maksimal 2 MB per file</p>
                             </div>
                         </div>
@@ -364,7 +354,7 @@
                             @endphp
 
                             @foreach($files as $name => $fileInfo)
-                                <div class="p-5 border-2 border-dashed @error($name) border-rose-300 bg-rose-50/20 @else border-slate-300 bg-slate-50/50 @enderror rounded-2xl text-center space-y-3 relative hover:border-blue-500 transition">
+                                <div class="p-5 border-2 border-dashed {{ $errors->has($name) ? 'border-rose-300 bg-rose-50/20' : 'border-slate-300' }} rounded-2xl text-center space-y-3 relative hover:border-blue-500 transition">
                                     <label class="block text-xs font-extrabold text-slate-900 uppercase tracking-wider">
                                         {{ $fileInfo['label'] }} <span class="text-rose-500">*</span>
                                     </label>
@@ -373,17 +363,15 @@
                                     <div class="relative w-full h-32 rounded-xl overflow-hidden bg-white border border-slate-200 shadow-xs">
                                         <input type="file" name="{{ $name }}" accept="image/jpeg,image/png,image/jpg" required
                                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                                               onchange="previewImage(this, '{{$name}}')">
+                                               onchange="previewImage(this, '{{ $name }}')">
 
-                                        <!-- Default Box -->
-                                        <div id="box-{{$name}}" class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-blue-700">
+                                        <div id="box-{{ $name }}" class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-blue-700">
                                             <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
                                             <span class="text-xs font-bold">Pilih / Unggah Foto</span>
                                         </div>
 
-                                        <!-- Image Preview -->
-                                        <div id="preview-container-{{$name}}" class="hidden absolute inset-0 w-full h-full bg-slate-100 z-10">
-                                            <img id="preview-img-{{$name}}" src="" class="w-full h-full object-cover">
+                                        <div id="preview-container-{{ $name }}" class="hidden absolute inset-0 w-full h-full bg-slate-100 z-10">
+                                            <img id="preview-img-{{ $name }}" src="" class="w-full h-full object-cover">
                                         </div>
                                     </div>
                                     @error($name) <p class="text-rose-600 text-xs font-semibold">{{ $message }}</p> @enderror
@@ -409,23 +397,21 @@
                         </div>
                     </div>
 
-                    {{-- STEPPER NAVIGATION CONTROLS (Next / Back) --}}
+                    {{-- STEPPER NAVIGATION CONTROLS --}}
                     <div class="pt-6 border-t border-slate-200 flex flex-col-reverse sm:flex-row items-center justify-between gap-3">
-                        <!-- Back Button -->
-                        <button type="button" id="btn-wizard-prev" onclick="prevStep()" class="hidden w-full sm:w-auto px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-sm rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer border border-slate-300">
+                        <button type="button" id="btn-wizard-prev" onclick="prevStep()" class="hidden w-full sm:w-auto px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-sm rounded-xl transition-all items-center justify-center gap-2 cursor-pointer border border-slate-300">
                             <i class="fa-solid fa-arrow-left text-slate-500"></i>
                             <span>Kembali</span>
                         </button>
 
                         <div class="flex items-center gap-3 w-full sm:w-auto sm:ml-auto">
-                            <!-- Next Button -->
                             <button type="button" id="btn-wizard-next" onclick="nextStep()" class="w-full sm:w-auto px-8 py-3.5 bg-slate-900 hover:bg-slate-800 text-amber-400 font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2.5 cursor-pointer border border-slate-800">
                                 <span>Lanjut ke Lokasi Rumah</span>
                                 <i class="fa-solid fa-arrow-right text-amber-400"></i>
                             </button>
 
-                            <!-- Submit Button (Only Step 3) -->
-                            <button type="submit" id="btn-wizard-submit" class="hidden w-full sm:w-auto px-8 py-3.5 bg-slate-900 hover:bg-slate-800 text-amber-400 font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2.5 cursor-pointer border border-slate-800">
+                            {{-- Submit: hidden dari awal, hanya tampil di Tahap 3 --}}
+                            <button type="submit" id="btn-wizard-submit" class="hidden w-full sm:w-auto px-8 py-3.5 bg-slate-900 hover:bg-slate-800 text-amber-400 font-extrabold text-sm rounded-xl shadow-md transition-all items-center justify-center gap-2.5 cursor-pointer border border-slate-800">
                                 <i class="fa-solid fa-paper-plane text-amber-400"></i>
                                 <span>{{ isset($warga) ? 'Simpan Perbaikan & Kirim Ulang' : 'Kirim Form Pendaftaran BPBL' }}</span>
                             </button>
@@ -438,8 +424,10 @@
     </div>
 </div>
 
-{{-- SCRIPT JAVASCRIPT GPS GEOLOCATION, MAP PICKER & PREVIEW --}}
 <script>
+/* =========================================================
+   1. MAP PICKER (LEAFLET), GPS, FOTO, OFFLINE QUEUE
+   ========================================================= */
 let mapPicker, markerPicker;
 let googleHybridLayer, googleStreetsLayer, googleSatelliteLayer, osmStreetsLayer, esriSatelliteLayer;
 let currentTileMode = 'satellite';
@@ -462,40 +450,24 @@ function initMapPicker() {
     const mapElement = document.getElementById('map-picker');
     if (!mapElement) return;
 
-    // Define Map Layers (Google Maps Latest Tiles + OpenStreetMap & Esri Fallbacks)
     googleHybridLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-        maxZoom: 20,
-        subdomains: ['0', '1', '2', '3'],
-        attribution: '&copy; Google Maps'
+        maxZoom: 20, subdomains: ['0', '1', '2', '3'], attribution: '&copy; Google Maps'
     });
-
     googleStreetsLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-        maxZoom: 20,
-        subdomains: ['0', '1', '2', '3'],
-        attribution: '&copy; Google Maps'
+        maxZoom: 20, subdomains: ['0', '1', '2', '3'], attribution: '&copy; Google Maps'
     });
-
     googleSatelliteLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-        maxZoom: 20,
-        subdomains: ['0', '1', '2', '3'],
-        attribution: '&copy; Google Maps'
+        maxZoom: 20, subdomains: ['0', '1', '2', '3'], attribution: '&copy; Google Maps'
     });
-
     osmStreetsLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap'
+        maxZoom: 19, attribution: '&copy; OpenStreetMap'
     });
-
     esriSatelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        attribution: 'Esri World Imagery'
+        maxZoom: 19, attribution: 'Esri World Imagery'
     });
 
-    mapPicker = L.map('map-picker', {
-        layers: [googleHybridLayer]
-    }).setView([initialLat, initialLng], initialZoom);
+    mapPicker = L.map('map-picker', { layers: [googleHybridLayer] }).setView([initialLat, initialLng], initialZoom);
 
-    // Leaflet Layers Control at top right
     const baseMaps = {
         "🛰️ Google Satelit Terbaru + Nama Jalan": googleHybridLayer,
         "🗺️ Google Peta Jalan Terbaru": googleStreetsLayer,
@@ -503,41 +475,29 @@ function initMapPicker() {
         "🌍 OpenStreetMap Standard": osmStreetsLayer,
         "📡 Esri World Imagery": esriSatelliteLayer
     };
-
     L.control.layers(baseMaps, null, { position: 'topright' }).addTo(mapPicker);
 
-    // Draggable Marker
-    markerPicker = L.marker([initialLat, initialLng], {
-        draggable: true
-    }).addTo(mapPicker);
-
+    markerPicker = L.marker([initialLat, initialLng], { draggable: true }).addTo(mapPicker);
     markerPicker.bindPopup("<b>Titik Lokasi Rumah Anda</b><br>Geser (drag) pin ini tepat ke lokasi rumah.").openPopup();
 
     if (hasCoords) {
         fetchStreetName(initialLat, initialLng);
     }
 
-    // Event when marker is dragged
-    markerPicker.on('dragend', function(e) {
+    markerPicker.on('dragend', function () {
         const pos = markerPicker.getLatLng();
         updateCoordinatesInput(pos.lat, pos.lng);
         fetchStreetName(pos.lat, pos.lng);
     });
 
-    // Event when map is clicked
-    mapPicker.on('click', function(e) {
+    mapPicker.on('click', function (e) {
         markerPicker.setLatLng(e.latlng);
         updateCoordinatesInput(e.latlng.lat, e.latlng.lng);
         fetchStreetName(e.latlng.lat, e.latlng.lng);
     });
 
-    // Fix initial render dimensions
-    setTimeout(() => {
-        if (mapPicker) mapPicker.invalidateSize();
-    }, 300);
-    setTimeout(() => {
-        if (mapPicker) mapPicker.invalidateSize();
-    }, 1000);
+    setTimeout(() => { if (mapPicker) mapPicker.invalidateSize(); }, 300);
+    setTimeout(() => { if (mapPicker) mapPicker.invalidateSize(); }, 1000);
 }
 
 function switchMapTile(mode) {
@@ -545,25 +505,23 @@ function switchMapTile(mode) {
     const btnStreets = document.getElementById('btn-mode-streets');
     const btnSatellite = document.getElementById('btn-mode-satellite');
 
-    // Clear active tile layers safely
-    if (googleHybridLayer && mapPicker.hasLayer(googleHybridLayer)) mapPicker.removeLayer(googleHybridLayer);
-    if (googleStreetsLayer && mapPicker.hasLayer(googleStreetsLayer)) mapPicker.removeLayer(googleStreetsLayer);
-    if (googleSatelliteLayer && mapPicker.hasLayer(googleSatelliteLayer)) mapPicker.removeLayer(googleSatelliteLayer);
-    if (osmStreetsLayer && mapPicker.hasLayer(osmStreetsLayer)) mapPicker.removeLayer(osmStreetsLayer);
-    if (esriSatelliteLayer && mapPicker.hasLayer(esriSatelliteLayer)) mapPicker.removeLayer(esriSatelliteLayer);
+    [googleHybridLayer, googleStreetsLayer, googleSatelliteLayer, osmStreetsLayer, esriSatelliteLayer].forEach(layer => {
+        if (layer && mapPicker.hasLayer(layer)) mapPicker.removeLayer(layer);
+    });
+
+    const activeCls = "px-3 py-1.5 bg-white text-slate-900 shadow-xs rounded-lg text-xs font-extrabold transition flex items-center gap-1.5 cursor-pointer";
+    const idleCls = "px-3 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer";
 
     if (mode === 'satellite') {
         if (googleHybridLayer) mapPicker.addLayer(googleHybridLayer);
         currentTileMode = 'satellite';
-
-        if (btnSatellite) btnSatellite.className = "px-3 py-1.5 bg-white text-slate-900 shadow-xs rounded-lg text-xs font-extrabold transition flex items-center gap-1.5 cursor-pointer";
-        if (btnStreets) btnStreets.className = "px-3 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer";
+        if (btnSatellite) btnSatellite.className = activeCls;
+        if (btnStreets) btnStreets.className = idleCls;
     } else {
         if (googleStreetsLayer) mapPicker.addLayer(googleStreetsLayer);
         currentTileMode = 'streets';
-
-        if (btnStreets) btnStreets.className = "px-3 py-1.5 bg-white text-slate-900 shadow-xs rounded-lg text-xs font-extrabold transition flex items-center gap-1.5 cursor-pointer";
-        if (btnSatellite) btnSatellite.className = "px-3 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer";
+        if (btnStreets) btnStreets.className = activeCls;
+        if (btnSatellite) btnSatellite.className = idleCls;
     }
 }
 
@@ -583,8 +541,8 @@ function fetchStreetName(lat, lng) {
         .then(res => res.json())
         .then(data => {
             if (data && data.display_name) {
-                const road = data.address.road || data.address.pedestrian || data.address.suburb || data.address.village || data.address.county || '';
-                // Abaikan & bersihkan kode pos 5 digit dari respon Nominatim agar tidak mengecoh warga
+                const addr = data.address || {};
+                const road = addr.road || addr.pedestrian || addr.suburb || addr.village || addr.county || '';
                 const fullAddress = data.display_name.replace(/,\s*\d{5}\b/g, '');
 
                 if (infoBox) {
@@ -608,7 +566,7 @@ function fetchStreetName(lat, lng) {
                 }
             }
         })
-        .catch(err => {
+        .catch(() => {
             if (infoBox) {
                 infoBox.innerHTML = `
                     <i class="fa-solid fa-location-dot text-amber-500 text-sm mt-0.5"></i>
@@ -622,19 +580,15 @@ function fetchStreetName(lat, lng) {
 }
 
 function updateCoordinatesInput(lat, lng) {
-    const formattedLat = parseFloat(lat).toFixed(6);
-    const formattedLng = parseFloat(lng).toFixed(6);
     const latEl = document.getElementById('latitude');
     const lngEl = document.getElementById('longitude');
-    if (latEl) latEl.value = formattedLat;
-    if (lngEl) lngEl.value = formattedLng;
+    if (latEl) latEl.value = parseFloat(lat).toFixed(6);
+    if (lngEl) lngEl.value = parseFloat(lng).toFixed(6);
 }
 
 function updateMapLocation(lat, lng) {
     const position = [lat, lng];
-    if (markerPicker) {
-        markerPicker.setLatLng(position);
-    }
+    if (markerPicker) markerPicker.setLatLng(position);
     if (mapPicker) {
         mapPicker.setView(position, 16);
         mapPicker.invalidateSize();
@@ -643,48 +597,43 @@ function updateMapLocation(lat, lng) {
 }
 
 function getLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                updateCoordinatesInput(lat, lng);
-                updateMapLocation(lat, lng);
-                alert('Lokasi GPS berhasil dideteksi! Anda juga dapat menggeser pin di peta jika lokasi belum tepat.');
-            },
-            function(error) {
-                switch(error.code) {
-                    case error.PERMISSION_DENIED:
-                        alert("Akses lokasi ditolak. Harap izinkan akses lokasi/GPS pada browser HP Anda.");
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        alert("Informasi lokasi tidak tersedia.");
-                        break;
-                    case error.TIMEOUT:
-                        alert("Waktu permintaan deteksi lokasi habis.");
-                        break;
-                    default:
-                        alert("Terjadi kesalahan saat mengambil lokasi GPS.");
-                        break;
-                }
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            }
-        );
-    } else {
+    if (!navigator.geolocation) {
         alert('Browser Anda tidak mendukung fitur deteksi lokasi otomatis.');
+        return;
     }
+    navigator.geolocation.getCurrentPosition(
+        function (position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            updateCoordinatesInput(lat, lng);
+            updateMapLocation(lat, lng);
+            alert('Lokasi GPS berhasil dideteksi! Anda juga dapat menggeser pin di peta jika lokasi belum tepat.');
+        },
+        function (error) {
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    alert("Akses lokasi ditolak. Harap izinkan akses lokasi/GPS pada browser HP Anda.");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    alert("Informasi lokasi tidak tersedia.");
+                    break;
+                case error.TIMEOUT:
+                    alert("Waktu permintaan deteksi lokasi habis.");
+                    break;
+                default:
+                    alert("Terjadi kesalahan saat mengambil lokasi GPS.");
+            }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
 }
 
-// Fitur Otomatisasi Kompresi Foto Client-Side (HTML5 Canvas -> ~200-300 KB)
+// Kompresi foto client-side (Canvas -> JPEG ~200-300 KB)
 function compressImageAndSetInput(file, inputElement, name, callback) {
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         const img = new Image();
-        img.onload = function() {
+        img.onload = function () {
             const canvas = document.createElement('canvas');
             const MAX_WIDTH = 1200;
             const MAX_HEIGHT = 1200;
@@ -708,7 +657,6 @@ function compressImageAndSetInput(file, inputElement, name, callback) {
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Export sebagai JPEG dengan kualitas 0.75 (~200-300 KB)
             canvas.toBlob((blob) => {
                 if (blob) {
                     const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + "_compressed.jpg", {
@@ -716,7 +664,6 @@ function compressImageAndSetInput(file, inputElement, name, callback) {
                         lastModified: Date.now()
                     });
 
-                    // Update file input dengan file terkompresi
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(compressedFile);
                     inputElement.files = dataTransfer.files;
@@ -738,12 +685,11 @@ function previewImage(input, name) {
     const box = document.getElementById('box-' + name);
 
     if (file) {
-        compressImageAndSetInput(file, input, name, function(compressedDataUrl, sizeKb) {
+        compressImageAndSetInput(file, input, name, function (compressedDataUrl, sizeKb) {
             previewImg.src = compressedDataUrl;
             previewContainer.classList.remove('hidden');
             box.classList.add('hidden');
 
-            // Beri indikator badge kompresi sukses
             let badge = document.getElementById('badge-compressed-' + name);
             if (!badge) {
                 badge = document.createElement('div');
@@ -762,17 +708,16 @@ function previewImage(input, name) {
     }
 }
 
-// Fitur PWA IndexedDB Offline Queue Submission
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.querySelector('form[action="{{ route("warga.store") }}"]');
+// PWA offline queue
+function initOfflineQueue() {
+    const form = document.getElementById('form-pengajuan');
     if (!form) return;
 
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', function (e) {
         if (!navigator.onLine) {
             e.preventDefault();
             alert("Mode Offline Terdeteksi!\nData pengajuan Anda akan disimpan secara aman di memori HP dan otomatis terkirim begitu HP Anda mendapatkan koneksi internet.");
 
-            // Simpan draf ke localStorage/IndexedDB
             const formData = new FormData(form);
             const offlineData = {};
             formData.forEach((value, key) => {
@@ -791,12 +736,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Otomatisasi Sinkronisasi saat Online Kembali
     window.addEventListener('online', () => {
         const pending = JSON.parse(localStorage.getItem('sipelita_offline_submissions') || '[]');
         if (pending.length > 0) {
             console.log('[PWA Sync] Koneksi internet pulih. Menyinkronkan ' + pending.length + ' data offline...');
-            // Tampilkan notifikasi sinkronisasi
             const syncNotice = document.createElement('div');
             syncNotice.className = 'fixed bottom-4 right-4 z-50 p-4 bg-blue-900 text-white rounded-2xl shadow-2xl flex items-center gap-3 text-xs font-bold border border-blue-400';
             syncNotice.innerHTML = `<i class="fa-solid fa-rotate text-amber-400 animate-spin text-lg"></i> Menyinkronkan ${pending.length} Data Offline ke Server ESDM...`;
@@ -810,20 +753,85 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 2500);
         }
     });
-});
+}
 </script>
 
-{{-- SCRIPT CASCADING DROPDOWN WILAYAH & INTEGRASI KODE POS EMSIFA V2 --}}
 <script>
+/* =========================================================
+   2. DROPDOWN WILAYAH + KODE POS
+   ========================================================= */
 const BASE_URL_EMSIFA_V2 = 'https://www.emsifa.com/api-wilayah-indonesia/v2';
-const oldKabupaten = @json(old('kabupaten', isset($warga) ?$warga->kabupaten : ''));
-const oldKecamatan = @json(old('kecamatan', isset($warga) ?$warga->kecamatan : ''));
-const oldDesa      = @json(old('desa', isset($warga) ?$warga->desa : ''));
+const oldKabupaten = @json(old('kabupaten', isset($warga) ? $warga->kabupaten : ''));
+const oldKecamatan = @json(old('kecamatan', isset($warga) ? $warga->kecamatan : ''));
+const oldDesa      = @json(old('desa', isset($warga) ? $warga->desa : ''));
 
 const elKab = document.getElementById('kabupaten');
 const elKec = document.getElementById('kecamatan');
 const elDesa = document.getElementById('desa');
 const elKodePos = document.getElementById('kode_pos');
+let pendingKodePos = @json(old('kode_pos', $warga->kode_pos ?? ''));
+
+function resetKodePos(msg = '-- Pilih Kode Pos --') {
+    elKodePos.innerHTML = `<option value="">${msg}</option>`;
+    elKodePos.disabled = true;
+}
+
+function fillKodePos(codes) {
+    const list = [...new Set(codes.filter(Boolean))];
+    if (pendingKodePos && !list.includes(pendingKodePos)) list.push(pendingKodePos);
+
+    if (!list.length) return resetKodePos('Kode pos tidak ditemukan');
+
+    elKodePos.innerHTML = '<option value="">-- Pilih Kode Pos --</option>';
+    list.forEach(code => {
+        const opt = document.createElement('option');
+        opt.value = code;
+        opt.textContent = code;
+        if (code === pendingKodePos || list.length === 1) opt.selected = true;
+        elKodePos.appendChild(opt);
+    });
+    elKodePos.disabled = false;
+    pendingKodePos = '';
+}
+
+async function loadKodePos() {
+    const opt = elDesa.options[elDesa.selectedIndex];
+    if (!opt || !opt.value) return resetKodePos();
+
+    // 1) Dari Emsifa (kalau ada postal_code)
+    if (opt.dataset.postalCode) return fillKodePos([opt.dataset.postalCode]);
+
+    // 2) Fallback: API kodepos (format: {data:[{code, village, district, regency}]})
+    resetKodePos('Mencari kode pos...');
+    try {
+        const res = await fetch(`https://kodepos.vercel.app/search?q=${encodeURIComponent(opt.value)}`);
+        const json = await res.json();
+        const data = Array.isArray(json.data) ? json.data : [];
+
+        const norm = t => (t || '').toString().toLowerCase()
+            .replace(/^(kabupaten|kab\.?|kota|kecamatan|kec\.?)\s+/, '').trim();
+        const desaN = norm(opt.value);
+        const kecN = norm(elKec.value);
+        const kabN = norm(elKab.value);
+
+        const rows = data.map(d => ({
+            code: d.code || d.postalcode,
+            village: norm(d.village || d.urban),
+            district: norm(d.district || d.subdistrict),
+            regency: norm(d.regency || d.city)
+        }));
+
+        let matched = rows.filter(r => r.village === desaN && r.district === kecN);
+        if (!matched.length) matched = rows.filter(r => r.village === desaN && r.regency === kabN);
+        if (!matched.length) matched = rows.filter(r => r.district === kecN && r.regency === kabN);
+        if (!matched.length) matched = rows.filter(r => r.village === desaN);
+
+        fillKodePos(matched.map(r => String(r.code)));
+    } catch (err) {
+        console.warn('Gagal mengambil kode pos:', err);
+        fillKodePos([]);
+    }
+}
 
 function populateSelect(selectEl, items, oldValue, placeholder) {
     selectEl.innerHTML = `<option value="">${placeholder}</option>`;
@@ -831,15 +839,11 @@ function populateSelect(selectEl, items, oldValue, placeholder) {
         const opt = document.createElement('option');
         opt.value = item.name;
         opt.dataset.id = item.id;
-        if (item.postal_code) {
-            opt.dataset.postalCode = item.postal_code;
-        }
+        const pc = item.postal_code || item.postalCode || item.kode_pos || item.kodepos;
+        if (pc) opt.dataset.postalCode = pc;
         opt.textContent = item.name;
         if (oldValue && item.name.toLowerCase() === oldValue.toLowerCase()) {
             opt.selected = true;
-            if (item.postal_code && elKodePos) {
-                elKodePos.value = item.postal_code;
-            }
         }
         selectEl.appendChild(opt);
     });
@@ -852,17 +856,18 @@ function getSelectedId(selectEl) {
 
 async function fetchWilayahData(localUrl, remoteUrl) {
     try {
-        const res = await fetch(localUrl);
-        if (res.ok) {
-            const data = await res.json();
-            if (data && data.length > 0) return data;
+        const r = await fetch(remoteUrl);
+        if (r.ok) {
+            const j = await r.json();
+            const d = j.data || j;
+            if (Array.isArray(d) && d.length > 0) return d;
         }
     } catch (e) {
-        console.warn('Local API fetch failed, trying remote fallback...', e);
+        console.warn('Emsifa fetch gagal, coba API lokal...', e);
     }
-    const resRemote = await fetch(remoteUrl);
-    const dataRemote = await resRemote.json();
-    return dataRemote.data || dataRemote;
+    const res = await fetch(localUrl);
+    const data = await res.json();
+    return data.data || data;
 }
 
 async function loadKecamatan(kabId) {
@@ -895,21 +900,32 @@ async function loadDesa(kecId) {
     elDesa.innerHTML = '<option value="">Memuat desa...</option>';
 
     try {
-        const data = await fetchWilayahData(
-            `/api/wilayah/villages/${kecId}`,
-            `${BASE_URL_EMSIFA_V2}/villages/${kecId}.json`
-        );
+        // Desa: ambil langsung dari Emsifa v2 (sudah termasuk postal_code)
+        let data;
+        try {
+            const r = await fetch(`${BASE_URL_EMSIFA_V2}/villages/${kecId}.json`);
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const j = await r.json();
+            data = j.data || j;
+        } catch (e) {
+            console.warn('Emsifa villages gagal, coba API lokal...', e);
+            data = await fetchWilayahData(
+                `/api/wilayah/villages/${kecId}`,
+                `${BASE_URL_EMSIFA_V2}/villages/${kecId}.json`
+            );
+        }
         populateSelect(elDesa, data, oldDesa, '-- Pilih Desa / Kelurahan --');
         elDesa.disabled = false;
+        if (oldDesa && elDesa.value) loadKodePos();
     } catch (e) {
         console.error('Gagal memuat data desa:', e);
         elDesa.innerHTML = '<option value="">Gagal memuat data</option>';
     }
 }
 
-elKab.addEventListener('change', function() {
+elKab.addEventListener('change', function () {
     const id = getSelectedId(this);
-    if (elKodePos) elKodePos.value = '';
+    resetKodePos();
     if (id) {
         loadKecamatan(id);
     } else {
@@ -920,9 +936,9 @@ elKab.addEventListener('change', function() {
     }
 });
 
-elKec.addEventListener('change', function() {
+elKec.addEventListener('change', function () {
     const id = getSelectedId(this);
-    if (elKodePos) elKodePos.value = '';
+    resetKodePos();
     if (id) {
         loadDesa(id);
     } else {
@@ -931,50 +947,39 @@ elKec.addEventListener('change', function() {
     }
 });
 
-elDesa.addEventListener('change', async function() {
-    const selectedDesa = this.value;
-    const selectedKec = elKec.value;
+elDesa.addEventListener('change', loadKodePos);
 
-    if (!selectedDesa) return;
+const normKab = t => (t || '').toUpperCase().replace(/[^A-Z]/g, '').replace(/^(KABUPATEN|KAB|KOTA)/, '');
 
-    // Tampilkan status indikator memuat
-    if (elKodePos) {
-        elKodePos.placeholder = 'Mencari kode pos...';
-    }
+// Ambil ID kab/kota langsung dari Emsifa v2 (tidak hardcode, ID v2 berbeda dari ID lama)
+async function assignKabupatenIds() {
+    const res = await fetch(`${BASE_URL_EMSIFA_V2}/regencies/15.json`);
+    const json = await res.json();
+    const list = json.data || json;
+    const map = {};
+    list.forEach(r => { map[normKab(r.name)] = r.id; });
 
-    try {
-        // Cari kode pos berdasarkan nama desa & kecamatan
-        const response = await fetch(`https://kodepos.vercel.app/search?q=${encodeURIComponent(selectedDesa)}`);
-        const result = await response.json();
-
-        if (result.status && result.data && result.data.length > 0) {
-            // Cari pencocokan kecamatan agar lebih akurat
-            const match = result.data.find(d =>
-                d.subdistrict.toLowerCase().includes(selectedKec.toLowerCase()) ||
-                selectedKec.toLowerCase().includes(d.subdistrict.toLowerCase())
-            ) || result.data[0];
-
-            if (elKodePos && match.postalcode) {
-                elKodePos.value = match.postalcode;
-            }
-        }
-    } catch (err) {
-        console.warn('Gagal mengambil kode pos otomatis:', err);
-    } finally {
-        if (elKodePos) {
-            elKodePos.placeholder = 'Contoh: 36128';
-        }
-    }
-});
-
-function initRegionDropdowns() {
-    const selectedKabId = getSelectedId(elKab);
-    if (selectedKabId) {
-        loadKecamatan(selectedKabId);
-    }
+    Array.from(elKab.options).forEach(o => {
+        if (!o.value) return;
+        const id = map[normKab(o.value)];
+        if (id) o.dataset.id = id;
+        else console.warn('ID kab/kota tidak ditemukan untuk:', o.value);
+    });
 }
 
-// STEPPER WIZARD ENGINE
+async function initRegionDropdowns() {
+    try {
+        await assignKabupatenIds();
+    } catch (e) {
+        console.error('Gagal memuat daftar kab/kota dari Emsifa:', e);
+    }
+    const selectedKabId = getSelectedId(elKab);
+    if (selectedKabId) loadKecamatan(selectedKabId);
+}
+
+/* =========================================================
+   3. STEPPER WIZARD
+   ========================================================= */
 let currentStep = 1;
 
 function showStep(step) {
@@ -982,37 +987,22 @@ function showStep(step) {
     if (step > 3) step = 3;
     currentStep = step;
 
-    // Toggle step panes
     document.querySelectorAll('.step-pane').forEach((pane, idx) => {
-        if (idx + 1 === step) {
-            pane.classList.remove('hidden');
-        } else {
-            pane.classList.add('hidden');
-        }
+        pane.classList.toggle('hidden', idx + 1 !== step);
     });
 
-    // Update Header Labels & Progress
     const stepLabel = document.getElementById('wizard-step-label');
     const stepPercent = document.getElementById('wizard-step-percent');
     const progressBar = document.getElementById('wizard-progress-bar');
 
-    const stepTitles = [
-        "Data Diri Pemohon",
-        "Lokasi Rumah & GPS",
-        "Dokumen & Persetujuan"
-    ];
+    const stepTitles = ["Data Diri Pemohon", "Lokasi Rumah & GPS", "Dokumen & Persetujuan"];
 
     if (stepLabel) {
-        stepLabel.innerHTML = `<i class="fa-solid fa-list-check text-amber-500"></i> Tahap ${step} dari 3: ${stepTitles[step-1]}`;
+        stepLabel.innerHTML = `<i class="fa-solid fa-list-check text-amber-500"></i> Tahap ${step} dari 3: ${stepTitles[step - 1]}`;
     }
-    if (stepPercent) {
-        stepPercent.textContent = `${Math.round((step / 3) * 100)}% Selesai`;
-    }
-    if (progressBar) {
-        progressBar.style.width = `${(step / 3) * 100}%`;
-    }
+    if (stepPercent) stepPercent.textContent = `${Math.round((step / 3) * 100)}% Selesai`;
+    if (progressBar) progressBar.style.width = `${(step / 3) * 100}%`;
 
-    // Update Step Badge Indicators
     for (let i = 1; i <= 3; i++) {
         const badge = document.getElementById(`step-badge-${i}`);
         const iconBox = document.getElementById(`step-icon-${i}`);
@@ -1033,26 +1023,24 @@ function showStep(step) {
         }
     }
 
-    // Toggle Buttons
     const btnPrev = document.getElementById('btn-wizard-prev');
     const btnNext = document.getElementById('btn-wizard-next');
     const btnSubmit = document.getElementById('btn-wizard-submit');
 
     if (btnPrev) {
-        if (step === 1) {
-            btnPrev.classList.add('hidden');
-        } else {
-            btnPrev.classList.remove('hidden');
-        }
+        btnPrev.classList.toggle('hidden', step === 1);
+        btnPrev.classList.toggle('flex', step !== 1);
     }
 
     if (btnNext && btnSubmit) {
         if (step === 3) {
             btnNext.classList.add('hidden');
             btnSubmit.classList.remove('hidden');
+            btnSubmit.classList.add('flex');
         } else {
             btnNext.classList.remove('hidden');
             btnSubmit.classList.add('hidden');
+            btnSubmit.classList.remove('flex');
 
             const nextSpan = btnNext.querySelector('span');
             if (nextSpan) {
@@ -1061,19 +1049,9 @@ function showStep(step) {
         }
     }
 
-    // Smooth scroll to wizard top
-    if (stepLabel) {
-        stepLabel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    // Recalculate Leaflet map dimensions when step 2 active
     if (step === 2 && typeof mapPicker !== 'undefined' && mapPicker) {
-        setTimeout(() => {
-            mapPicker.invalidateSize();
-        }, 150);
-        setTimeout(() => {
-            mapPicker.invalidateSize();
-        }, 400);
+        setTimeout(() => mapPicker.invalidateSize(), 150);
+        setTimeout(() => mapPicker.invalidateSize(), 400);
     }
 }
 
@@ -1092,9 +1070,7 @@ function validateCurrentStep(step) {
 }
 
 function nextStep() {
-    if (validateCurrentStep(currentStep)) {
-        showStep(currentStep + 1);
-    }
+    if (validateCurrentStep(currentStep)) showStep(currentStep + 1);
 }
 
 function prevStep() {
@@ -1105,34 +1081,13 @@ function goToStep(targetStep) {
     if (targetStep < currentStep) {
         showStep(targetStep);
     } else if (targetStep > currentStep) {
-        if (validateCurrentStep(currentStep)) {
-            showStep(targetStep);
-        }
+        if (validateCurrentStep(currentStep)) showStep(targetStep);
     }
 }
 
-// STEPPER WIZARD AUTOMATIC STEP REDIRECT ON VALIDATION ERROR
-@if ($errors->any())
-    document.addEventListener('DOMContentLoaded', () => {
-        const errorKeys = @json($errors->keys());
-
-        const step3Fields = ['foto_ktp', 'foto_sktm', 'foto_rumah_depan', 'foto_kwh_rumah_terdekat', 'foto_tiang_rumah_terdekat', 'persetujuan'];
-        const step2Fields = ['latitude', 'longitude'];
-
-        const hasStep3Error = errorKeys.some(key => step3Fields.includes(key));
-        const hasStep2Error = errorKeys.some(key => step2Fields.includes(key));
-
-        if (hasStep3Error) {
-            showStep(3);
-        } else if (hasStep2Error) {
-            showStep(2);
-        } else {
-            showStep(1);
-        }
-    });
-@endif
-
-// REAL-TIME NIK 16-DIGIT VISUAL VALIDATOR
+/* =========================================================
+   4. VALIDASI NIK REAL-TIME
+   ========================================================= */
 function initNikLiveValidation() {
     const nikInput = document.getElementById('nik_input');
     const statusIcon = document.getElementById('nik-status-icon');
@@ -1141,7 +1096,6 @@ function initNikLiveValidation() {
     if (!nikInput) return;
 
     function validateNik() {
-        // Strip non-numeric characters
         nikInput.value = nikInput.value.replace(/[^0-9]/g, '');
         const val = nikInput.value;
 
@@ -1181,23 +1135,48 @@ function initNikLiveValidation() {
     }
 
     nikInput.addEventListener('input', validateNik);
-    nikInput.addEventListener('keyup', validateNik);
     nikInput.addEventListener('blur', validateNik);
     if (nikInput.value) validateNik();
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        initRegionDropdowns();
-        initMapPicker();
-        initNikLiveValidation();
-        showStep(1);
-    });
-} else {
-    initRegionDropdowns();
-    initMapPicker();
-    initNikLiveValidation();
+/* =========================================================
+   5. BOOTSTRAP (tiap init dibungkus try/catch,
+      jadi error satu modul tidak menghentikan yang lain)
+   ========================================================= */
+function bootstrapForm() {
     showStep(1);
+    try { resetKodePos(); } catch (e) { console.error('resetKodePos:', e); }
+
+    try { initRegionDropdowns(); } catch (e) { console.error('initRegionDropdowns:', e); }
+
+    try {
+        if (typeof L !== 'undefined') {
+            initMapPicker();
+        } else {
+            console.error('Leaflet (L) belum ter-load');
+        }
+    } catch (e) { console.error('initMapPicker:', e); }
+
+    try { initNikLiveValidation(); } catch (e) { console.error('initNikLiveValidation:', e); }
+    try { initOfflineQueue(); } catch (e) { console.error('initOfflineQueue:', e); }
+
+    @if ($errors->any())
+    try {
+        const errorKeys = @json($errors->keys());
+        const step3Fields = ['foto_ktp', 'foto_sktm', 'foto_rumah_depan', 'foto_kwh_rumah_terdekat', 'foto_tiang_rumah_terdekat', 'persetujuan'];
+        const step2Fields = ['latitude', 'longitude'];
+
+        if (errorKeys.some(k => step3Fields.includes(k))) showStep(3);
+        else if (errorKeys.some(k => step2Fields.includes(k))) showStep(2);
+        else showStep(1);
+    } catch (e) { console.error('redirect error step:', e); }
+    @endif
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrapForm);
+} else {
+    bootstrapForm();
 }
 </script>
 @endsection

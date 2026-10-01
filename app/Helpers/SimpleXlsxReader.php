@@ -3,7 +3,6 @@
 namespace App\Helpers;
 
 use ZipArchive;
-use SimpleXMLElement;
 
 class SimpleXlsxReader
 {
@@ -13,6 +12,13 @@ class SimpleXlsxReader
      * @param string $filePath
      * @return array Matrix 3D: ['Nama Sheet' => [[Baris 1], [Baris 2], ...]]
      */
+    public static function parse(string $filePath): array
+    {
+    $allSheets = self::parseAllSheets($filePath);
+    // Ambil sheet pertama saja
+    return !empty($allSheets) ? array_values($allSheets)[0] : [];
+    }
+
     public static function parseAllSheets(string $filePath): array
     {
         if (!file_exists($filePath) || strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) !== 'xlsx') {

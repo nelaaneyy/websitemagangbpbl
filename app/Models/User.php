@@ -40,27 +40,39 @@ class User extends Authenticatable
         return $this->hasMany(WorkOrder::class, 'vendor_id');
     }
 
-    // ---- 5 ROLE ACTORS CHECKERS (v2.0.0 Architecture) ----
-    
-    /** ACT-01: Warga / Pendamping */
-    public function isWarga(): bool
+    // ---- ROLE CHECKERS ----
+    public function hasAnyRole(...$roles): bool
     {
-        return $this->role === 'warga' || $this->role === 'publik';
+        if (empty($roles)) {
+            return false;
+        }
+
+        if (is_array($roles[0])) {
+            $roles = $roles[0];
+        }
+
+        return in_array($this->role, $roles, true);
     }
 
-    /** ACT-02: Staff Administrasi Desa */
+
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    // Staff Administrasi Desa
     public function isStaffDesa(): bool
     {
         return $this->role === 'staff_desa';
     }
 
-    /** ACT-03: Kepala Desa */
+    // Kepala Desa
     public function isKepalaDesa(): bool
     {
         return $this->role === 'kepala_desa';
     }
 
-    /** ACT-04: Verifikator ESDM */
+    // Verifikator ESDM
     public function isVerifikatorEsdm(): bool
     {
         return $this->role === 'verifikator_esdm';
@@ -78,9 +90,6 @@ class User extends Authenticatable
         return $this->isAdminEsdm();
     }
 
-    /**
-     * Accessor Role Label Resmi (FIX-02)
-     */
     public function getRoleLabelAttribute(): string
     {
         return match($this->role) {

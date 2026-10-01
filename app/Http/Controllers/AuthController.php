@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -14,11 +13,11 @@ class AuthController extends Controller
     {
         if (Auth::check()) {
             return match (Auth::user()->role) {
-                'kepala_desa'      => redirect()->route('kepaladesa.index'),
-                'staff_desa'    => redirect()->route('staffdesa.index'),    
-                'verifikator_esdm' => redirect()->route('dinasesdm.datalist'),
-                'instansi', 'super_admin' => redirect()->route('dinasesdm.index'),
-                default            => redirect('/'),
+                'kepala_desa'               => redirect()->route('kepaladesa.index'),
+                'staff_desa', 'staf_desa'   => redirect()->route('staffdesa.index'),
+                'verifikator_esdm'        => redirect()->route('verifikator.index'),
+                'instansi', 'super_admin'  => redirect()->route('admin.index'),
+                default                     => redirect('/'),
             };
         }
 
@@ -51,11 +50,13 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
+        // PERBAIKAN: Menambahkan 'staff_desa' & 'staf_desa' agar langsung mengarah ke Dashboard Staff
         return match ($user->role) {
-            'kepala_desa'      => redirect()->route('kepaladesa.index'),
-            'verifikator_esdm' => redirect()->route('dinasesdm.datalist'),
-            'instansi', 'super_admin' => redirect()->route('dinasesdm.index'),
-            default            => redirect('/'),
+            'kepala_desa'               => redirect()->route('kepaladesa.index'),
+            'staff_desa', 'staf_desa'   => redirect()->route('staffdesa.index'),
+            'verifikator_esdm'        => redirect()->route('verifikator.index'),
+            'instansi', 'super_admin'  => redirect()->route('admin.index'),
+            default                     => redirect('/'),
         };
     }
 
@@ -69,14 +70,15 @@ class AuthController extends Controller
 
     public function registerDesa(Request $request)
     {
+        // PERBAIKAN: Spasi pada string 'in:' dihapus agar validasi Laravel bekerja sempurna
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
-            'role'     => 'required|in:kepala_desa, staf_desa, staff_desa',
+            'role'     => 'required|in:kepala_desa,staf_desa,staff_desa',
             'nipd'     => 'nullable|string|max:50',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'desa'     => 'required|string|max:255',
-            'alamat'  => 'nullable|string|max:255',
+            'alamat'   => 'nullable|string|max:255',
             'no_hp'    => 'nullable|string|max:20',
             'sk_file'  => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'
         ], [

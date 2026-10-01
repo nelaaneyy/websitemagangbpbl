@@ -36,7 +36,7 @@
                     <div
                         class="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 w-full sm:w-auto">
                         @auth
-                        <a href="{{ route('warga.pengajuan') }}"
+                        <a href="{{ route('staffdesa.pengajuan') }}"
                             class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
                             <i class="fa-solid fa-house-user text-white"></i>
                             Input Pendaftaran BPBL Warga
@@ -123,7 +123,7 @@
                         @auth
                         @if(in_array(auth()->user()->role, ['staff_desa', 'kepala_desa', 'verifikator_esdm',
                         'super_admin', 'instansi']))
-                        <a href="{{ route('warga.pengajuan') }}"
+                        <a href="{{ route('staffdesa.pengajuan') }}"
                             class="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 text-xs">
                             <i class="fa-solid fa-house-chimney-user text-xs"></i>
                             <span>Input Pendaftaran BPBL Warga (Staff / Kades)</span>
@@ -457,10 +457,8 @@
                             class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs sm:text-sm">
                             <i class="fa-solid fa-house-bolt"></i>
                         </div>
-                    </div>
-                    <div id="kpi-total-teraliri" class="text-2xl sm:text-3xl font-black text-slate-900">
-                        {{ number_format($totalTeraliri, 0, ',', '.') }} <span
-                            class="text-xs font-bold text-slate-500">Rumah</span>
+                        <h3 id="kpi-teraliri-main" class="text-3xl font-black text-slate-900">{{ number_format($totalTerpasang ?? 0, 0, ',', '.') }}</h3>
+
                     </div>
                     <div id="kpi-total-approved" class="flex items-center gap-1 text-[11px] font-bold text-emerald-700">
                         <i class="fa-solid fa-arrow-trend-up"></i>
@@ -486,10 +484,6 @@
                             <div id="kpi-overall-rasio-bar"
                                 class="bg-blue-600 h-2 rounded-full transition-all duration-500"
                                 style="width: {{ min(100, $overallRasio) }}%"></div>
-                        </div>
-                        <div class="flex justify-between text-[10px] text-slate-500 font-bold">
-                            <span id="kpi-teraliri-sub">{{ number_format($totalTeraliri, 0, ',', '.') }} Teraliri</span>
-                            <span id="kpi-target-rt">Target: {{ number_format($totalRT, 0, ',', '.') }} Rumah</span>
                         </div>
                     </div>
                 </div>
@@ -650,7 +644,7 @@
                                 </h4>
                                 <span class="text-[10px] font-bold text-slate-400 shrink-0">Jambi</span>
                             </div>
-                            <div id="chart-kabupaten-bar" class="w-full min-h-[280px] sm:min-h-[320px]"></div>
+                            <div id="chart-kabupaten-bar" class="w-full min-h-70 sm:min-h-"></div>
                         </div>
 
                         <!-- Chart 2: Donut Status Desa -->
@@ -665,7 +659,7 @@
                                 <span class="text-[10px] font-bold text-slate-400 shrink-0">Desa</span>
                             </div>
                             <div id="chart-status-donut"
-                                class="w-full min-h-[280px] sm:min-h-[320px] flex items-center justify-center"></div>
+                                class="w-full min-h-70 sm:min-h- flex items-center justify-center"></div>
                         </div>
                     </div>
                 </div>
@@ -700,7 +694,7 @@
                                     id="btn-clear-card-search"
                                     type="button"
                                     onclick="clearCardSearch()"
-                                    class="hidden absolute right-2.5 w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center text-[10px] transition cursor-pointer"
+                                    class="hidden absolute right-2.5 w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 items-center justify-center text-[10px] transition cursor-pointer"
                                     title="Hapus pencarian">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
@@ -713,7 +707,7 @@
                         <div id="desa-cards-count" class="font-bold text-slate-600 flex items-center gap-1.5 text-xs">
                             <!-- Diisi oleh JS -->
                         </div>
-                        <div id="card-search-indicator" class="hidden text-[11px] text-amber-600 font-bold flex items-center gap-1.5 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                        <div id="card-search-indicator" class="hidden text-[11px] text-amber-600 font-bold items-center gap-1.5 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                             <span>Pencarian aktif</span>
                         </div>
@@ -721,7 +715,7 @@
 
                     <!-- Cards Container -->
                     <div id="desa-detail-container"
-                        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 min-h-[140px]"></div>
+                        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 min-h-35"></div>
 
                     <!-- Pagination Container -->
                     <div id="desa-cards-pagination" class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100">
@@ -809,6 +803,7 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <script>
+    const toTitle = s => (s || '').toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
     const rawPhpDesas = @json($desas ?? []);
     let dataDesa = Array.isArray(rawPhpDesas) ? rawPhpDesas.map(d => {
         let color = 'gold';
@@ -822,7 +817,7 @@
 
         return {
             id: d.id || Math.random(),
-            nama: d.nama_desa || d.nama || 'Desa Tanpa Nama',
+            nama: toTitle(d.nama_desa || d.nama || 'Desa Tanpa Nama'),
             kabupaten: d.kabupaten || 'Jambi',
             lat: validLat,
             lng: validLng,
@@ -912,7 +907,7 @@
 
                     return {
                         id: d.id || Math.random(),
-                        nama: d.nama_desa || d.nama || 'Desa Tanpa Nama',
+                        nama: toTitle(d.nama_desa || d.nama || 'Desa Tanpa Nama'),
                         kabupaten: d.kabupaten || 'Jambi',
                         lat: validLat,
                         lng: validLng,
@@ -1467,15 +1462,14 @@
         fetch("{{ route('api.kpi.stats') }}")
             .then(res => res.json())
             .then(data => {
-                const elTotalTeraliri = document.getElementById('kpi-total-teraliri');
-                if (elTotalTeraliri) {
-                    elTotalTeraliri.innerHTML =
-                        `${new Intl.NumberFormat('id-ID').format(data.total_teraliri)} <span class="text-xs font-bold text-slate-500">Rumah</span>`;
-                }
                 const elTotalApproved = document.getElementById('kpi-total-approved');
                 if (elTotalApproved) {
                     elTotalApproved.innerHTML =
                         `<i class="fa-solid fa-arrow-trend-up"></i> +${new Intl.NumberFormat('id-ID').format(data.total_approved_global)} Terpasang Baru`;
+                }
+                const elTeraliriMain = document.getElementById('kpi-teraliri-main');
+                if (elTeraliriMain) {
+                    elTeraliriMain.innerText = new Intl.NumberFormat('id-ID').format(data.total_teraliri);
                 }
                 const elOverallRasio = document.getElementById('kpi-overall-rasio');
                 if (elOverallRasio) {

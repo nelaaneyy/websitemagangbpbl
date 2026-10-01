@@ -25,4 +25,20 @@ class BatchController extends Controller
         // 3. Kembalikan respons sukses ke halaman sebelumnya
         return back()->with('success', 'Batch ' . $batch->kode_batch . ' berhasil dikirim ke Kepala Desa untuk divalidasi!');
     }
+
+    public function createFromDraft(Request $request)
+    {
+        return redirect()->route('staffdesa.index')->with('info', 'Batch telah aktif.');
+    }
+
+    public function reviewForm($id)
+    {
+        return redirect()->route('kepaladesa.index');
+    }
+
+    public function approveAndSendToEsdm(Request $request, $id)
+    {
+        $batch = PengajuanBatch::findOrFail($id);
+        return app(\App\Http\Controllers\KepalaDesa\KepalaDesaController::class)->submitBatchToEsdm($request, $batch);
+    }
 }

@@ -26,7 +26,7 @@ class WorkOrderController extends Controller
         $vendors = User::where('role', 'pln_vendor')->get();
         $petugas = User::where('role', 'petugas_lapangan')->get();
 
-        return view('dinasesdm.work_orders.index', compact('workOrders', 'vendors', 'petugas'));
+        return view('admin.work_orders.index', compact('workOrders', 'vendors', 'petugas'));
     }
 
     public function store(Request $request)

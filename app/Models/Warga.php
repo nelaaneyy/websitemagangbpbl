@@ -102,4 +102,24 @@ class Warga extends Model
     {
         return $query->where('butuh_validasi_realisasi', true);
     }
+
+    public function scopeHistoris($q)
+    {
+    return $q->where(function ($w) {
+        $w->where('status_verifikasi', 'terpasang')
+          ->orWhereNotNull('keterangan_import');
+    });
+}
+
+public function scopeAktif($q)
+{
+    return $q->whereNull('keterangan_import')
+             ->where('status_verifikasi', '!=', 'terpasang');
+}
+
+public function scopeUntukAdmin($q)
+{
+    return $q->aktif()->whereIn('status_verifikasi', ['lolos_verifikasi_pusat', 'terpasang', 'ditolak/perlu_perbaikan']);
+}
+
 }

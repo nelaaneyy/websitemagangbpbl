@@ -26,7 +26,7 @@ class BavlGeneratorService
             ['warga_id' => $warga->id, 'status' => $warga->status_verifikasi]
         );
 
-        $pdf = Pdf::loadView('dinasesdm.bavl_pdf', compact('warga', 'nomorBavl', 'tanggalSurat', 'verifikator'))
+        $pdf = Pdf::loadView('admin.bavl_pdf', compact('warga', 'nomorBavl', 'tanggalSurat', 'verifikator'))
             ->setPaper('a4', 'portrait');
 
         return $pdf;

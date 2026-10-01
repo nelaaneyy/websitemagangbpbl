@@ -30,7 +30,7 @@ class RedundancyResolutionController extends Controller
 
         $suspectRecords = $checkResult['side_by_side_records'];
 
-        return view('dinasesdm.redundancy.show', compact('warga', 'checkResult', 'suspectRecords'));
+        return view('admin.redundancy.show', compact('warga', 'checkResult', 'suspectRecords'));
     }
 
     /**
@@ -106,6 +106,6 @@ class RedundancyResolutionController extends Controller
             ]
         );
 
-        return redirect()->route('dinasesdm.datalist')->with('success', "Resolusi redudansi untuk pemohon {$warga->nama} berhasil disimpan!");
+        return redirect()->route('admin.datalist')->with('success', "Resolusi redudansi untuk pemohon {$warga->nama} berhasil disimpan!");
     }
 }

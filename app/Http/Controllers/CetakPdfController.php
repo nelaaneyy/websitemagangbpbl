@@ -15,7 +15,7 @@ class CetakPdfController extends Controller
     {
         $kabupaten_id = Kabupaten::with('kecamatans.desas')->find($kabupaten_id);
 
-        $pdf = Pdf::loadView('dinasesdm.export_pdf', compact('kabupaten_id'));
+        $pdf = Pdf::loadView('admin.export_pdf', compact('kabupaten_id'));
         return $pdf->download("validasi_layak_bpbl_{$kabupaten_id->id}.pdf");
     }
 }

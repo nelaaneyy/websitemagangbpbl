@@ -21,7 +21,7 @@ class LisdesMapPdfService
             $title = "PETA KARTOGRAFI USULAN LISDES DESA " . strtoupper($data->desa);
         }
 
-        $pdf = Pdf::loadView('dinasesdm.lisdes_map_pdf', compact('data', 'type', 'title'))
+        $pdf = Pdf::loadView('admin.lisdes_map_pdf', compact('data', 'type', 'title'))
             ->setPaper('a4', 'landscape');
 
         return $pdf;

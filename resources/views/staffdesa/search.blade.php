@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.staffdesa')
 
 @section('content')
 <div class="py-12 bg-slate-50 min-h-screen">

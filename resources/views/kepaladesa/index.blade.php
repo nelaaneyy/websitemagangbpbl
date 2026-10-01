@@ -25,7 +25,7 @@
                 </button>
             @endif
 
-            <a href="{{ route('warga.pengajuan') }}" class="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-extrabold rounded-xl transition shadow-xs flex items-center gap-1.5">
+            <a href="{{ route('staffdesa.pengajuan') }}" class="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-extrabold rounded-xl transition shadow-xs flex items-center gap-1.5">
                 <i class="fa-solid fa-user-plus text-xs"></i> Tambah Warga
             </a>
         </div>
@@ -141,7 +141,7 @@
                     <tr>
                         <th class="px-4 py-3">Nama Warga & NIK</th>
                         <th class="px-4 py-3">RT / RW</th>
-                        <th class="px-4 py-3 text-center">Status Desil</th>
+                        <th class="px-4 py-3 text-center">Koordinat Rumah</th>
                         <th class="px-4 py-3 text-center">Status Verifikasi</th>
                         <th class="px-4 py-3 text-right">Aksi Validasi</th>
                     </tr>
@@ -161,28 +161,14 @@
                                     RT {{ $warga->rt_rw ?? '-' }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3 text-center whitespace-nowrap">
-                                @php $desilVal = $warga->desil ?: 'Desil 1'; @endphp
-                                @if($desilVal === 'Desil 1')
-                                    <span class="px-2.5 py-0.5 bg-rose-50 text-rose-800 border border-rose-200 rounded-md text-[11px] font-extrabold" title="Sangat Miskin / Prioritas Utama">
-                                        <i class="fa-solid fa-triangle-exclamation mr-0.5 text-rose-600"></i> Desil 1
-                                    </span>
-                                @elseif($desilVal === 'Desil 2')
-                                    <span class="px-2.5 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-md text-[11px] font-extrabold" title="Miskin">
-                                        Desil 2
-                                    </span>
-                                @elseif($desilVal === 'Desil 3')
-                                    <span class="px-2.5 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 rounded-md text-[11px] font-extrabold" title="Hampir Miskin">
-                                        Desil 3
-                                    </span>
-                                @elseif($desilVal === 'Desil 4')
-                                    <span class="px-2.5 py-0.5 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-md text-[11px] font-extrabold" title="Rentan Miskin">
-                                        Desil 4
-                                    </span>
+                            <td class="px-4 py-3 text-center whitespace-break-spaces">
+                                @if($warga->latitude && $warga->longitude)
+                                    <a href="https://www.google.com/maps?q={{ $warga->latitude }},{{ $warga->longitude }}" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1 font-bold">
+                                        <i class="fa-solid fa-location-dot text-rose-500"></i>
+                                        <span>{{ number_format($warga->latitude, 5) }}, {{ number_format($warga->longitude, 5) }}</span>
+                                    </a>
                                 @else
-                                    <span class="px-2.5 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-md text-[11px] font-bold" title="SKTM Desa">
-                                        {{ $desilVal }}
-                                    </span>
+                                    <span class="text-slate-400 font-sans italic">Belum diset</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center whitespace-nowrap">

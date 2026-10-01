@@ -41,7 +41,7 @@ class RedundancyAndLisdesTest extends TestCase
             'kabupaten' => 'Sidoarjo',
             'kecamatan' => 'Krian',
             'desa' => 'Sidomulyo',
-            'rt_rw' => '01/01',
+            'rt_rw' => '',
             'no_hp' => '081234567890',
             'alamat' => 'Jl. Raya No. 1',
             'latitude' => -7.250000,
@@ -81,7 +81,7 @@ class RedundancyAndLisdesTest extends TestCase
             'kabupaten' => 'Sidoarjo',
             'kecamatan' => 'Krian',
             'desa' => 'Sidomulyo',
-            'rt_rw' => '02/01',
+            'rt_rw' => '',
             'no_hp' => '081234567895',
             'alamat' => 'Rumah Petak Sekat A',
             'latitude' => -7.250000,
@@ -92,13 +92,13 @@ class RedundancyAndLisdesTest extends TestCase
 
         $fileSekat = UploadedFile::fake()->image('sekat_fisik.jpg');
 
-        $response = $this->actingAs($verifikator)->patch(route('dinasesdm.redundancy.resolve', $warga->id), [
+        $response = $this->actingAs($verifikator)->patch(route('admin.redundancy.resolve', $warga->id), [
             'resolution_type' => 'special_override',
             'justification_note' => 'Terbukti 2 sekat bangunan fisik independen kontrakan petak.',
             'foto_sekat_fisik' => $fileSekat,
         ]);
 
-        $response->assertRedirect(route('dinasesdm.datalist'));
+        $response->assertRedirect(route('admin.datalist'));
 
         $warga->refresh();
         $this->assertEquals('OVERRIDDEN', $warga->redundancy_flag);

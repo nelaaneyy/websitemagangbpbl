@@ -116,7 +116,7 @@
                     <!-- Profile Dropdown (AlpineJS) -->
                     <div class="relative" x-data="{ open: false }">
                         <button @click.stop="open = !open" @click.away="open = false" type="button" class="flex items-center gap-2.5 p-1.5 pl-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition border border-slate-200/80">
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-700 to-indigo-700 text-white rounded-lg flex items-center justify-center font-bold text-sm shadow-xs">
+                            <div class="w-8 h-8 bg-linear-to-br from-blue-700 to-indigo-700 text-white rounded-lg flex items-center justify-center font-bold text-sm shadow-xs">
                                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                             </div>
                             <div class="hidden md:block text-left pr-1">
