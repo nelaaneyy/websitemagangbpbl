@@ -162,29 +162,10 @@
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                                     Kabupaten / Kota <span class="text-rose-500">*</span>
                                 </label>
-                                <select name="kabupaten" id="kabupaten" required
-                                       class="w-full px-4 py-3 bg-slate-50 border {{ $errors->has('kabupaten') ? 'border-rose-400' : 'border-slate-300' }} focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition">
-                                    <option value="">-- Pilih Kabupaten / Kota --</option>
-                                    @php
-                                        $kabList = [
-                                            'KABUPATEN KERINCI' => '15.01',
-                                            'KABUPATEN MERANGIN' => '15.02',
-                                            'KABUPATEN SAROLANGUN' => '15.03',
-                                            'KABUPATEN BATANG HARI' => '15.04',
-                                            'KABUPATEN MUARO JAMBI' => '15.05',
-                                            'KABUPATEN TANJUNG JABUNG TIMUR' => '15.06',
-                                            'KABUPATEN TANJUNG JABUNG BARAT' => '15.07',
-                                            'KABUPATEN TEBO' => '15.08',
-                                            'KABUPATEN BUNGO' => '15.09',
-                                            'KOTA JAMBI' => '15.71',
-                                            'KOTA SUNGAI PENUH' => '15.72',
-                                        ];
-                                        $selectedKab = old('kabupaten', isset($warga) ? $warga->kabupaten : '');
-                                    @endphp
-                                    @foreach($kabList as $kabName => $kabId)
-                                        <option value="{{ $kabName }}" {{ $selectedKab == $kabName ? 'selected' : '' }}>{{ $kabName }}</option>
-                                    @endforeach
-                                </select>
+                                <div class="w-full px-4 py-3 bg-slate-100 border-slate-200 rounded-xl text-sm font-semibold text-slate-600">
+                                    {{ auth()->user()->kabupaten ?? '-' }}
+                                </div>
+                                <input type="hidden" name="kabupaten" value="{{ auth()->user()->kabupaten }}">
                                 @error('kabupaten') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
                             </div>
 
@@ -193,10 +174,10 @@
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                                     Kecamatan <span class="text-rose-500">*</span>
                                 </label>
-                                <select name="kecamatan" id="kecamatan" required disabled
-                                       class="w-full px-4 py-3 bg-slate-50 border {{ $errors->has('kecamatan') ? 'border-rose-400' : 'border-slate-300' }} focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <option value="">-- Pilih Kecamatan --</option>
-                                </select>
+                                <div class="w-full px-4 py-3 bg-slate-100 border-slate-200 rounded-xl text-sm font-semibold text-slate-600">
+                                    {{ auth()->user()->kecamatan ?? '-' }}
+                                </div>
+                                <input type="hidden" name="kecamatan" value="{{ auth()->user()->kecamatan }}">
                                 @error('kecamatan') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
                             </div>
 
@@ -205,23 +186,19 @@
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                                     Desa / Kelurahan <span class="text-rose-500">*</span>
                                 </label>
-                                <select name="desa" id="desa" required disabled
-                                       class="w-full px-4 py-3 bg-slate-50 border {{ $errors->has('desa') ? 'border-rose-400' : 'border-slate-300' }} focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <option value="">-- Pilih Desa / Kelurahan --</option>
-                                </select>
+                                <div class="w-full px-4 py-3 bg-slate-100 border-slate-200 rounded-xl text-sm font-semibold text-slate-600">
+                                    {{ auth()->user()->desa ?? '-' }}
+                                </div>
+                                <input type="hidden" name="desa" value="{{ auth()->user()->desa }}">
                                 @error('desa') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
                             </div>
 
                             {{-- Kode Pos --}}
                             <div class="space-y-3">
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Kode Pos</label>
-                                <div class="relative">
-                                    <select name="kode_pos" id="kode_pos" disabled
-                                            class="w-full pl-10 pr-4 py-3 bg-slate-50 border {{ $errors->has('kode_pos') ? 'border-rose-400' : 'border-slate-300' }} focus:bg-white rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed">
-                                        <option value="">-- Pilih Kode Pos --</option>
-                                    </select>
-                                    <i class="fa-solid fa-mail-bulk absolute left-3.5 top-3.5 text-slate-400 pointer-events-none"></i>
-                                </div>
+                                <input type="text" name="kode_pos" value="{{ old('kode_pos') }}"
+                                        placeholder="Contoh: 36361"
+                                        class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition">
                                 @error('kode_pos') <p class="text-rose-600 text-xs font-semibold mt-1">{{ $message }}</p> @enderror
                             </div>
 
@@ -760,222 +737,222 @@ function initOfflineQueue() {
 /* =========================================================
    2. DROPDOWN WILAYAH + KODE POS
    ========================================================= */
-const BASE_URL_EMSIFA_V2 = 'https://www.emsifa.com/api-wilayah-indonesia/v2';
-const oldKabupaten = @json(old('kabupaten', isset($warga) ? $warga->kabupaten : ''));
-const oldKecamatan = @json(old('kecamatan', isset($warga) ? $warga->kecamatan : ''));
-const oldDesa      = @json(old('desa', isset($warga) ? $warga->desa : ''));
+// const BASE_URL_EMSIFA_V2 = 'https://www.emsifa.com/api-wilayah-indonesia/v2';
+// const oldKabupaten = @json(old('kabupaten', isset($warga) ? $warga->kabupaten : ''));
+// const oldKecamatan = @json(old('kecamatan', isset($warga) ? $warga->kecamatan : ''));
+// const oldDesa      = @json(old('desa', isset($warga) ? $warga->desa : ''));
 
-const elKab = document.getElementById('kabupaten');
-const elKec = document.getElementById('kecamatan');
-const elDesa = document.getElementById('desa');
-const elKodePos = document.getElementById('kode_pos');
-let pendingKodePos = @json(old('kode_pos', $warga->kode_pos ?? ''));
+// const elKab = document.getElementById('kabupaten');
+// const elKec = document.getElementById('kecamatan');
+// const elDesa = document.getElementById('desa');
+// const elKodePos = document.getElementById('kode_pos');
+// let pendingKodePos = @json(old('kode_pos', $warga->kode_pos ?? ''));
 
-function resetKodePos(msg = '-- Pilih Kode Pos --') {
-    elKodePos.innerHTML = `<option value="">${msg}</option>`;
-    elKodePos.disabled = true;
-}
+// function resetKodePos(msg = '-- Pilih Kode Pos --') {
+//     elKodePos.innerHTML = `<option value="">${msg}</option>`;
+//     elKodePos.disabled = true;
+// }
 
-function fillKodePos(codes) {
-    const list = [...new Set(codes.filter(Boolean))];
-    if (pendingKodePos && !list.includes(pendingKodePos)) list.push(pendingKodePos);
+// function fillKodePos(codes) {
+//     const list = [...new Set(codes.filter(Boolean))];
+//     if (pendingKodePos && !list.includes(pendingKodePos)) list.push(pendingKodePos);
 
-    if (!list.length) return resetKodePos('Kode pos tidak ditemukan');
+//     if (!list.length) return resetKodePos('Kode pos tidak ditemukan');
 
-    elKodePos.innerHTML = '<option value="">-- Pilih Kode Pos --</option>';
-    list.forEach(code => {
-        const opt = document.createElement('option');
-        opt.value = code;
-        opt.textContent = code;
-        if (code === pendingKodePos || list.length === 1) opt.selected = true;
-        elKodePos.appendChild(opt);
-    });
-    elKodePos.disabled = false;
-    pendingKodePos = '';
-}
+//     elKodePos.innerHTML = '<option value="">-- Pilih Kode Pos --</option>';
+//     list.forEach(code => {
+//         const opt = document.createElement('option');
+//         opt.value = code;
+//         opt.textContent = code;
+//         if (code === pendingKodePos || list.length === 1) opt.selected = true;
+//         elKodePos.appendChild(opt);
+//     });
+//     elKodePos.disabled = false;
+//     pendingKodePos = '';
+// }
 
-async function loadKodePos() {
-    const opt = elDesa.options[elDesa.selectedIndex];
-    if (!opt || !opt.value) return resetKodePos();
+// async function loadKodePos() {
+//     const opt = elDesa.options[elDesa.selectedIndex];
+//     if (!opt || !opt.value) return resetKodePos();
 
-    // 1) Dari Emsifa (kalau ada postal_code)
-    if (opt.dataset.postalCode) return fillKodePos([opt.dataset.postalCode]);
+//     // 1) Dari Emsifa (kalau ada postal_code)
+//     if (opt.dataset.postalCode) return fillKodePos([opt.dataset.postalCode]);
 
-    // 2) Fallback: API kodepos (format: {data:[{code, village, district, regency}]})
-    resetKodePos('Mencari kode pos...');
-    try {
-        const res = await fetch(`https://kodepos.vercel.app/search?q=${encodeURIComponent(opt.value)}`);
-        const json = await res.json();
-        const data = Array.isArray(json.data) ? json.data : [];
+//     // 2) Fallback: API kodepos (format: {data:[{code, village, district, regency}]})
+//     resetKodePos('Mencari kode pos...');
+//     try {
+//         const res = await fetch(`https://kodepos.vercel.app/search?q=${encodeURIComponent(opt.value)}`);
+//         const json = await res.json();
+//         const data = Array.isArray(json.data) ? json.data : [];
 
-        const norm = t => (t || '').toString().toLowerCase()
-            .replace(/^(kabupaten|kab\.?|kota|kecamatan|kec\.?)\s+/, '').trim();
-        const desaN = norm(opt.value);
-        const kecN = norm(elKec.value);
-        const kabN = norm(elKab.value);
+//         const norm = t => (t || '').toString().toLowerCase()
+//             .replace(/^(kabupaten|kab\.?|kota|kecamatan|kec\.?)\s+/, '').trim();
+//         const desaN = norm(opt.value);
+//         const kecN = norm(elKec.value);
+//         const kabN = norm(elKab.value);
 
-        const rows = data.map(d => ({
-            code: d.code || d.postalcode,
-            village: norm(d.village || d.urban),
-            district: norm(d.district || d.subdistrict),
-            regency: norm(d.regency || d.city)
-        }));
+//         const rows = data.map(d => ({
+//             code: d.code || d.postalcode,
+//             village: norm(d.village || d.urban),
+//             district: norm(d.district || d.subdistrict),
+//             regency: norm(d.regency || d.city)
+//         }));
 
-        let matched = rows.filter(r => r.village === desaN && r.district === kecN);
-        if (!matched.length) matched = rows.filter(r => r.village === desaN && r.regency === kabN);
-        if (!matched.length) matched = rows.filter(r => r.district === kecN && r.regency === kabN);
-        if (!matched.length) matched = rows.filter(r => r.village === desaN);
+//         let matched = rows.filter(r => r.village === desaN && r.district === kecN);
+//         if (!matched.length) matched = rows.filter(r => r.village === desaN && r.regency === kabN);
+//         if (!matched.length) matched = rows.filter(r => r.district === kecN && r.regency === kabN);
+//         if (!matched.length) matched = rows.filter(r => r.village === desaN);
 
-        fillKodePos(matched.map(r => String(r.code)));
-    } catch (err) {
-        console.warn('Gagal mengambil kode pos:', err);
-        fillKodePos([]);
-    }
-}
+//         fillKodePos(matched.map(r => String(r.code)));
+//     } catch (err) {
+//         console.warn('Gagal mengambil kode pos:', err);
+//         fillKodePos([]);
+//     }
+// }
 
-function populateSelect(selectEl, items, oldValue, placeholder) {
-    selectEl.innerHTML = `<option value="">${placeholder}</option>`;
-    items.forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item.name;
-        opt.dataset.id = item.id;
-        const pc = item.postal_code || item.postalCode || item.kode_pos || item.kodepos;
-        if (pc) opt.dataset.postalCode = pc;
-        opt.textContent = item.name;
-        if (oldValue && item.name.toLowerCase() === oldValue.toLowerCase()) {
-            opt.selected = true;
-        }
-        selectEl.appendChild(opt);
-    });
-}
+// function populateSelect(selectEl, items, oldValue, placeholder) {
+//     selectEl.innerHTML = `<option value="">${placeholder}</option>`;
+//     items.forEach(item => {
+//         const opt = document.createElement('option');
+//         opt.value = item.name;
+//         opt.dataset.id = item.id;
+//         const pc = item.postal_code || item.postalCode || item.kode_pos || item.kodepos;
+//         if (pc) opt.dataset.postalCode = pc;
+//         opt.textContent = item.name;
+//         if (oldValue && item.name.toLowerCase() === oldValue.toLowerCase()) {
+//             opt.selected = true;
+//         }
+//         selectEl.appendChild(opt);
+//     });
+// }
 
-function getSelectedId(selectEl) {
-    const opt = selectEl.options[selectEl.selectedIndex];
-    return opt ? opt.dataset.id : null;
-}
+// function getSelectedId(selectEl) {
+//     const opt = selectEl.options[selectEl.selectedIndex];
+//     return opt ? opt.dataset.id : null;
+// }
 
-async function fetchWilayahData(localUrl, remoteUrl) {
-    try {
-        const r = await fetch(remoteUrl);
-        if (r.ok) {
-            const j = await r.json();
-            const d = j.data || j;
-            if (Array.isArray(d) && d.length > 0) return d;
-        }
-    } catch (e) {
-        console.warn('Emsifa fetch gagal, coba API lokal...', e);
-    }
-    const res = await fetch(localUrl);
-    const data = await res.json();
-    return data.data || data;
-}
+// async function fetchWilayahData(localUrl, remoteUrl) {
+//     try {
+//         const r = await fetch(remoteUrl);
+//         if (r.ok) {
+//             const j = await r.json();
+//             const d = j.data || j;
+//             if (Array.isArray(d) && d.length > 0) return d;
+//         }
+//     } catch (e) {
+//         console.warn('Emsifa fetch gagal, coba API lokal...', e);
+//     }
+//     const res = await fetch(localUrl);
+//     const data = await res.json();
+//     return data.data || data;
+// }
 
-async function loadKecamatan(kabId) {
-    if (!kabId) return;
-    elKec.disabled = true;
-    elDesa.disabled = true;
-    elKec.innerHTML = '<option value="">Memuat kecamatan...</option>';
-    elDesa.innerHTML = '<option value="">-- Pilih Desa / Kelurahan --</option>';
+// async function loadKecamatan(kabId) {
+//     if (!kabId) return;
+//     elKec.disabled = true;
+//     elDesa.disabled = true;
+//     elKec.innerHTML = '<option value="">Memuat kecamatan...</option>';
+//     elDesa.innerHTML = '<option value="">-- Pilih Desa / Kelurahan --</option>';
 
-    try {
-        const data = await fetchWilayahData(
-            `/api/wilayah/districts/${kabId}`,
-            `${BASE_URL_EMSIFA_V2}/districts/${kabId}.json`
-        );
-        populateSelect(elKec, data, oldKecamatan, '-- Pilih Kecamatan --');
-        elKec.disabled = false;
+//     try {
+//         const data = await fetchWilayahData(
+//             `/api/wilayah/districts/${kabId}`,
+//             `${BASE_URL_EMSIFA_V2}/districts/${kabId}.json`
+//         );
+//         populateSelect(elKec, data, oldKecamatan, '-- Pilih Kecamatan --');
+//         elKec.disabled = false;
 
-        if (oldKecamatan && getSelectedId(elKec)) {
-            await loadDesa(getSelectedId(elKec));
-        }
-    } catch (e) {
-        console.error('Gagal memuat data kecamatan:', e);
-        elKec.innerHTML = '<option value="">Gagal memuat data</option>';
-    }
-}
+//         if (oldKecamatan && getSelectedId(elKec)) {
+//             await loadDesa(getSelectedId(elKec));
+//         }
+//     } catch (e) {
+//         console.error('Gagal memuat data kecamatan:', e);
+//         elKec.innerHTML = '<option value="">Gagal memuat data</option>';
+//     }
+// }
 
-async function loadDesa(kecId) {
-    if (!kecId) return;
-    elDesa.disabled = true;
-    elDesa.innerHTML = '<option value="">Memuat desa...</option>';
+// async function loadDesa(kecId) {
+//     if (!kecId) return;
+//     elDesa.disabled = true;
+//     elDesa.innerHTML = '<option value="">Memuat desa...</option>';
 
-    try {
-        // Desa: ambil langsung dari Emsifa v2 (sudah termasuk postal_code)
-        let data;
-        try {
-            const r = await fetch(`${BASE_URL_EMSIFA_V2}/villages/${kecId}.json`);
-            if (!r.ok) throw new Error('HTTP ' + r.status);
-            const j = await r.json();
-            data = j.data || j;
-        } catch (e) {
-            console.warn('Emsifa villages gagal, coba API lokal...', e);
-            data = await fetchWilayahData(
-                `/api/wilayah/villages/${kecId}`,
-                `${BASE_URL_EMSIFA_V2}/villages/${kecId}.json`
-            );
-        }
-        populateSelect(elDesa, data, oldDesa, '-- Pilih Desa / Kelurahan --');
-        elDesa.disabled = false;
-        if (oldDesa && elDesa.value) loadKodePos();
-    } catch (e) {
-        console.error('Gagal memuat data desa:', e);
-        elDesa.innerHTML = '<option value="">Gagal memuat data</option>';
-    }
-}
+//     try {
+//         // Desa: ambil langsung dari Emsifa v2 (sudah termasuk postal_code)
+//         let data;
+//         try {
+//             const r = await fetch(`${BASE_URL_EMSIFA_V2}/villages/${kecId}.json`);
+//             if (!r.ok) throw new Error('HTTP ' + r.status);
+//             const j = await r.json();
+//             data = j.data || j;
+//         } catch (e) {
+//             console.warn('Emsifa villages gagal, coba API lokal...', e);
+//             data = await fetchWilayahData(
+//                 `/api/wilayah/villages/${kecId}`,
+//                 `${BASE_URL_EMSIFA_V2}/villages/${kecId}.json`
+//             );
+//         }
+//         populateSelect(elDesa, data, oldDesa, '-- Pilih Desa / Kelurahan --');
+//         elDesa.disabled = false;
+//         if (oldDesa && elDesa.value) loadKodePos();
+//     } catch (e) {
+//         console.error('Gagal memuat data desa:', e);
+//         elDesa.innerHTML = '<option value="">Gagal memuat data</option>';
+//     }
+// }
 
-elKab.addEventListener('change', function () {
-    const id = getSelectedId(this);
-    resetKodePos();
-    if (id) {
-        loadKecamatan(id);
-    } else {
-        elKec.innerHTML = '<option value="">-- Pilih Kecamatan --</option>';
-        elKec.disabled = true;
-        elDesa.innerHTML = '<option value="">-- Pilih Desa / Kelurahan --</option>';
-        elDesa.disabled = true;
-    }
-});
+// elKab.addEventListener('change', function () {
+//     const id = getSelectedId(this);
+//     resetKodePos();
+//     if (id) {
+//         loadKecamatan(id);
+//     } else {
+//         elKec.innerHTML = '<option value="">-- Pilih Kecamatan --</option>';
+//         elKec.disabled = true;
+//         elDesa.innerHTML = '<option value="">-- Pilih Desa / Kelurahan --</option>';
+//         elDesa.disabled = true;
+//     }
+// });
 
-elKec.addEventListener('change', function () {
-    const id = getSelectedId(this);
-    resetKodePos();
-    if (id) {
-        loadDesa(id);
-    } else {
-        elDesa.innerHTML = '<option value="">-- Pilih Desa / Kelurahan --</option>';
-        elDesa.disabled = true;
-    }
-});
+// elKec.addEventListener('change', function () {
+//     const id = getSelectedId(this);
+//     resetKodePos();
+//     if (id) {
+//         loadDesa(id);
+//     } else {
+//         elDesa.innerHTML = '<option value="">-- Pilih Desa / Kelurahan --</option>';
+//         elDesa.disabled = true;
+//     }
+// });
 
-elDesa.addEventListener('change', loadKodePos);
+// elDesa.addEventListener('change', loadKodePos);
 
-const normKab = t => (t || '').toUpperCase().replace(/[^A-Z]/g, '').replace(/^(KABUPATEN|KAB|KOTA)/, '');
+// const normKab = t => (t || '').toUpperCase().replace(/[^A-Z]/g, '').replace(/^(KABUPATEN|KAB|KOTA)/, '');
 
-// Ambil ID kab/kota langsung dari Emsifa v2 (tidak hardcode, ID v2 berbeda dari ID lama)
-async function assignKabupatenIds() {
-    const res = await fetch(`${BASE_URL_EMSIFA_V2}/regencies/15.json`);
-    const json = await res.json();
-    const list = json.data || json;
-    const map = {};
-    list.forEach(r => { map[normKab(r.name)] = r.id; });
+// // Ambil ID kab/kota langsung dari Emsifa v2 (tidak hardcode, ID v2 berbeda dari ID lama)
+// async function assignKabupatenIds() {
+//     const res = await fetch(`${BASE_URL_EMSIFA_V2}/regencies/15.json`);
+//     const json = await res.json();
+//     const list = json.data || json;
+//     const map = {};
+//     list.forEach(r => { map[normKab(r.name)] = r.id; });
 
-    Array.from(elKab.options).forEach(o => {
-        if (!o.value) return;
-        const id = map[normKab(o.value)];
-        if (id) o.dataset.id = id;
-        else console.warn('ID kab/kota tidak ditemukan untuk:', o.value);
-    });
-}
+//     Array.from(elKab.options).forEach(o => {
+//         if (!o.value) return;
+//         const id = map[normKab(o.value)];
+//         if (id) o.dataset.id = id;
+//         else console.warn('ID kab/kota tidak ditemukan untuk:', o.value);
+//     });
+// }
 
-async function initRegionDropdowns() {
-    try {
-        await assignKabupatenIds();
-    } catch (e) {
-        console.error('Gagal memuat daftar kab/kota dari Emsifa:', e);
-    }
-    const selectedKabId = getSelectedId(elKab);
-    if (selectedKabId) loadKecamatan(selectedKabId);
-}
+// async function initRegionDropdowns() {
+//     try {
+//         await assignKabupatenIds();
+//     } catch (e) {
+//         console.error('Gagal memuat daftar kab/kota dari Emsifa:', e);
+//     }
+//     const selectedKabId = getSelectedId(elKab);
+//     if (selectedKabId) loadKecamatan(selectedKabId);
+// }
 
 /* =========================================================
    3. STEPPER WIZARD
@@ -1145,18 +1122,11 @@ function initNikLiveValidation() {
    ========================================================= */
 function bootstrapForm() {
     showStep(1);
-    try { resetKodePos(); } catch (e) { console.error('resetKodePos:', e); }
-
-    try { initRegionDropdowns(); } catch (e) { console.error('initRegionDropdowns:', e); }
-
     try {
         if (typeof L !== 'undefined') {
             initMapPicker();
-        } else {
-            console.error('Leaflet (L) belum ter-load');
         }
     } catch (e) { console.error('initMapPicker:', e); }
-
     try { initNikLiveValidation(); } catch (e) { console.error('initNikLiveValidation:', e); }
     try { initOfflineQueue(); } catch (e) { console.error('initOfflineQueue:', e); }
 
@@ -1165,7 +1135,6 @@ function bootstrapForm() {
         const errorKeys = @json($errors->keys());
         const step3Fields = ['foto_ktp', 'foto_sktm', 'foto_rumah_depan', 'foto_kwh_rumah_terdekat', 'foto_tiang_rumah_terdekat', 'persetujuan'];
         const step2Fields = ['latitude', 'longitude'];
-
         if (errorKeys.some(k => step3Fields.includes(k))) showStep(3);
         else if (errorKeys.some(k => step2Fields.includes(k))) showStep(2);
         else showStep(1);
@@ -1173,10 +1142,5 @@ function bootstrapForm() {
     @endif
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bootstrapForm);
-} else {
-    bootstrapForm();
-}
 </script>
 @endsection

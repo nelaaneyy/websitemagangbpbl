@@ -16,7 +16,7 @@
                         @if(request()->routeIs('admin.index'))
                             <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full"></span>
                         @endif
-                        <i class="fa-solid fa-chart-pie text-sm w-4 text-center {{ request()->routeIs('admin.index') ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300' }}"></i>
+                        <i class="fa-solid fa-chart-pie text-sm w-4 text-center {{ request()->routeIs('admin.index') ? 'text-amber-400' : 'text-slate-200 group-hover:text-slate-100' }}"></i>
                         <span>Dasbor Analisis & KPI</span>
                     </a>
 
@@ -25,7 +25,7 @@
                         @if(request()->routeIs('admin.datalist') || request()->routeIs('admin.show'))
                             <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full"></span>
                         @endif
-                        <i class="fa-solid fa-table-list text-sm w-4 text-center {{ request()->routeIs('admin.datalist') ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300' }}"></i>
+                        <i class="fa-solid fa-table-list text-sm w-4 text-center {{ request()->routeIs('admin.datalist') ? 'text-amber-400' : 'text-slate-200 group-hover:text-slate-100' }}"></i>
                         <span>Permohonan BPBL</span>
                     </a>
                 </div>
@@ -42,7 +42,7 @@
                         @if(request()->routeIs('admin.lisdes.*'))
                             <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full"></span>
                         @endif
-                        <i class="fa-solid fa-tower-cell text-sm w-4 text-center {{ request()->routeIs('admin.lisdes.*') ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300' }}"></i>
+                        <i class="fa-solid fa-tower-cell text-sm w-4 text-center {{ request()->routeIs('admin.lisdes.*') ? 'text-amber-400' : 'text-slate-200 group-hover:text-slate-100' }}"></i>
                         <span>Usulan Listrik Desa</span>
                     </a>
 
@@ -51,7 +51,7 @@
                         @if(request()->routeIs('admin.users.*'))
                             <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full"></span>
                         @endif
-                        <i class="fa-solid fa-users-gear text-sm w-4 text-center {{ request()->routeIs('admin.users.*') ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300' }}"></i>
+                        <i class="fa-solid fa-users-gear text-sm w-4 text-center {{ request()->routeIs('admin.users.*') ? 'text-amber-400' : 'text-slate-200 group-hover:text-slate-100' }}"></i>
                         <span>Verifikasi Akun Desa</span>
                     </a>
 
@@ -64,7 +64,7 @@
                             <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full"></span>
                         @endif
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-clipboard-check text-sm w-4 text-center {{ request()->routeIs('admin.validasi_realisasi.*') ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300' }}"></i>
+                            <i class="fa-solid fa-clipboard-check text-sm w-4 text-center {{ request()->routeIs('admin.validasi_realisasi.*') ? 'text-amber-400' : 'text-slate-200 group-hover:text-slate-100' }}"></i>
                             <span>Validasi Realisasi</span>
                         </div>
                         @if($pendingValidasiCount > 0)
@@ -79,7 +79,7 @@
                         @if(request()->routeIs('admin.historis.*'))
                             <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full"></span>
                         @endif
-                        <i class="fa-solid fa-clock-rotate-left text-sm w-4 text-center {{ request()->routeIs('admin.historis.*') ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300' }}"></i>
+                        <i class="fa-solid fa-clock-rotate-left text-sm w-4 text-center {{ request()->routeIs('admin.historis.*') ? 'text-amber-400' : 'text-slate-200 group-hover:text-slate-100' }}"></i>
                         <span>Arsip Historis</span>
                     </a>
 
@@ -88,7 +88,7 @@
                         @if(request()->routeIs('admin.audit_logs.*'))
                             <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full"></span>
                         @endif
-                        <i class="fa-solid fa-shield-halved text-sm w-4 text-center {{ request()->routeIs('admin.audit_logs.*') ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300' }}"></i>
+                        <i class="fa-solid fa-shield-halved text-sm w-4 text-center {{ request()->routeIs('admin.audit_logs.*') ? 'text-amber-400' : 'text-slate-200 group-hover:text-slate-100' }}"></i>
                         <span>Log Aktivitas & Audit</span>
                     </a>
 
@@ -129,7 +129,7 @@
                         @if(request()->routeIs('verifikator.index'))
                             <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full"></span>
                         @endif
-                        <i class="fa-solid fa-chart-pie text-sm w-4 text-center {{ request()->routeIs('verifikator.index') ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300' }}"></i>
+                        <i class="fa-solid fa-chart-pie text-sm w-4 text-center {{ request()->routeIs('verifikator.index') ? 'text-amber-400' : 'text-slate-200 group-hover:text-slate-100' }}"></i>
                         <span>Dasbor Analisis & KPI</span>
                     </a>
 
@@ -137,7 +137,7 @@
                         @if(request()->routeIs('verifikator.datalist', 'admin.datalist') || request()->routeIs('verifikator.show', 'admin.show'))
                             <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full"></span>
                         @endif
-                        <i class="fa-solid fa-table-list text-sm w-4 text-center {{ request()->routeIs('verifikator.datalist', 'admin.datalist') ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300' }}"></i>
+                        <i class="fa-solid fa-table-list text-sm w-4 text-center {{ request()->routeIs('verifikator.datalist', 'admin.datalist') ? 'text-amber-400' : 'text-slate-200 group-hover:text-slate-100' }}"></i>
                         <span>Verifikasi Permohonan</span>
                     </a>
                 </div>
@@ -154,16 +154,16 @@
                         @if(request()->routeIs('verifikator.lisdes.*'))
                             <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full"></span>
                         @endif
-                        <i class="fa-solid fa-tower-cell text-sm w-4 text-center {{ request()->routeIs('verifikator.lisdes.*') ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300' }}"></i>
+                        <i class="fa-solid fa-tower-cell text-sm w-4 text-center {{ request()->routeIs('verifikator.lisdes.*') ? 'text-amber-400' : 'text-slate-200 group-hover:text-slate-100' }}"></i>
                         <span>Usulan Listrik Desa</span>
                     </a>
 
                     <a href="{{ route('verifikator.users.index') }}"
-                       class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 {{ request()->routeIs('verifikator.users.*') ? 'bg-slate-800/80 text-white font-semibold border border-slate-700/60 shadow-xs' : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-200' }}">
+                       class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 {{ request()->routeIs('verifikator.users.*') ? 'bg-slate-800/80 text-white font-semibold border border-slate-700/60 shadow-xs' : 'text-slate-200 hover:bg-slate-800/40 hover:text-slate-100' }}">
                         @if(request()->routeIs('verifikator.users.*'))
                             <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full"></span>
                         @endif
-                        <i class="fa-solid fa-users-gear text-sm w-4 text-center {{ request()->routeIs('verifikator.users.*') ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300' }}"></i>
+                        <i class="fa-solid fa-users-gear text-sm w-4 text-center {{ request()->routeIs('verifikator.users.*') ? 'text-amber-400' : 'text-slate-200 group-hover:text-slate-100' }}"></i>
                         <span>Verifikasi Akun Desa</span>
                     </a>
 
@@ -171,12 +171,12 @@
                         $pendingValidasiCount = \App\Models\Warga::butuhValidasiRealisasi()->count();
                     @endphp
                     <a href="{{ route('verifikator.validasi_realisasi.index') }}"
-                       class="group relative flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 {{ request()->routeIs('verifikator.validasi_realisasi.*') ? 'bg-slate-800/80 text-white font-semibold border border-slate-700/60 shadow-xs' : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-200' }}">
+                       class="group relative flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 {{ request()->routeIs('verifikator.validasi_realisasi.*') ? 'bg-slate-800/80 text-white font-semibold border border-slate-700/60 shadow-xs' : 'text-slate-200 hover:bg-slate-800/40 hover:text-slate-100' }}">
                         @if(request()->routeIs('verifikator.validasi_realisasi.*'))
                             <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full"></span>
                         @endif
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-clipboard-check text-sm w-4 text-center {{ request()->routeIs('verifikator.validasi_realisasi.*') ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300' }}"></i>
+                            <i class="fa-solid fa-clipboard-check text-sm w-4 text-center {{ request()->routeIs('verifikator.validasi_realisasi.*') ? 'text-amber-400' : 'text-slate-200 group-hover:text-slate-100' }}"></i>
                             <span>Validasi Realisasi</span>
                         </div>
                         @if($pendingValidasiCount > 0)
@@ -191,7 +191,7 @@
                         @if(request()->routeIs('verifikator.historis.*'))
                             <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full"></span>
                         @endif
-                        <i class="fa-solid fa-clock-rotate-left text-sm w-4 text-center {{ request()->routeIs('verifikator.historis.*') ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300' }}"></i>
+                        <i class="fa-solid fa-clock-rotate-left text-sm w-4 text-center {{ request()->routeIs('verifikator.historis.*') ? 'text-amber-400' : 'text-slate-200 group-hover:text-slate-100' }}"></i>
                         <span>Arsip Historis</span>
                     </a>
                 </div>

@@ -29,7 +29,7 @@
                     <p
                         class="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0 font-normal">
                         Portal resmi Dinas Energi dan Sumber Daya Mineral (ESDM) Provinsi Jambi untuk penyaluran program
-                        Bantuan Pasang Listrik Baru dan Bantuan Listrik Desa (Lisdes) bagi masyarakat kurang mampu di
+                        Bantuan Pasang Listrik Baru bagi masyarakat tidak mampu di
                         wilayah Provinsi Jambi.
                     </p>
 
@@ -61,7 +61,7 @@
                 <div class="lg:col-span-5 w-full mt-4 lg:mt-0">
                     <div
                         class="bg-white/80 backdrop-blur-md border-2 border-slate-300 shadow-lg rounded-3xl text-slate-700 space-y-4 flex flex-col items-center justify-center text-center hover:border-amber-400/80 transition-all duration-300 relative group overflow-hidden">
-                        <img src="{{ asset('images/Listrik Hadir, Jambi Terang (2).png') }}" alt="poster program elektrikfikasi DESDM Provinsi Jambi"
+                        <img src="{{ asset('images/Listrik Hadir, Jambi Terang (2)(1).png') }}" alt="poster program elektrikfikasi DESDM Provinsi Jambi"
                                 class="w-full h-auto rounded-xl shadow-sm">
                     </div>
                 </div>
@@ -71,13 +71,12 @@
     </section>
 
     <!-- SECTION B: OPSI LAYANAN PROGRAM -->
-    <section id="program-bantuan" class="py-12 sm:py-16 bg-white border-b border-slate-200/80"
-        x-data="{ openLisdesModal: false }">
+    {{-- <section id="program-bantuan" class="py-12 sm:py-16 bg-white border-b border-slate-200/80">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
             <div class="text-center max-w-3xl mx-auto space-y-2">
                 <span
                     class="px-3.5 py-1 bg-amber-100 text-amber-900 font-extrabold text-xs rounded-full uppercase tracking-wider border border-amber-300">
-                    Opsi Layanan Program
+                    Layanan Program
                 </span>
                 <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Kategori Program Bantuan
                     Listrik Dinas Energi dan Sumber Daya Mineral (ESDM) Provinsi Jambi</h2>
@@ -247,7 +246,7 @@
             </div>
 
         </div>
-    </section>
+    </section> --}}
 
     <!-- SECTION C: 4 TAHAPAN PROSES BANTUAN -->
     <section id="tahapan-proses" class="py-12 sm:py-16 bg-[#F8FAFC] border-b border-slate-200/80"

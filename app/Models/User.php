@@ -17,6 +17,8 @@ class User extends Authenticatable
         'password',
         'role',
         'desa',
+        'kabupaten',
+        'kecamatan',
         'no_hp',
         'sk_file',
         'status',

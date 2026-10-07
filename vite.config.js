@@ -10,4 +10,15 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    // server: {
+    //     host: '0.0.0.0',
+    //     cors: true,
+    // hmr: {
+    //     host: '192.168.1.47',
+
+    //   },
+    // },
+
+    // to activate just type 'npx vite --host and unblock server in this file,
+    // and type php artisan serve --host=0.0.0.0 --port=8000 at another terminal'
 });
